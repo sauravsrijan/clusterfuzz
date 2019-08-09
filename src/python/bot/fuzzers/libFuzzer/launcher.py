@@ -260,19 +260,13 @@ def copy_from_corpus(dest_corpus_path, src_corpus_path, num_testcases):
     shutil.copy(os.path.join(to_copy), os.path.join(dest_corpus_path, str(i)))
 
 
-def get_corpus_directories(main_corpus_directory,
-                           new_testcases_directory,
-                           fuzzer_path,
-                           fuzzing_strategies,
-                           strategy_pool,
-                           minijail_chroot=None,
-                           allow_corpus_subset=True):
-  """Return a list of corpus directories to be passed to the fuzzer binary for
-  fuzzing."""
-  corpus_directories = []
-
-  corpus_directories.append(new_testcases_directory)
-
+def get_corpus_directory(main_corpus_directory,
+                         fuzzer_path,
+                         fuzzing_strategies,
+                         strategy_pool,
+                         minijail_chroot=None,
+                         allow_corpus_subset=True):
+  """Return a corpus directory to be passed to the fuzzer binary for fuzzing."""
   # Check for seed corpus and add it into corpus directory.
   engine_common.unpack_seed_corpus_if_needed(fuzzer_path, main_corpus_directory)
 
@@ -287,19 +281,19 @@ def get_corpus_directories(main_corpus_directory,
     corpus_subset_directory = create_corpus_directory('subset')
     copy_from_corpus(corpus_subset_directory, main_corpus_directory,
                      subset_size)
-    corpus_directories.append(corpus_subset_directory)
+    corpus_directory = corpus_subset_directory
     fuzzing_strategies.append(strategy.CORPUS_SUBSET_STRATEGY.name + '_' +
                               str(subset_size))
     if minijail_chroot:
       bind_corpus_dirs(minijail_chroot, [main_corpus_directory])
   else:
     # Regular fuzzing with the full main corpus directory.
-    corpus_directories.append(main_corpus_directory)
+    corpus_directory = main_corpus_directory
 
   if minijail_chroot:
-    bind_corpus_dirs(minijail_chroot, corpus_directories)
+    bind_corpus_dirs(minijail_chroot, [corpus_directory])
 
-  return corpus_directories
+  return corpus_directory
 
 
 def remove_fuzzing_arguments(arguments):
@@ -503,40 +497,12 @@ def use_mutator_plugin(target_name, extra_env, chroot):
   return True
 
 
-def get_merge_directory():
-  """Returns the path of the directory we can use for merging."""
-  temp_dir = fuzzer_utils.get_temp_dir()
-  return os.path.join(temp_dir, MERGE_DIRECTORY_NAME)
-
-
-def create_merge_directory():
-  """Create the merge directory and return its path."""
-  merge_directory_path = get_merge_directory()
-  shell.create_directory(
-      merge_directory_path, create_intermediates=True, recreate=True)
-  return merge_directory_path
-
-
 def is_sha1_hash(possible_hash):
   """Returns True if |possible_hash| looks like a valid sha1 hash."""
   if len(possible_hash) != 40:
     return False
 
   return all(char in HEXDIGITS_SET for char in possible_hash)
-
-
-def move_mergeable_units(merge_directory, corpus_directory):
-  """Move new units in |merge_directory| into |corpus_directory|."""
-  initial_units = set(
-      os.path.basename(filename)
-      for filename in shell.get_files_list(corpus_directory))
-
-  for unit_path in shell.get_files_list(merge_directory):
-    unit_name = os.path.basename(unit_path)
-    if unit_name in initial_units and is_sha1_hash(unit_name):
-      continue
-    dest_path = os.path.join(corpus_directory, unit_name)
-    shell.move(unit_path, dest_path)
 
 
 def pick_strategies(strategy_pool,
@@ -726,9 +692,6 @@ def main(argv):
     if os.path.exists(default_dict_path):
       arguments.append(constants.DICT_FLAG + default_dict_path)
 
-  # Set up scratch directory for writing new units.
-  new_testcases_directory = create_corpus_directory('new')
-
   # Strategy pool is the list of strategies that we attempt to enable, whereas
   # fuzzing strategies is the list of strategies that are enabled. (e.g. if
   # mutator is selected in the pool, but not available for a given target, it
@@ -747,18 +710,17 @@ def main(argv):
   fuzz_timeout = get_fuzz_timeout(strategy_info.is_mutations_run)
 
   # Get list of corpus directories.
+  corpus_directories = []
   # TODO(flowerhack): Implement this to handle corpus sync'ing.
-  if environment.platform() == 'FUCHSIA':
-    corpus_directories = []
-  else:
-    corpus_directories = get_corpus_directories(
-        corpus_directory,
-        new_testcases_directory,
-        fuzzer_path,
-        strategy_info.fuzzing_strategies,
-        strategy_pool,
-        minijail_chroot=minijail_chroot,
-        allow_corpus_subset=not strategy_info.use_dataflow_tracing)
+  if environment.platform() != 'FUCHSIA':
+    corpus_directories.append(
+        get_corpus_directory(
+            corpus_directory,
+            fuzzer_path,
+            strategy_info.fuzzing_strategies,
+            strategy_pool,
+            minijail_chroot=minijail_chroot,
+            allow_corpus_subset=not strategy_info.use_dataflow_tracing))
 
   corpus_directories.extend(strategy_info.additional_corpus_dirs)
 
@@ -843,12 +805,14 @@ def main(argv):
 
   # Make a decision on whether merge step is needed at all. If there are no
   # new units added by libFuzzer run, then no need to do merge at all.
-  new_units_added = shell.get_directory_file_count(new_testcases_directory)
   merge_error = None
-  if new_units_added:
-    # Merge the new units with the initial corpus.
-    if corpus_directory not in corpus_directories:
-      corpus_directories.append(corpus_directory)
+  if parsed_stats.get('new_units_added'):
+    # Merge the new units back into the corpus.
+    # For merge, main corpus directory should be passed first of all corpus
+    # directories.
+    if corpus_directory in corpus_directories:
+      corpus_directories.remove(corpus_directory)
+    corpus_directories = [corpus_directory] + corpus_directories
 
     # If this times out, it's possible that we will miss some units. However, if
     # we're taking >10 minutes to load/merge the corpus something is going very
@@ -860,32 +824,17 @@ def main(argv):
       merge_tmp_dir = os.path.join(fuzzer_utils.get_temp_dir(), 'merge_workdir')
       engine_common.recreate_directory(merge_tmp_dir)
 
-    old_corpus_len = shell.get_directory_file_count(corpus_directory)
-    merge_directory = create_merge_directory()
-    corpus_directories.insert(0, merge_directory)
-
-    if use_minijail:
-      bind_corpus_dirs(minijail_chroot, [merge_directory])
-
     merge_result = runner.merge(
         corpus_directories,
         merge_timeout=engine_common.get_merge_timeout(DEFAULT_MERGE_TIMEOUT),
         tmp_dir=merge_tmp_dir,
         additional_args=arguments)
 
-    move_mergeable_units(merge_directory, corpus_directory)
-    new_corpus_len = shell.get_directory_file_count(corpus_directory)
-    new_units_added = 0
-
     merge_error = None
     if merge_result.timed_out:
       merge_error = 'Merging new testcases timed out:'
     elif merge_result.return_code != 0:
       merge_error = 'Merging new testcases failed:'
-    else:
-      new_units_added = new_corpus_len - old_corpus_len
-
-    stat_overrides['new_units_added'] = new_units_added
 
     if merge_result.output:
       stat_overrides.update(
@@ -944,9 +893,10 @@ def main(argv):
     minijail_chroot.close()
 
   # Record the stats to make them easily searchable in stackdriver.
-  if new_units_added:
+  if parsed_stats['new_units_added']:
     logs.log(
-        'New units added to corpus: %d.' % new_units_added, stats=parsed_stats)
+        'New units added to corpus: %d.' % parsed_stats['new_units_added'],
+        stats=parsed_stats)
   else:
     logs.log('No new units found.', stats=parsed_stats)
 
