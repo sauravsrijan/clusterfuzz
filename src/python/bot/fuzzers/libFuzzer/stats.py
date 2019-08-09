@@ -47,10 +47,12 @@ LIBFUZZER_LOG_DICTIONARY_REGEX = re.compile(r'Dictionary: \d+ entries')
 LIBFUZZER_LOG_END_REGEX = re.compile(r'Done \d+ runs.*')
 LIBFUZZER_LOG_IGNORE_REGEX = re.compile(r'.*WARNING:.*Sanitizer')
 LIBFUZZER_LOG_LINE_REGEX = re.compile(r'^#\d+.*(READ|cov:)')
+LIBFUZZER_LOG_LOADED_REGEX = re.compile(
+    r'#\d+\s+LOADED\s+cov:\s+(\d+)\s+ft:\s+(\d+).*')
 LIBFUZZER_LOG_SEED_CORPUS_INFO_REGEX = re.compile(
     r'INFO:\s+seed corpus:\s+files:\s+(\d+).*rss:\s+(\d+)Mb.*')
 LIBFUZZER_LOG_START_INITED_REGEX = re.compile(
-    r'#\d+\s+INITED\s+cov:\s+(\d+)\s+ft:\s+(\d+).*')
+    r'#\d+\s+INITED\s+.*')
 LIBFUZZER_MERGE_LOG_EDGE_COVERAGE_REGEX = re.compile(r'#\d+.*cov:\s+(\d+).*')
 LIBFUZZER_MODULES_LOADED_REGEX = re.compile(
     r'^INFO:\s+Loaded\s+\d+\s+(modules|PC tables)\s+\((\d+)\s+.*\).*')
@@ -251,7 +253,7 @@ def parse_performance_features(log_lines, strategies, arguments):
       stats['startup_crash_count'] = 0
       stats['edges_total'] = int(match.group(2))
 
-    match = LIBFUZZER_LOG_START_INITED_REGEX.match(line)
+    match = LIBFUZZER_LOG_LOADED_REGEX.match(line)
     if match:
       stats['initial_edge_coverage'] = stats['edge_coverage'] = int(
           match.group(1))
@@ -285,18 +287,13 @@ def parse_performance_features(log_lines, strategies, arguments):
   if has_corpus and not stats['log_lines_from_engine']:
     stats['corpus_crash_count'] = 1
 
-  # new_edges and new_features may not be correct when either corpus subset or
-  # random max length strategy is used. Skip recording these stats in such case.
-  # See https://github.com/google/clusterfuzz/issues/802.
-  if (not stats['strategy_corpus_subset'] and
-      not stats['strategy_random_max_len']):
-    assert stats['edge_coverage'] >= stats['initial_edge_coverage']
-    stats['new_edges'] = (
-        stats['edge_coverage'] - stats['initial_edge_coverage'])
+  assert stats['edge_coverage'] >= stats['initial_edge_coverage']
+  stats['new_edges'] = (
+      stats['edge_coverage'] - stats['initial_edge_coverage'])
 
-    assert stats['feature_coverage'] >= stats['initial_feature_coverage']
-    stats['new_features'] = (
-        stats['feature_coverage'] - stats['initial_feature_coverage'])
+  assert stats['feature_coverage'] >= stats['initial_feature_coverage']
+  stats['new_features'] = (
+      stats['feature_coverage'] - stats['initial_feature_coverage'])
 
   return stats
 
