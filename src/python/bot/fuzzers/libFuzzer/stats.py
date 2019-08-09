@@ -50,7 +50,8 @@ LIBFUZZER_LOG_SEED_CORPUS_INFO_REGEX = re.compile(
     r'INFO:\s+seed corpus:\s+files:\s+(\d+).*rss:\s+(\d+)Mb.*')
 LIBFUZZER_LOG_START_INITED_REGEX = re.compile(
     r'#\d+\s+INITED\s+cov:\s+(\d+)\s+ft:\s+(\d+).*')
-LIBFUZZER_MERGE_LOG_EDGE_COVERAGE_REGEX = re.compile(r'#\d+.*cov:\s+(\d+).*')
+LIBFUZZER_MERGE_LOG_EDGE_COVERAGE_REGEX = re.compile(
+    r'#\d+.*cov:\s+(\d+)\s+ft:\s+(\d+).*')
 LIBFUZZER_MERGE_LOG_LOADED_EDGE_COVERAGE_REGEX = re.compile(
     r'#\d+\s+LOADED\s+cov:\s+(\d+)\s+ft:\s+(\d+).*')
 LIBFUZZER_MERGE_LOG_FINAL_STATS_REGEX = re.compile(

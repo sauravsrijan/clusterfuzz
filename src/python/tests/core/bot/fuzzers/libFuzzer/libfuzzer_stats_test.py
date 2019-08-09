@@ -39,6 +39,12 @@ class PerformanceStatsTest(unittest.TestCase):
     actual_stats = stats.parse_stats_from_merge_log(lines)
 
     expected_stats = {
-        'merge_edge_coverage': 683,
+        'edge_coverage': 611,
+        'feature_coverage': 4016,
+        'initial_edge_coverage': 602,
+        'initial_feature_coverage': 3936,
+        'new_edges': 9,
+        'new_features': 80,
+        'new_units_added': 9
     }
     self.assertEqual(expected_stats, actual_stats)
