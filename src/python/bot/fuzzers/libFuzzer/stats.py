@@ -42,7 +42,6 @@ LIBFUZZER_TIMEOUT_TESTCASE_REGEX = re.compile(
 
 # Regular expressions to detect different sections of logs.
 LIBFUZZER_FUZZING_STRATEGIES = re.compile(r'cf::fuzzing_strategies:\s*(.*)')
-LIBFUZZER_LOG_COVERAGE_REGEX = re.compile(r'#\d+.*cov:\s+(\d+)\s+ft:\s+(\d+).*')
 LIBFUZZER_LOG_DICTIONARY_REGEX = re.compile(r'Dictionary: \d+ entries')
 LIBFUZZER_LOG_END_REGEX = re.compile(r'Done \d+ runs.*')
 LIBFUZZER_LOG_IGNORE_REGEX = re.compile(r'.*WARNING:.*Sanitizer')
@@ -53,7 +52,10 @@ LIBFUZZER_LOG_START_INITED_REGEX = re.compile(
     r'#\d+\s+INITED\s+cov:\s+(\d+)\s+ft:\s+(\d+).*')
 LIBFUZZER_MERGE_LOG_EDGE_COVERAGE_REGEX = re.compile(r'#\d+.*cov:\s+(\d+).*')
 LIBFUZZER_MERGE_LOG_LOADED_EDGE_COVERAGE_REGEX = re.compile(
-    r'#\d+\s+LOADED\s+cov:\s+(\d+).*')
+    r'#\d+\s+LOADED\s+cov:\s+(\d+)\s+ft:\s+(\d+).*')
+LIBFUZZER_MERGE_LOG_FINAL_STATS_REGEX = re.compile(
+    r'MERGE-OUTER:\s+(\d+)\s+new files with\s+(\d+)\s+new features added;'
+    r'\s+(\d+)\s+new coverage edges.*')
 LIBFUZZER_MODULES_LOADED_REGEX = re.compile(
     r'^INFO:\s+Loaded\s+\d+\s+(modules|PC tables)\s+\((\d+)\s+.*\).*')
 
@@ -213,7 +215,6 @@ def parse_performance_features(log_lines, strategies, arguments):
 
   # Different crashes and other flags extracted via regexp match.
   has_corpus = False
-  libfuzzer_inited = False
   for line in log_lines:
     if LIBFUZZER_BAD_INSTRUMENTATION_REGEX.match(line):
       stats['bad_instrumentation'] = 1
@@ -253,22 +254,6 @@ def parse_performance_features(log_lines, strategies, arguments):
       stats['startup_crash_count'] = 0
       stats['edges_total'] = int(match.group(2))
 
-    match = LIBFUZZER_LOG_START_INITED_REGEX.match(line)
-    if match:
-      stats['initial_feature_coverage'] = stats['feature_coverage'] = int(
-          match.group(2))
-      libfuzzer_inited = True
-      continue
-
-    # This regexp will match multiple lines and will be overwriting the stats.
-    # This is done on purpose, as the last line in the log may have different
-    # format, e.g. 'DONE' without a crash and 'NEW' or 'pulse' with a crash.
-    # Also, ignore values before INITED i.e. while seed corpus is being read.
-    match = LIBFUZZER_LOG_COVERAGE_REGEX.match(line)
-    if match and libfuzzer_inited:
-      stats['feature_coverage'] = int(match.group(2))
-      continue
-
     if (LIBFUZZER_TIMEOUT_TESTCASE_REGEX.match(line) or
         stack_analyzer.LIBFUZZER_TIMEOUT_REGEX.match(line)):
       stats['timeout_count'] = 1
@@ -300,23 +285,25 @@ def parse_stats_from_merge_log(log_lines):
   stats = {}
   loaded_initial_coverage = False
   for line in log_lines:
-    # Do not record any stats until the first corpus directory is LOADED.
+    # This final line should have all new_* values which are the most important.
+    match = LIBFUZZER_MERGE_LOG_FINAL_STATS_REGEX.match(line)
+    if match:
+      stats['new_units_added'] = int(match.group(1))
+      stats['new_features'] = int(match.group(2))
+      stats['new_edges'] = int(match.group(3))
+
     if not loaded_initial_coverage:
       match = LIBFUZZER_MERGE_LOG_LOADED_EDGE_COVERAGE_REGEX.match(line)
       if match:
-        stats['initial_edge_coverage'] = int(match.group(1))
-        stats['edge_coverage'] = stats['initial_edge_coverage']
+        stats['edge_coverage'] = stats['initial_edge_coverage'] = int(
+            match.group(1))
+        stats['feature_coverage'] = stats['initial_feature_coverage'] = int(
+            match.group(2))
         loaded_initial_coverage = True
     else:
       match = LIBFUZZER_MERGE_LOG_EDGE_COVERAGE_REGEX.match(line)
       if match:
         stats['edge_coverage'] = int(match.group(1))
-
-  if not loaded_initial_coverage:
-    # The stats are supposed to be empty in this case, the merge likely failed.
-    return {}
-
-  assert stats['edge_coverage'] >= stats['initial_edge_coverage']
-  stats['new_edges'] = stats['edge_coverage'] - stats['initial_edge_coverage']
+        stats['feature_coverage'] = int(match.group(2))
 
   return stats
