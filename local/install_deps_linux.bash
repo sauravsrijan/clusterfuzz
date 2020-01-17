@@ -28,9 +28,9 @@ while [ "$1" != "" ]; do
 done
 
 # Check for lsb_release command in $PATH.
-if ! which lsb_release > /dev/null; then
+if ! which lsb_release >/dev/null; then
   echo "ERROR: lsb_release not found in \$PATH" >&2
-  exit 1;
+  exit 1
 fi
 
 # Check if the distro is supported.
@@ -38,8 +38,8 @@ distro_codename=$(lsb_release --codename --short)
 distro_id=$(lsb_release --id --short)
 supported_codenames="(trusty|xenial|artful|bionic|cosmic)"
 supported_ids="(Debian)"
-if [[ ! $distro_codename =~ $supported_codenames &&
-      ! $distro_id =~ $supported_ids ]]; then
+if [[ ! $distro_codename =~ $supported_codenames && ! \
+  $distro_id =~ $supported_ids ]]; then
   echo -e "ERROR: The only supported distros are\n" \
     "\tUbuntu 14.04 LTS (trusty)\n" \
     "\tUbuntu 16.04 LTS (xenial)\n" \
@@ -64,22 +64,22 @@ if [ ! "$only_reproduce" ]; then
     prodaccess
     sudo glinux-add-repo docker-ce-"$distro_codename"
   else
-    curl -fsSL https://download.docker.com/linux/"${distro_id,,}"/gpg | \
-       sudo apt-key add -
+    curl -fsSL https://download.docker.com/linux/"${distro_id,,}"/gpg |
+      sudo apt-key add -
     sudo add-apt-repository -y \
-       "deb [arch=amd64] https://download.docker.com/linux/${distro_id,,} \
+      "deb [arch=amd64] https://download.docker.com/linux/${distro_id,,} \
        $distro_codename \
        stable"
 
-    echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" \
-        | sudo tee /etc/apt/sources.list.d/bazel.list
+    echo "deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8" |
+      sudo tee /etc/apt/sources.list.d/bazel.list
     curl https://bazel.build/bazel-release.pub.gpg | sudo apt-key add -
 
     export CLOUD_SDK_REPO="cloud-sdk-$distro_codename"
-    echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | \
-        sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | \
-        sudo apt-key add -
+    echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" |
+      sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg |
+      sudo apt-key add -
   fi
 
   # Set java_package so we know which to install.
@@ -93,12 +93,12 @@ if [ ! "$only_reproduce" ]; then
   # Install apt-get packages.
   sudo apt-get update
   sudo apt-get install -y \
-      bazel \
-      docker-ce \
-      google-cloud-sdk \
-      "$java_package"    \
-      liblzma-dev \
-      python-dev
+    bazel \
+    docker-ce \
+    google-cloud-sdk \
+    "$java_package" \
+    liblzma-dev \
+    python-dev
 
   # Install patchelf - latest version not available on some older distros so we
   # compile from source.
@@ -106,45 +106,45 @@ if [ ! "$only_reproduce" ]; then
   # target binary (using RPATH).
   unsupported_codenames="(trusty|xenial|jessie)"
   if [[ $distro_codename =~ $unsupported_codenames ]]; then
-      (cd /tmp && \
-          curl -sS https://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.bz2 \
-          | tar -C /tmp -xj && \
-          cd /tmp/patchelf-*/ && \
-          ./configure && \
-          sudo make install && \
-          sudo rm -rf /tmp/patchelf-*)
+    (cd /tmp &&
+      curl -sS https://nixos.org/releases/patchelf/patchelf-0.9/patchelf-0.9.tar.bz2 |
+      tar -C /tmp -xj &&
+      cd /tmp/patchelf-*/ &&
+      ./configure &&
+      sudo make install &&
+      sudo rm -rf /tmp/patchelf-*)
   else
-      sudo apt-get install -y patchelf
+    sudo apt-get install -y patchelf
   fi
 fi
 
 # Install other packages that we depend on unconditionally.
 sudo apt-get install -y \
-    blackbox \
-    python-pip \
-    python-virtualenv \
-    unzip \
-    xvfb
+  blackbox \
+  python-pip \
+  python-virtualenv \
+  unzip \
+  xvfb
 
 # Install gcloud dependencies.
 if gcloud components install --quiet beta; then
   gcloud components install --quiet \
-      app-engine-go \
-      app-engine-python \
-      app-engine-python-extras \
-      beta \
-      cloud-datastore-emulator \
-      pubsub-emulator
+    app-engine-go \
+    app-engine-python \
+    app-engine-python-extras \
+    beta \
+    cloud-datastore-emulator \
+    pubsub-emulator
 else
   # Either Cloud SDK component manager is disabled (default on GCE), or google-cloud-sdk package is
   # installed via apt-get.
   sudo apt-get install -y \
-      google-cloud-sdk-app-engine-go \
-      google-cloud-sdk-app-engine-python \
-      google-cloud-sdk-app-engine-python-extras \
-      google-cloud-sdk \
-      google-cloud-sdk-datastore-emulator \
-      google-cloud-sdk-pubsub-emulator
+    google-cloud-sdk-app-engine-go \
+    google-cloud-sdk-app-engine-python \
+    google-cloud-sdk-app-engine-python-extras \
+    google-cloud-sdk \
+    google-cloud-sdk-datastore-emulator \
+    google-cloud-sdk-pubsub-emulator
 fi
 
 # Setup virtualenv.
