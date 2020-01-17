@@ -451,9 +451,9 @@ _SCHEMA = {
 
 
 def get(engine_name):
-  """Get the schema for an engine name."""
-  schema = _SCHEMA.get(engine_name)
-  if not schema:
-    return None
+    """Get the schema for an engine name."""
+    schema = _SCHEMA.get(engine_name)
+    if not schema:
+        return None
 
-  return {'fields': schema}
+    return {'fields': schema}

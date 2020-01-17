@@ -23,8 +23,8 @@ BUILTIN_FUZZERS = {
 
 
 def get(fuzzer_name):
-  """Get the builtin fuzzer with the given name, or None."""
-  if fuzzer_name not in BUILTIN_FUZZERS:
-    return None
+    """Get the builtin fuzzer with the given name, or None."""
+    if fuzzer_name not in BUILTIN_FUZZERS:
+        return None
 
-  return BUILTIN_FUZZERS[fuzzer_name]
+    return BUILTIN_FUZZERS[fuzzer_name]

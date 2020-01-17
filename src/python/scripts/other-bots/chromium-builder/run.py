@@ -16,15 +16,14 @@
 # Before any other imports, we must fix the path. Some libraries might expect
 # to be able to import dependencies directly, but we must store these in
 # subdirectories of common so that they are shared with App Engine.
+from system import environment
+from metrics import logs
+from chrome import build_info
+import time
+import os
 from python.base import modules
 modules.fix_module_search_paths()
 
-import os
-import time
-
-from chrome import build_info
-from metrics import logs
-from system import environment
 
 BUILD_HELPER_SCRIPT = os.path.join(
     os.path.abspath(os.path.dirname(__file__)), 'build_helper.sh')
@@ -47,82 +46,85 @@ TOOLS_GN_MAPPINGS = {
 
 
 def main():
-  """Main build routine."""
-  bucket_prefix = environment.get_value('BUCKET_PREFIX')
-  build_dir = environment.get_value('BUILD_DIR')
-  wait_time = environment.get_value('WAIT_TIME')
+    """Main build routine."""
+    bucket_prefix = environment.get_value('BUCKET_PREFIX')
+    build_dir = environment.get_value('BUILD_DIR')
+    wait_time = environment.get_value('WAIT_TIME')
 
-  builds_metadata = build_info.get_production_builds_info(
-      environment.platform())
-  if not builds_metadata:
-    return
+    builds_metadata = build_info.get_production_builds_info(
+        environment.platform())
+    if not builds_metadata:
+        return
 
-  global LAST_BUILD
-  for build_metadata in builds_metadata:
-    build_type = build_metadata.build_type
-    revision = build_metadata.revision
-    version = build_metadata.version
+    global LAST_BUILD
+    for build_metadata in builds_metadata:
+        build_type = build_metadata.build_type
+        revision = build_metadata.revision
+        version = build_metadata.version
 
-    if build_type not in ['stable', 'beta']:
-      # We don't need dev or canary builds atm.
-      continue
+        if build_type not in ['stable', 'beta']:
+            # We don't need dev or canary builds atm.
+            continue
 
-    # Starting building the builds.
-    for tool in TOOLS_GN_MAPPINGS:
-      tool_and_build_type = '%s-%s' % (tool, build_type)
-      logs.log('Building %s.' % tool_and_build_type)
+        # Starting building the builds.
+        for tool in TOOLS_GN_MAPPINGS:
+            tool_and_build_type = '%s-%s' % (tool, build_type)
+            logs.log('Building %s.' % tool_and_build_type)
 
-      # Check if we already have built the same build.
-      if (tool_and_build_type in LAST_BUILD and
-          revision == LAST_BUILD[tool_and_build_type]):
-        logs.log('Skipping same build %s (revision %s).' % (tool_and_build_type,
-                                                            revision))
-        continue
+            # Check if we already have built the same build.
+            if (tool_and_build_type in LAST_BUILD and
+                    revision == LAST_BUILD[tool_and_build_type]):
+                logs.log('Skipping same build %s (revision %s).' % (tool_and_build_type,
+                                                                    revision))
+                continue
 
-      LAST_BUILD[tool_and_build_type] = revision
+            LAST_BUILD[tool_and_build_type] = revision
 
-      file_name_prefix = '%s-linux-%s-%s' % (tool, build_type, version)
-      archive_filename = '%s.zip' % file_name_prefix
-      archive_path_local = '%s/%s' % (build_dir, archive_filename)
-      bucket_name = '%s%s' % (bucket_prefix, tool.split('-')[0])
-      archive_path_remote = ('gs://%s/%s/%s' % (
-          bucket_name, TOOLS_BUCKET_DIR_MAPPINGS[tool], archive_filename))
+            file_name_prefix = '%s-linux-%s-%s' % (tool, build_type, version)
+            archive_filename = '%s.zip' % file_name_prefix
+            archive_path_local = '%s/%s' % (build_dir, archive_filename)
+            bucket_name = '%s%s' % (bucket_prefix, tool.split('-')[0])
+            archive_path_remote = ('gs://%s/%s/%s' % (
+                bucket_name, TOOLS_BUCKET_DIR_MAPPINGS[tool], archive_filename))
 
-      # Run the build script with required gn arguments.
-      command = ''
-      gn_args = '%s %s' % (TOOLS_GN_MAPPINGS[tool], GN_COMMON_ARGS)
-      command += '%s "%s" %s %s' % (BUILD_HELPER_SCRIPT, gn_args, version,
-                                    file_name_prefix)
-      logs.log('Executing build script: %s.' % command)
-      os.system(command)
+            # Run the build script with required gn arguments.
+            command = ''
+            gn_args = '%s %s' % (TOOLS_GN_MAPPINGS[tool], GN_COMMON_ARGS)
+            command += '%s "%s" %s %s' % (BUILD_HELPER_SCRIPT, gn_args, version,
+                                          file_name_prefix)
+            logs.log('Executing build script: %s.' % command)
+            os.system(command)
 
-      # Check if the build succeeded based on the existence of the
-      # local archive file.
-      if os.path.exists(archive_path_local):
-        # Build success. Now, copy it to google cloud storage and make it
-        # public.
-        os.system('gsutil cp %s %s' % (archive_path_local, archive_path_remote))
-        os.system('gsutil acl set public-read %s' % archive_path_remote)
-        logs.log('Build succeeded, created %s.' % archive_filename)
-      else:
-        LAST_BUILD[tool_and_build_type] = ''
-        logs.log_error('Build failed, unable to create %s.' % archive_filename)
+            # Check if the build succeeded based on the existence of the
+            # local archive file.
+            if os.path.exists(archive_path_local):
+                # Build success. Now, copy it to google cloud storage and make it
+                # public.
+                os.system('gsutil cp %s %s' %
+                          (archive_path_local, archive_path_remote))
+                os.system('gsutil acl set public-read %s' %
+                          archive_path_remote)
+                logs.log('Build succeeded, created %s.' % archive_filename)
+            else:
+                LAST_BUILD[tool_and_build_type] = ''
+                logs.log_error('Build failed, unable to create %s.' %
+                               archive_filename)
 
-  logs.log('Completed cycle, waiting for %d secs.' % wait_time)
-  time.sleep(wait_time)
+    logs.log('Completed cycle, waiting for %d secs.' % wait_time)
+    time.sleep(wait_time)
 
 
 if __name__ == '__main__':
-  # Make sure environment is correctly configured.
-  logs.configure('run_bot')
-  environment.set_bot_environment()
+    # Make sure environment is correctly configured.
+    logs.configure('run_bot')
+    environment.set_bot_environment()
 
-  fail_wait = environment.get_value('FAIL_WAIT')
+    fail_wait = environment.get_value('FAIL_WAIT')
 
-  # Continue this forever.
-  while True:
-    try:
-      main()
-    except Exception:
-      logs.log_error('Failed to create build.')
-      time.sleep(fail_wait)
+    # Continue this forever.
+    while True:
+        try:
+            main()
+        except Exception:
+            logs.log_error('Failed to create build.')
+            time.sleep(fail_wait)

@@ -28,96 +28,98 @@ DATA_PATH = os.path.join(
 
 
 class GetOptionsFilePathTest(android_helpers.AndroidTest):
-  """Tests get_options_file_path."""
+    """Tests get_options_file_path."""
 
-  def test_regular_build(self):
-    """Test that options file path is returned inside device temp dir when
-    device has ASan setup with partial instrumentation using asan_device_setup
-    script."""
-    test_helpers.patch(self,
-                       ['platforms.android.settings.get_sanitizer_tool_name'])
-    self.mock.get_sanitizer_tool_name.return_value = None
+    def test_regular_build(self):
+        """Test that options file path is returned inside device temp dir when
+        device has ASan setup with partial instrumentation using asan_device_setup
+        script."""
+        test_helpers.patch(self,
+                           ['platforms.android.settings.get_sanitizer_tool_name'])
+        self.mock.get_sanitizer_tool_name.return_value = None
 
-    self.assertEqual('/data/local/tmp/asan.options',
-                     sanitizer.get_options_file_path('asan'))
+        self.assertEqual('/data/local/tmp/asan.options',
+                         sanitizer.get_options_file_path('asan'))
 
-  def test_system_asan_build(self):
-    """Test that options file path is returned inside /system when device is
-    setup with a full-system ASan build."""
-    test_helpers.patch(self,
-                       ['platforms.android.settings.get_sanitizer_tool_name'])
-    self.mock.get_sanitizer_tool_name.return_value = 'asan'
+    def test_system_asan_build(self):
+        """Test that options file path is returned inside /system when device is
+        setup with a full-system ASan build."""
+        test_helpers.patch(self,
+                           ['platforms.android.settings.get_sanitizer_tool_name'])
+        self.mock.get_sanitizer_tool_name.return_value = 'asan'
 
-    self.assertEqual('/system/asan.options',
-                     sanitizer.get_options_file_path('asan'))
+        self.assertEqual('/system/asan.options',
+                         sanitizer.get_options_file_path('asan'))
 
-  def test_invalid(self):
-    """Test that no options file path is returned with an invalid sanitizer
-    name."""
-    self.assertEqual(None, sanitizer.get_options_file_path('invalid'))
+    def test_invalid(self):
+        """Test that no options file path is returned with an invalid sanitizer
+        name."""
+        self.assertEqual(None, sanitizer.get_options_file_path('invalid'))
 
-  def test_unsupported(self):
-    """Test that no options file path is returned with an unsupported sanitizer
-    e.g. UBSan, MSan."""
-    self.assertEqual(None, sanitizer.get_options_file_path('msan'))
-    self.assertEqual(None, sanitizer.get_options_file_path('tsan'))
-    self.assertEqual(None, sanitizer.get_options_file_path('ubsan'))
+    def test_unsupported(self):
+        """Test that no options file path is returned with an unsupported sanitizer
+        e.g. UBSan, MSan."""
+        self.assertEqual(None, sanitizer.get_options_file_path('msan'))
+        self.assertEqual(None, sanitizer.get_options_file_path('tsan'))
+        self.assertEqual(None, sanitizer.get_options_file_path('ubsan'))
 
 
 class SetOptionsTest(android_helpers.AndroidTest):
-  """Tests set_options."""
+    """Tests set_options."""
 
-  def setUp(self):
-    super(SetOptionsTest, self).setUp()
+    def setUp(self):
+        super(SetOptionsTest, self).setUp()
 
-    test_helpers.patch(self, ['metrics.logs.log_error'])
+        test_helpers.patch(self, ['metrics.logs.log_error'])
 
-    if settings.get_sanitizer_tool_name():
-      self.skipTest('This test is not applicable on a system sanitizer build.')
+        if settings.get_sanitizer_tool_name():
+            self.skipTest(
+                'This test is not applicable on a system sanitizer build.')
 
-    # Clear and create temporary directory on device.
-    self.device_temp_dir = constants.DEVICE_TMP_DIR
-    adb.remove_directory(self.device_temp_dir, recreate=True)
+        # Clear and create temporary directory on device.
+        self.device_temp_dir = constants.DEVICE_TMP_DIR
+        adb.remove_directory(self.device_temp_dir, recreate=True)
 
-  def test(self):
-    """Test that options are successfully set with ASan."""
-    sanitizer.set_options('ASAN', 'a=b:c=d')
-    self.assertEqual('a=b:c=d',
-                     adb.read_data_from_file('/data/local/tmp/asan.options'))
-    self.assertEqual(0, self.mock.log_error.call_count)
+    def test(self):
+        """Test that options are successfully set with ASan."""
+        sanitizer.set_options('ASAN', 'a=b:c=d')
+        self.assertEqual('a=b:c=d',
+                         adb.read_data_from_file('/data/local/tmp/asan.options'))
+        self.assertEqual(0, self.mock.log_error.call_count)
 
-  def test_unsupported(self):
-    """Test that options are not set with an unsupported sanitizer e.g.
-    UBSan, MSan, etc."""
-    sanitizer.set_options('UBSAN', 'a=b:c=d')
-    self.assertFalse(adb.file_exists('/data/local/tmp/ubsan.options'))
-    self.assertEqual(1, self.mock.log_error.call_count)
+    def test_unsupported(self):
+        """Test that options are not set with an unsupported sanitizer e.g.
+        UBSan, MSan, etc."""
+        sanitizer.set_options('UBSAN', 'a=b:c=d')
+        self.assertFalse(adb.file_exists('/data/local/tmp/ubsan.options'))
+        self.assertEqual(1, self.mock.log_error.call_count)
 
-  def test_invalid(self):
-    """Test that options are not set with an invalid sanitizer name."""
-    sanitizer.set_options('invalid', 'a=b:c=d')
-    self.assertEqual(1, self.mock.log_error.call_count)
+    def test_invalid(self):
+        """Test that options are not set with an invalid sanitizer name."""
+        sanitizer.set_options('invalid', 'a=b:c=d')
+        self.assertEqual(1, self.mock.log_error.call_count)
 
 
 class SetupASanIfNeededTest(android_helpers.AndroidTest):
-  """Tests setup_asan_if_needed."""
+    """Tests setup_asan_if_needed."""
 
-  def setUp(self):
-    super(SetupASanIfNeededTest, self).setUp()
+    def setUp(self):
+        super(SetupASanIfNeededTest, self).setUp()
 
-    test_helpers.patch(self, ['metrics.logs.log_error'])
+        test_helpers.patch(self, ['metrics.logs.log_error'])
 
-    if settings.get_sanitizer_tool_name():
-      self.skipTest('This test is not applicable on a system sanitizer build.')
+        if settings.get_sanitizer_tool_name():
+            self.skipTest(
+                'This test is not applicable on a system sanitizer build.')
 
-    environment.set_value('ASAN_DEVICE_SETUP', True)
-    environment.set_value('JOB_NAME', 'android_asan_chrome')
-    environment.set_value('APP_DIR', DATA_PATH)
+        environment.set_value('ASAN_DEVICE_SETUP', True)
+        environment.set_value('JOB_NAME', 'android_asan_chrome')
+        environment.set_value('APP_DIR', DATA_PATH)
 
-  def test(self):
-    """Test that ASan instrumentation can be successfully set up on device."""
-    adb.revert_asan_device_setup_if_needed()
-    environment.reset_current_memory_tool_options()
-    sanitizer.setup_asan_if_needed()
-    self.assertEqual(0, self.mock.log_error.call_count)
-    self.assertTrue(adb.file_exists('/system/bin/asanwrapper'))
+    def test(self):
+        """Test that ASan instrumentation can be successfully set up on device."""
+        adb.revert_asan_device_setup_if_needed()
+        environment.reset_current_memory_tool_options()
+        sanitizer.setup_asan_if_needed()
+        self.assertEqual(0, self.mock.log_error.call_count)
+        self.assertTrue(adb.file_exists('/system/bin/asanwrapper'))
