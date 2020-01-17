@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Handler for showing the testcase detail page."""
-
-from builtins import object
-from builtins import range
 import cgi
 import datetime
-import jinja2
 import re
+from builtins import object
+from builtins import range
 
+import jinja2
 from base import utils
 from build_management import revisions
 from build_management import source_mapper
@@ -39,16 +38,19 @@ from libs.issue_management import issue_tracker_utils
 from metrics import crash_stats
 from system import environment
 
-FIND_SIMILAR_ISSUES_OPTIONS = [{
-    'type': 'open',
-    'label': 'Open'
-}, {
-    'type': 'all',
-    'label': 'All'
-}]
+FIND_SIMILAR_ISSUES_OPTIONS = [
+    {
+        "type": "open",
+        "label": "Open"
+    },
+    {
+        "type": "all",
+        "label": "All"
+    },
+]
 
 CRASH_STATE_REGEXES = [
-    r'bad-cast to (.+) from.*', r'bad-cast to (.+)', r'(.+) +in +.+'
+    r"bad-cast to (.+) from.*", r"bad-cast to (.+)", r"(.+) +in +.+"
 ]
 
 COMPILED_CRASH_STATE_REGEXES = [
@@ -66,14 +68,14 @@ def _parse_suspected_cls(predator_result):
   # The raw result contains some additional information that we don't need here.
   # Everything we're concerned with is a part of the "result" object included
   # with the response.
-  predator_result = predator_result['result']
+  predator_result = predator_result["result"]
   return {
-      'found': predator_result.get('found'),
-      'suspected_project': predator_result.get('suspected_project'),
-      'suspected_components': predator_result.get('suspected_components'),
-      'changelists': predator_result.get('suspected_cls'),
-      'feedback_url': predator_result.get('feedback_url'),
-      'error_message': predator_result.get('error_message'),
+      "found": predator_result.get("found"),
+      "suspected_project": predator_result.get("suspected_project"),
+      "suspected_components": predator_result.get("suspected_components"),
+      "changelists": predator_result.get("suspected_cls"),
+      "feedback_url": predator_result.get("feedback_url"),
+      "error_message": predator_result.get("error_message"),
   }
 
 
@@ -83,11 +85,11 @@ def highlight_common_stack_frames(crash_stacktrace):
   highlighted_crash_stacktrace_lines = []
   old_frame_no = 0
   stack_index = 0
-  stack_trace_line_format = '^ *#([0-9]+) *0x[0-9a-f]+ (.*)'
+  stack_trace_line_format = "^ *#([0-9]+) *0x[0-9a-f]+ (.*)"
 
   for line in crash_stacktrace.splitlines():
     # Stacktrace separator prefix.
-    if stack_index and line.startswith('+-'):
+    if stack_index and line.startswith("+-"):
       break
 
     match = re.match(stack_trace_line_format, line)
@@ -111,7 +113,7 @@ def highlight_common_stack_frames(crash_stacktrace):
   match_index = -1
   start_index_crash_stack_1 = len(crash_stacks[0]) - 1
   start_index_crash_stack_2 = len(crash_stacks[1]) - 1
-  while 1:
+  while True:
     if (crash_stacks[0][start_index_crash_stack_1] !=
         crash_stacks[1][start_index_crash_stack_2]):
       break
@@ -148,17 +150,17 @@ def highlight_common_stack_frames(crash_stacktrace):
 
       # We only care about highlighting the first two stacks.
       if stack_index <= 1 and frame_index >= match_index[stack_index]:
-        line = '<b>%s</b>' % line
+        line = "<b>%s</b>" % line
 
     highlighted_crash_stacktrace_lines.append(line)
 
-  return '\n'.join(highlighted_crash_stacktrace_lines)
+  return "\n".join(highlighted_crash_stacktrace_lines)
 
 
 def filter_stacktrace(crash_stacktrace, crash_type, revisions_dict):
   """Clean up and format a stack trace for display."""
   if not crash_stacktrace:
-    return ''
+    return ""
 
   filtered_crash_lines = []
   for line in crash_stacktrace.splitlines():
@@ -169,7 +171,7 @@ def filter_stacktrace(crash_stacktrace, crash_type, revisions_dict):
 
     filtered_crash_lines.append(line)
 
-  filtered_crash_stacktrace = '\n'.join(filtered_crash_lines)
+  filtered_crash_stacktrace = "\n".join(filtered_crash_lines)
 
   if crash_type == leak_blacklist.DIRECT_LEAK_LABEL:
     return leak_blacklist.highlight_first_direct_leak(filtered_crash_stacktrace)
@@ -197,10 +199,10 @@ class Line(object):
 
   def to_dict(self):
     return {
-        'lineNumber': self.line_number,
-        'content': self.content,
-        'important': self.important,
-        'type': 'Line'
+        "lineNumber": self.line_number,
+        "content": self.content,
+        "important": self.important,
+        "type": "Line",
     }
 
 
@@ -211,7 +213,7 @@ class Gap(object):
     self.size = size
 
   def __str__(self):
-    return 'Gap(%d)' % self.size
+    return "Gap(%d)" % self.size
 
   def __eq__(self, other):
     return hash(self) == hash(other)
@@ -220,12 +222,12 @@ class Gap(object):
     return hash(self.__str__())
 
   def to_dict(self):
-    return {'type': 'Gap', 'size': self.size}
+    return {"type": "Gap", "size": self.size}
 
 
 def _is_line_important(line_content, frames):
   """Check if the line contains a frame; it means the line is
-     important."""
+       important."""
   for frame in frames:
     if frame in line_content:
       return True
@@ -234,9 +236,9 @@ def _is_line_important(line_content, frames):
 
 def get_stack_frames(crash_state_lines):
   """Get the stack frames from the crash state. Sometimes the crash state
-     contains a type of crash, e.g. 'Bad-cast to content::RenderWidget from
-     content::RenderWidgetHostViewAura'. The stack frame is
-     'content::RenderWidget'."""
+       contains a type of crash, e.g. 'Bad-cast to content::RenderWidget from
+       content::RenderWidgetHostViewAura'. The stack frame is
+       'content::RenderWidget'."""
   frames = []
   for line in crash_state_lines:
     added = False
@@ -268,7 +270,7 @@ def convert_to_lines(raw_stacktrace, crash_state_lines, crash_type):
   # in a reasonable way; we preview around the the top of the stacktrace.
   for unique_type in data_types.CRASH_TYPES_WITH_UNIQUE_STATE:
     if crash_type.startswith(unique_type):
-      combined_frames = ['ERROR']
+      combined_frames = ["ERROR"]
       break
 
   lines = []
@@ -329,11 +331,11 @@ def get_testcase_detail_by_id(testcase_id):
 
 def _get_revision_range_html_from_string(job_type, revision_range):
   """Return revision range html for a revision range and job type given a range
-  string."""
+    string."""
   try:
-    start_revision, end_revision = revision_range.split(':')
+    start_revision, end_revision = revision_range.split(":")
   except:
-    return 'Bad revision range.'
+    return "Bad revision range."
 
   return _get_revision_range_html(job_type, start_revision, end_revision)
 
@@ -346,8 +348,8 @@ def _get_revision_range_html(job_type, start_revision, end_revision=None):
   component_rev_list = revisions.get_component_range_list(
       start_revision, end_revision, job_type)
   if not component_rev_list:
-    return ('%s:%s (No component revisions found!)' % (start_revision,
-                                                       end_revision))
+    return "%s:%s (No component revisions found!)" % (start_revision,
+                                                      end_revision)
 
   return revisions.format_revision_list(component_rev_list)
 
@@ -364,9 +366,9 @@ def _get_blob_size_string(blob_key):
 def _format_reproduction_help(reproduction_help):
   """Format a reproduction help string as HTML (linkified with break tags)."""
   if not reproduction_help:
-    return ''
+    return ""
 
-  return jinja2.utils.urlize(reproduction_help).replace('\n', '<br>')
+  return jinja2.utils.urlize(reproduction_help).replace("\n", "<br>")
 
 
 def get_testcase_detail(testcase):
@@ -395,30 +397,30 @@ def get_testcase_detail(testcase):
     reproduction_help_url = None
 
   if not testcase.regression:
-    regression = 'Pending'
-  elif testcase.regression == 'NA':
-    regression = 'NA'
+    regression = "Pending"
+  elif testcase.regression == "NA":
+    regression = "NA"
   else:
     regression = _get_revision_range_html_from_string(testcase.job_type,
                                                       testcase.regression)
 
   fixed_full = None
-  if 'progression_pending' in metadata:
-    fixed = 'Pending'
+  if "progression_pending" in metadata:
+    fixed = "Pending"
   elif not testcase.fixed:
-    fixed = 'NO'
-  elif testcase.fixed == 'NA':
-    fixed = 'NA'
-  elif testcase.fixed == 'Yes':
-    fixed = 'YES'
+    fixed = "NO"
+  elif testcase.fixed == "NA":
+    fixed = "NA"
+  elif testcase.fixed == "Yes":
+    fixed = "YES"
   else:
-    fixed = 'YES'
+    fixed = "YES"
     fixed_full = _get_revision_range_html_from_string(testcase.job_type,
                                                       testcase.fixed)
 
   last_tested = None
   last_tested_revision = (
-      metadata.get('last_tested_revision') or testcase.crash_revision)
+      metadata.get("last_tested_revision") or testcase.crash_revision)
   if last_tested_revision:
     last_tested = _get_revision_range_html(testcase.job_type,
                                            last_tested_revision)
@@ -433,14 +435,16 @@ def get_testcase_detail(testcase):
                                       crash_type)
   crash_stacktrace_preview_lines = _preview_stacktrace(crash_stacktrace)
 
-  last_tested_crash_revision = metadata.get('last_tested_crash_revision')
+  last_tested_crash_revision = metadata.get("last_tested_crash_revision")
   last_tested_crash_revisions_dict = revisions.get_component_revisions_dict(
       last_tested_crash_revision, testcase.job_type)
   last_tested_crash_stacktrace = data_handler.get_stacktrace(
-      testcase, stack_attribute='last_tested_crash_stacktrace')
+      testcase, stack_attribute="last_tested_crash_stacktrace")
   last_tested_crash_stacktrace = filter_stacktrace(
-      last_tested_crash_stacktrace, testcase.crash_type,
-      last_tested_crash_revisions_dict)
+      last_tested_crash_stacktrace,
+      testcase.crash_type,
+      last_tested_crash_revisions_dict,
+  )
   last_tested_crash_stacktrace = convert_to_lines(last_tested_crash_stacktrace,
                                                   crash_state_lines, crash_type)
   last_tested_crash_stacktrace_preview_lines = _preview_stacktrace(
@@ -450,26 +454,25 @@ def get_testcase_detail(testcase):
 
   # Fix build url link. |storage.cloud.google.com| takes care of using the
   # right set of authentication credentials needed to access the link.
-  if 'build_url' in metadata:
-    metadata['build_url'] = metadata['build_url'].replace(
-        'gs://', 'https://storage.cloud.google.com/')
+  if "build_url" in metadata:
+    metadata["build_url"] = metadata["build_url"].replace(
+        "gs://", "https://storage.cloud.google.com/")
 
   pending_blame_task = (
-      testcase.has_blame() and 'blame_pending' in metadata and
-      metadata['blame_pending'])
-  pending_impact_task = (
-      testcase.has_impacts() and not testcase.is_impact_set_flag)
+      testcase.has_blame() and "blame_pending" in metadata and
+      metadata["blame_pending"])
+  pending_impact_task = testcase.has_impacts(
+  ) and not testcase.is_impact_set_flag
   pending_minimize_task = not testcase.minimized_keys
-  pending_progression_task = ('progression_pending' in metadata and
-                              metadata['progression_pending'])
+  pending_progression_task = ("progression_pending" in metadata and
+                              metadata["progression_pending"])
   pending_regression_task = not testcase.regression
-  pending_stack_task = testcase.last_tested_crash_stacktrace == 'Pending'
-  needs_refresh = (
-      testcase.status == 'Pending' or
-      ((testcase.status == 'Processed' or testcase.status == 'Duplicate') and
-       (pending_blame_task or pending_impact_task or pending_minimize_task or
-        pending_progression_task or pending_regression_task or
-        pending_stack_task)))
+  pending_stack_task = testcase.last_tested_crash_stacktrace == "Pending"
+  needs_refresh = testcase.status == "Pending" or (
+      (testcase.status == "Processed" or testcase.status == "Duplicate") and
+      (pending_blame_task or pending_impact_task or pending_minimize_task or
+       pending_progression_task or pending_regression_task or
+       pending_stack_task))
 
   if data_types.SecuritySeverity.is_valid(testcase.security_severity):
     security_severity = severity_analyzer.severity_to_string(
@@ -500,110 +503,110 @@ def get_testcase_detail(testcase):
 
   memory_tool_display_string = environment.get_memory_tool_display_string(
       testcase.job_type)
-  memory_tool_display_label = memory_tool_display_string.split(':')[0]
-  memory_tool_display_value = memory_tool_display_string.split(':')[1].strip()
+  memory_tool_display_label = memory_tool_display_string.split(":")[0]
+  memory_tool_display_value = memory_tool_display_string.split(":")[1].strip()
 
-  helpers.log('Testcase %s' % testcase.key.id(), helpers.VIEW_OPERATION)
+  helpers.log("Testcase %s" % testcase.key.id(), helpers.VIEW_OPERATION)
   return {
-      'id':
+      "id":
           testcase.key.id(),
-      'crash_type':
+      "crash_type":
           crash_type,
-      'crash_address':
+      "crash_address":
           crash_address,
-      'crash_state':
+      "crash_state":
           crash_state,  # Used by reproduce tool.
-      'crash_state_lines':
+      "crash_state_lines":
           crash_state_lines,
-      'crash_revision':
+      "crash_revision":
           testcase.crash_revision,
-      'csrf_token':
+      "csrf_token":
           form.generate_csrf_token(),
-      'external_user':
+      "external_user":
           external_user,
-      'footer':
+      "footer":
           testcase.comments,
-      'formatted_reproduction_help':
+      "formatted_reproduction_help":
           formatted_reproduction_help,
-      'fixed':
+      "fixed":
           fixed,
-      'fixed_full':
+      "fixed_full":
           fixed_full,
-      'issue_url':
+      "issue_url":
           issue_url,
-      'is_admin':
+      "is_admin":
           auth.is_current_user_admin(),
-      'metadata':
+      "metadata":
           metadata,
-      'minimized_testcase_size':
+      "minimized_testcase_size":
           minimized_testcase_size,
-      'needs_refresh':
+      "needs_refresh":
           needs_refresh,
-      'original_testcase_size':
+      "original_testcase_size":
           original_testcase_size,
-      'privileged_user':
+      "privileged_user":
           privileged_user,
-      'regression':
+      "regression":
           regression,
-      'crash_stacktrace': {
-          'lines':
+      "crash_stacktrace": {
+          "lines":
               crash_stacktrace,
-          'preview_lines':
+          "preview_lines":
               crash_stacktrace_preview_lines,
-          'revision':
+          "revision":
               revisions.get_real_revision(
-                  crash_revision, testcase.job_type, display=True)
+                  crash_revision, testcase.job_type, display=True),
       },
-      'last_tested_crash_stacktrace': {
-          'lines':
+      "last_tested_crash_stacktrace": {
+          "lines":
               last_tested_crash_stacktrace,
-          'preview_lines':
+          "preview_lines":
               last_tested_crash_stacktrace_preview_lines,
-          'revision':
+          "revision":
               revisions.get_real_revision(
-                  last_tested_crash_revision, testcase.job_type, display=True)
+                  last_tested_crash_revision, testcase.job_type, display=True),
       },
-      'security_severity':
+      "security_severity":
           security_severity,
-      'security_severities':
+      "security_severities":
           data_types.SecuritySeverity.list(),
-      'stats': {
-          'min_hour': crash_stats.get_min_hour(),
-          'max_hour': crash_stats.get_max_hour(),
+      "stats": {
+          "min_hour": crash_stats.get_min_hour(),
+          "max_hour": crash_stats.get_max_hour(),
       },
-      'suspected_cls':
-          _parse_suspected_cls(metadata.get('predator_result')),
-      'testcase':
+      "suspected_cls":
+          _parse_suspected_cls(metadata.get("predator_result")),
+      "testcase":
           testcase,
-      'timestamp':
+      "timestamp":
           utils.utc_datetime_to_timestamp(testcase.timestamp),
-      'show_blame':
+      "show_blame":
           testcase.has_blame(),
-      'show_impact':
+      "show_impact":
           testcase.has_impacts(),
-      'impacts_production':
+      "impacts_production":
           testcase.impacts_production(),
-      'find_similar_issues_options':
+      "find_similar_issues_options":
           FIND_SIMILAR_ISSUES_OPTIONS,
-      'auto_delete_timestamp':
+      "auto_delete_timestamp":
           auto_delete_timestamp,
-      'auto_close_timestamp':
+      "auto_close_timestamp":
           auto_close_timestamp,
-      'memory_tool_display_label':
+      "memory_tool_display_label":
           memory_tool_display_label,
-      'memory_tool_display_value':
+      "memory_tool_display_value":
           memory_tool_display_value,
-      'last_tested':
+      "last_tested":
           last_tested,
-      'is_admin_or_not_oss_fuzz':
+      "is_admin_or_not_oss_fuzz":
           is_admin_or_not_oss_fuzz(),
-      'has_issue_tracker':
+      "has_issue_tracker":
           has_issue_tracker,
-      'reproduction_help_url':
+      "reproduction_help_url":
           reproduction_help_url,
-      'is_local_development':
+      "is_local_development":
           environment.is_running_on_app_engine_development(),
-      'fuzzer_display':
+      "fuzzer_display":
           vars(fuzzer_display),
   }
 
@@ -619,8 +622,8 @@ class Handler(base_handler.Handler):
   @handler.get(handler.HTML)
   def get(self, testcase_id):
     """Serve the testcase detail HTML page."""
-    values = {'info': get_testcase_detail_by_id(testcase_id)}
-    self.render('testcase-detail.html', values)
+    values = {"info": get_testcase_detail_by_id(testcase_id)}
+    self.render("testcase-detail.html", values)
 
 
 class DeprecatedHandler(base_handler.Handler):
@@ -628,11 +631,11 @@ class DeprecatedHandler(base_handler.Handler):
 
   def get(self):
     """Serve the redirect to the current test case detail page."""
-    testcase_id = self.request.get('key')
+    testcase_id = self.request.get("key")
     if not testcase_id:
-      raise helpers.EarlyExitException('No testcase key provided.', 400)
+      raise helpers.EarlyExitException("No testcase key provided.", 400)
 
-    self.redirect('/testcase-detail/%s' % testcase_id)
+    self.redirect("/testcase-detail/%s" % testcase_id)
 
 
 class RefreshHandler(base_handler.Handler):
@@ -642,5 +645,5 @@ class RefreshHandler(base_handler.Handler):
   @handler.oauth
   def post(self):
     """Serve the testcase detail JSON."""
-    testcase_id = self.request.get('testcaseId')
+    testcase_id = self.request.get("testcaseId")
     self.render_json(get_testcase_detail_by_id(testcase_id))

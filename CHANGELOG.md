@@ -1,20 +1,48 @@
-Change Log
-==========
+# Change Log
+
+## Version 1.8.0
+
+- Added an uploader permission type to allow certain users to upload to any
+  job/fuzzer.
+- More Python 3 conversion changes.
+- Bumped up libFuzzer rss limit to 2.5GB.
+- Various bug fixes.
+
+## Version 1.7.1
+
+- Various bug fixes.
+
+## Version 1.7.0
+
+- Better crash type reporting on various UBSan issues.
+- Initial support for Honggfuzz.
+- Additional fixes in preparation for migration to Python 3.
+- Migrated off deprecated App Engine Memcache to Cloud MemoryStore for Redis.
+- Added libFuzzer fuzzing support for Android (using HWASan).
+- Automatically correct certain common mistakes in dictionaries.
+- Various bug fixes.
+
+## Version 1.6.1
+
+- Various bug fixes.
 
 ## Version 1.6.0
+
 - Added platform support for Fuchsia OS.
 - Migrated libFuzzer to the new pluggable engine pipeline.
 - Stack parsing improvments.
 - Various bug fixes.
 
 ## Version 1.5.1
+
 - Fixed XSS in login page.
 
 ## Version 1.5.0
+
 - Added Golang stack parsing.
 - Added Sanitizer options minimization.
-- Added HELP_FORMAT for custom crash reproduction instructions.
-  See documentation [here](configs/test/project.yaml#L99).
+- Added HELP_FORMAT for custom crash reproduction instructions. See
+  documentation [here](configs/test/project.yaml#L99).
 - Added feature to show reproducible variants for a crash on other jobs
   (`Reproducer` column in `Testcase analysis on other jobs` section).
 - Refactored engine fuzzer code for easy pluggability.
@@ -23,6 +51,7 @@ Change Log
 - Various bug fixes.
 
 ## Version 1.4.0
+
 - Implemented issue tracker policy and finishing the refactoring for supporting
   different issue trackers.
 - Disabled external mutators (Radamsa and ML RNN) for fuzz targets built with
@@ -43,6 +72,7 @@ Change Log
 - Various bug fixes.
 
 ## Version 1.3.0
+
 - Fixed security severity listbox not working.
 - More Python 2->3 conversions using futurize.
 - Delete button on jobs page.
@@ -52,9 +82,11 @@ Change Log
 - Various bug fixes.
 
 ## Version 1.2.1
+
 - Various bug fixes.
 
 ## Version 1.2.0
+
 - Use Firebase auth for authentication.
 - Use Sendgrid for emails.
 - Remove various dependencies on App Engine SDK.
@@ -66,6 +98,7 @@ Change Log
 - Various bug fixes.
 
 ## Version 1.1.0
+
 - Add support for
   [android-cuttlefish](https://github.com/google/android-cuttlefish).
 - Add production startup scripts for Android.
@@ -77,7 +110,9 @@ Change Log
 - Various bug fixes.
 
 ## Version 1.0.1
+
 - Bug fixes to improve local development.
 
 ## Version 1.0.0
+
 - Initial release.

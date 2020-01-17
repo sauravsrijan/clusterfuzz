@@ -12,22 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests builtin_fuzzers."""
-
-from builtins import range
 import functools
 import os
 import unittest
+from builtins import range
 
+from datastore import data_types
 from pyfakefs import fake_filesystem_unittest
+from system import environment
+from tests.test_libs import helpers
+from tests.test_libs import test_utils
 
 from bot.fuzzers import builtin
 from bot.fuzzers import builtin_fuzzers
 from bot.tasks import fuzz_task
 from bot.tasks import setup
-from datastore import data_types
-from system import environment
-from tests.test_libs import helpers
-from tests.test_libs import test_utils
 
 
 class BuiltinFuzzersTest(unittest.TestCase):
@@ -36,108 +35,121 @@ class BuiltinFuzzersTest(unittest.TestCase):
   def test_get(self):
     """Tests get()."""
     self.assertIsInstance(
-        builtin_fuzzers.get('libFuzzer'), builtin.BuiltinFuzzer)
-    self.assertIsNone(builtin_fuzzers.get('does_not_exist'))
-
-  def test_all(self):
-    """Tests all()."""
-    self.assertItemsEqual([
-        ('afl', builtin_fuzzers.get('afl')),
-        ('libFuzzer', builtin_fuzzers.get('libFuzzer')),
-    ], builtin_fuzzers.all())
+        builtin_fuzzers.get("libFuzzer"), builtin.BuiltinFuzzer)
+    self.assertIsNone(builtin_fuzzers.get("does_not_exist"))
 
 
 # pylint: disable=unused-argument
-def _mock_fuzzer_run(output, num_generated, corpus_directory, self,
-                     input_directory, output_directory, no_of_files):
+def _mock_fuzzer_run(
+    output,
+    num_generated,
+    corpus_directory,
+    self,
+    input_directory,
+    output_directory,
+    no_of_files,
+):
   """Mock fuzzer run."""
   for i in range(num_generated):
-    with open(os.path.join(output_directory, 'fuzz-%d' % i), 'w') as f:
-      f.write('testcase')
+    with open(os.path.join(output_directory, "fuzz-%d" % i), "w") as f:
+      f.write("testcase")
 
   return builtin.BuiltinFuzzerResult(output, corpus_directory)
 
 
-@test_utils.with_cloud_emulators('datastore')
+@test_utils.with_cloud_emulators("datastore")
 class BuiltinFuzzersSetupTest(fake_filesystem_unittest.TestCase):
   """Test builtin fuzzers setup."""
 
   def setUp(self):
     helpers.patch_environ(self)
     test_utils.set_up_pyfakefs(self)
-    self.fs.create_dir('/input')
-    self.fs.create_dir('/output')
+    self.fs.create_dir("/input")
+    self.fs.create_dir("/output")
 
-    helpers.patch(self, [
-        'bot.fuzzers.libFuzzer.fuzzer.LibFuzzer.run',
-        'metrics.fuzzer_logs.get_bucket',
-        'google_cloud_utils.blobs.write_blob',
-    ])
+    helpers.patch(
+        self,
+        [
+            "bot.fuzzers.libFuzzer.fuzzer.LibFuzzer.run",
+            "metrics.fuzzer_logs.get_bucket",
+            "google_cloud_utils.blobs.write_blob",
+        ],
+    )
 
     self.fuzzer = data_types.Fuzzer(
         revision=1,
-        file_size='builtin',
-        source='builtin',
-        name='libFuzzer',
+        file_size="builtin",
+        source="builtin",
+        name="libFuzzer",
         max_testcases=4,
-        builtin=True)
+        builtin=True,
+    )
     self.fuzzer.put()
 
     self.fuzzer_directory = os.path.join(
-        environment.get_value('ROOT_DIR'), 'src', 'python', 'bot', 'fuzzers',
-        'libFuzzer')
+        environment.get_value("ROOT_DIR"),
+        "src",
+        "python",
+        "bot",
+        "fuzzers",
+        "libFuzzer",
+    )
 
     # Needed since local config is not available with fakefs.
     self.mock.get_bucket.return_value = None
-    self.mock.write_blob.return_value = 'sample'
+    self.mock.write_blob.return_value = "sample"
 
-    environment.set_value('JOB_NAME', 'job')
-    environment.set_value('INPUT_DIR', '/input')
+    environment.set_value("JOB_NAME", "job")
+    environment.set_value("INPUT_DIR", "/input")
 
   def test_update_fuzzer(self):
     """Test fuzzer setup."""
-    self.assertTrue(setup.update_fuzzer_and_data_bundles('libFuzzer'))
-    self.assertEqual(self.fuzzer_directory, environment.get_value('FUZZER_DIR'))
+    self.assertTrue(setup.update_fuzzer_and_data_bundles("libFuzzer"))
+    self.assertEqual(self.fuzzer_directory, environment.get_value("FUZZER_DIR"))
 
   def test_generate_blackbox_fuzzers(self):
     """Test generate_blackbox_fuzzers (success)."""
-    output = ('metadata::fuzzer_binary_name: fuzzer_binary_name\n')
+    output = "metadata::fuzzer_binary_name: fuzzer_binary_name\n"
     self.mock.run.side_effect = functools.partial(_mock_fuzzer_run, output, 4,
-                                                  'corpus_dir')
+                                                  "corpus_dir")
 
-    self.assertTrue(setup.update_fuzzer_and_data_bundles('libFuzzer'))
+    self.assertTrue(setup.update_fuzzer_and_data_bundles("libFuzzer"))
 
-    session = fuzz_task.FuzzingSession('libFuzzer', 'job', 1)
-    session.testcase_directory = '/output'
-    session.data_directory = '/input'
+    session = fuzz_task.FuzzingSession("libFuzzer", "job", 1)
+    session.testcase_directory = "/output"
+    session.data_directory = "/input"
 
-    (error_occurred, testcase_file_paths, sync_corpus_directory,
-     fuzzer_metadata) = session.generate_blackbox_testcases(
-         self.fuzzer, self.fuzzer_directory, 4)
+    (
+        error_occurred,
+        testcase_file_paths,
+        sync_corpus_directory,
+        fuzzer_metadata,
+    ) = session.generate_blackbox_testcases(self.fuzzer, self.fuzzer_directory,
+                                            4)
     self.assertEqual(1, len(self.mock.run.call_args_list))
-    self.assertEqual(('/input', '/output', 4), self.mock.run.call_args[0][1:])
+    self.assertEqual(("/input", "/output", 4), self.mock.run.call_args[0][1:])
 
     self.assertFalse(error_occurred)
-    self.assertItemsEqual([
-        '/output/fuzz-0',
-        '/output/fuzz-1',
-        '/output/fuzz-2',
-        '/output/fuzz-3',
-    ], testcase_file_paths)
+    self.assertItemsEqual(
+        [
+            "/output/fuzz-0", "/output/fuzz-1", "/output/fuzz-2",
+            "/output/fuzz-3"
+        ],
+        testcase_file_paths,
+    )
 
-    self.assertEqual('corpus_dir', sync_corpus_directory)
-    self.assertDictEqual({
-        'fuzzer_binary_name': 'fuzzer_binary_name'
-    }, fuzzer_metadata)
+    self.assertEqual("corpus_dir", sync_corpus_directory)
+    self.assertDictEqual({"fuzzer_binary_name": "fuzzer_binary_name"},
+                         fuzzer_metadata)
 
   def test_generate_blackbox_fuzzers_fail(self):
     """Test generate_blackbox_fuzzers (failure)."""
     self.mock.run.side_effect = builtin.BuiltinFuzzerException()
-    self.assertTrue(setup.update_fuzzer_and_data_bundles('libFuzzer'))
+    self.assertTrue(setup.update_fuzzer_and_data_bundles("libFuzzer"))
 
-    session = fuzz_task.FuzzingSession('libFuzzer', 'job', 1)
-    session.testcase_directory = '/output'
-    session.data_directory = '/input'
+    session = fuzz_task.FuzzingSession("libFuzzer", "job", 1)
+    session.testcase_directory = "/output"
+    session.data_directory = "/input"
 
     with self.assertRaises(builtin.BuiltinFuzzerException):
       session.generate_blackbox_testcases(self.fuzzer, self.fuzzer_directory, 4)

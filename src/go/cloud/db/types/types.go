@@ -393,6 +393,7 @@ type Testcase struct {
 	GroupBugInformation        int            `datastore:"group_bug_information"`
 	Gestures                   []string       `datastore:"gestures,noindex"`
 	Redzone                    int            `datastore:"redzone,noindex"`
+	DisableUbsan               bool           `datastore:"disable_ubsan"`
 	Open                       bool           `datastore:"open"`
 	TimeoutMultiplier          float64        `datastore:"timeout_multiplier,noindex"`
 	AdditionalMetadata         string         `datastore:"additional_metadata,noindex"`
@@ -416,7 +417,6 @@ type Testcase struct {
 	ImpactBetaVersionIndices   []string       `datastore:"impact_beta_version_indices"`
 	ImpactBetaVersionLikely    bool           `datastore:"impact_beta_version_likely"`
 	IsImpactSetFlag            bool           `datastore:"is_impact_set_flag"`
-	Coverage                   string         `datastore:"coverage"`
 	UploaderEmail              string         `datastore:"uploader_email"`
 }
 
@@ -427,23 +427,24 @@ type TestcaseGroup struct {
 
 // TestcaseUploadMetadata is auto-generated from data_types.py.
 type TestcaseUploadMetadata struct {
-	Key                  *datastore.Key `datastore:"__key__"`
-	Timestamp            time.Time      `datastore:"timestamp"`
-	Filename             string         `datastore:"filename"`
-	Status               string         `datastore:"status"`
-	UploaderEmail        string         `datastore:"uploader_email"`
-	BotName              string         `datastore:"bot_name"`
-	TestcaseID           int            `datastore:"testcase_id"`
-	DuplicateOf          int            `datastore:"duplicate_of"`
-	BlobstoreKey         string         `datastore:"blobstore_key"`
-	Timeout              int            `datastore:"timeout"`
-	Bundled              bool           `datastore:"bundled"`
-	PathInArchive        string         `datastore:"path_in_archive,noindex"`
-	OriginalBlobstoreKey string         `datastore:"original_blobstore_key"`
-	SecurityFlag         bool           `datastore:"security_flag"`
-	Retries              int            `datastore:"retries"`
-	BugSummaryUpdateFlag bool           `datastore:"bug_summary_update_flag"`
-	QuietFlag            bool           `datastore:"quiet_flag"`
+	Key                      *datastore.Key `datastore:"__key__"`
+	Timestamp                time.Time      `datastore:"timestamp"`
+	Filename                 string         `datastore:"filename"`
+	Status                   string         `datastore:"status"`
+	UploaderEmail            string         `datastore:"uploader_email"`
+	BotName                  string         `datastore:"bot_name"`
+	TestcaseID               int            `datastore:"testcase_id"`
+	DuplicateOf              int            `datastore:"duplicate_of"`
+	BlobstoreKey             string         `datastore:"blobstore_key"`
+	Timeout                  int            `datastore:"timeout"`
+	Bundled                  bool           `datastore:"bundled"`
+	PathInArchive            string         `datastore:"path_in_archive,noindex"`
+	OriginalBlobstoreKey     string         `datastore:"original_blobstore_key"`
+	SecurityFlag             bool           `datastore:"security_flag"`
+	Retries                  int            `datastore:"retries"`
+	BugSummaryUpdateFlag     bool           `datastore:"bug_summary_update_flag"`
+	QuietFlag                bool           `datastore:"quiet_flag"`
+	AdditionalMetadataString string         `datastore:"additional_metadata_string,noindex"`
 }
 
 // TestcaseVariant is auto-generated from data_types.py.

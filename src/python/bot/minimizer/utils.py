@@ -15,13 +15,14 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-from builtins import range
 import os
 import shlex
 import subprocess
+from builtins import range
 
 from . import errors
-from . import html_tokenizer
+from bot.tokenizer.antlr_tokenizer import AntlrTokenizer
+from bot.tokenizer.grammars.HTMLLexer import HTMLLexer
 
 # TODO(mbarbella): Improve configuration of the test function.
 attempts = 1
@@ -30,54 +31,54 @@ test_command = None
 # This list of markers is a copy of code in ClusterFuzz.
 # This is kept here to keep the code standalone.
 STACKTRACE_TOOL_MARKERS = [
-    ' runtime error: ',
-    'AddressSanitizer',
-    'ASAN:',
-    'CFI: Most likely a control flow integrity violation;',
-    'ERROR: libFuzzer',
-    'KASAN:',
-    'LeakSanitizer',
-    'MemorySanitizer',
-    'ThreadSanitizer',
-    'UndefinedBehaviorSanitizer',
-    'UndefinedSanitizer',
+    " runtime error: ",
+    "AddressSanitizer",
+    "ASAN:",
+    "CFI: Most likely a control flow integrity violation;",
+    "ERROR: libFuzzer",
+    "KASAN:",
+    "LeakSanitizer",
+    "MemorySanitizer",
+    "ThreadSanitizer",
+    "UndefinedBehaviorSanitizer",
+    "UndefinedSanitizer",
 ]
 STACKTRACE_END_MARKERS = [
-    'ABORTING',
-    'END MEMORY TOOL REPORT',
-    'End of process memory map.',
-    'END_KASAN_OUTPUT',
-    'SUMMARY:',
-    'Shadow byte and word',
-    '[end of stack trace]',
-    '\nExiting',
-    'minidump has been written',
+    "ABORTING",
+    "END MEMORY TOOL REPORT",
+    "End of process memory map.",
+    "END_KASAN_OUTPUT",
+    "SUMMARY:",
+    "Shadow byte and word",
+    "[end of stack trace]",
+    "\nExiting",
+    "minidump has been written",
 ]
 CHECK_FAILURE_MARKERS = [
-    'Check failed:',
-    'Device rebooted',
-    'Fatal error in',
-    'FATAL EXCEPTION',
-    'JNI DETECTED ERROR IN APPLICATION:',
-    'Sanitizer CHECK failed:',
+    "Check failed:",
+    "Device rebooted",
+    "Fatal error in",
+    "FATAL EXCEPTION",
+    "JNI DETECTED ERROR IN APPLICATION:",
+    "Sanitizer CHECK failed:",
 ]
 
 
 def get_size_string(size):
   """Return string representation for size."""
   if size < 1 << 10:
-    return '%d B' % size
+    return "%d B" % size
   elif size < 1 << 20:
-    return '%d KB' % (size >> 10)
+    return "%d KB" % (size >> 10)
   elif size < 1 << 30:
-    return '%d MB' % (size >> 20)
+    return "%d MB" % (size >> 20)
 
-  return '%d GB' % (size >> 30)
+  return "%d GB" % (size >> 30)
 
 
 def has_marker(stacktrace, marker_list):
   """Return true if the stacktrace has atleast one marker
-  in the marker list."""
+    in the marker list."""
   for marker in marker_list:
     if marker in stacktrace:
       return True
@@ -117,24 +118,24 @@ def single_test_run(test_path):
     console_output = error.output
 
   # If we meet one of these conditions, assume we crashed.
-  if ((has_marker(console_output, STACKTRACE_TOOL_MARKERS) and
-       has_marker(console_output, STACKTRACE_END_MARKERS)) or
-      has_marker(console_output, CHECK_FAILURE_MARKERS)):
-    print('Crashed, current test size %s.' % (get_size_string(
-        os.path.getsize(test_path))))
+  if (has_marker(console_output, STACKTRACE_TOOL_MARKERS) and
+      has_marker(console_output, STACKTRACE_END_MARKERS)) or has_marker(
+          console_output, CHECK_FAILURE_MARKERS):
+    print("Crashed, current test size %s." %
+          (get_size_string(os.path.getsize(test_path))))
     return False
 
   # No crash, test passed.
-  print('Not crashed, current test size %s.' % (get_size_string(
-      os.path.getsize(test_path))))
+  print("Not crashed, current test size %s." %
+        (get_size_string(os.path.getsize(test_path))))
   return True
 
 
-def tokenize(data, level=0):
+def tokenize(data):
   """HTML tokenizer."""
-  return html_tokenizer.tokenize(data, level)
+  return AntlrTokenizer(HTMLLexer).tokenize(data)
 
 
 def token_combiner(tokens):
   """Dummy token combiner."""
-  return ''.join(tokens)
+  return "".join(tokens)

@@ -13,10 +13,9 @@
 # limitations under the License.
 # pylint: disable=protected-access
 """Tests for triage task."""
-
-from builtins import range
 import datetime
 import unittest
+from builtins import range
 
 from datastore import data_handler
 from datastore import data_types
@@ -26,16 +25,19 @@ from tests.test_libs import helpers
 from tests.test_libs import test_utils
 
 
-@test_utils.with_cloud_emulators('datastore')
+@test_utils.with_cloud_emulators("datastore")
 class CrashImportantTest(unittest.TestCase):
   """Tests for _is_crash_important."""
 
   def setUp(self):
-    helpers.patch(self, [
-        'metrics.crash_stats.get_last_successful_hour',
-        'metrics.crash_stats.get',
-        'base.utils.utcnow',
-    ])
+    helpers.patch(
+        self,
+        [
+            "metrics.crash_stats.get_last_successful_hour",
+            "metrics.crash_stats.get",
+            "base.utils.utcnow",
+        ],
+    )
     self.mock.utcnow.return_value = test_utils.CURRENT_TIME
 
   def test_is_crash_important_1(self):
@@ -48,27 +50,27 @@ class CrashImportantTest(unittest.TestCase):
 
   def test_is_crash_important_2(self):
     """Ensure that an unreproducible testcase with status Unreproducible is
-    not important."""
+        not important."""
     testcase = test_utils.create_generic_testcase()
     testcase.one_time_crasher_flag = True
-    testcase.status = 'Unreproducible'
+    testcase.status = "Unreproducible"
     testcase.put()
 
     self.assertFalse(triage._is_crash_important(testcase))
 
   def test_is_crash_important_3(self):
     """Ensure that an unreproducible testcase with status Duplicate is
-    not important."""
+        not important."""
     testcase = test_utils.create_generic_testcase()
     testcase.one_time_crasher_flag = True
-    testcase.status = 'Duplicate'
+    testcase.status = "Duplicate"
     testcase.put()
 
     self.assertFalse(triage._is_crash_important(testcase))
 
   def test_is_crash_important_4(self):
     """If the unreproducible testcase has another reproducible testcase in
-    group, then crash is not important."""
+        group, then crash is not important."""
     testcase_1 = test_utils.create_generic_testcase()
     testcase_1.one_time_crasher_flag = True
     testcase_1.group_id = 1
@@ -83,8 +85,8 @@ class CrashImportantTest(unittest.TestCase):
 
   def test_is_crash_important_5(self):
     """If we don't have any crash stats data for this unreproducible testcase,
-    then we can't make judgement on crash importance, so we return result as
-    False."""
+        then we can't make judgement on crash importance, so we return result as
+        False."""
     self.mock.get_last_successful_hour.return_value = None
     testcase = test_utils.create_generic_testcase()
     testcase.one_time_crasher_flag = True
@@ -94,19 +96,22 @@ class CrashImportantTest(unittest.TestCase):
 
   def test_is_crash_important_6(self):
     """If this unreproducible testcase is less than the total crash threshold,
-    then it is not important."""
+        then it is not important."""
     self.mock.get_last_successful_hour.return_value = 417325
     indices = [{
-        'count': 1,
-        'hour': day_index
+        "count": 1,
+        "hour": day_index
     } for day_index in range(417325, 416989, -24)]
-    self.mock.get.return_value = (1, [{
-        'totalCount': 14,
-        'groups': [{
-            'indices': indices,
-            'name': 'false',
-        },]
-    }])
+    self.mock.get.return_value = (
+        1,
+        [{
+            "totalCount": 14,
+            "groups": [{
+                "indices": indices,
+                "name": "false"
+            }]
+        }],
+    )
     testcase = test_utils.create_generic_testcase()
     testcase.one_time_crasher_flag = True
     testcase.put()
@@ -115,19 +120,22 @@ class CrashImportantTest(unittest.TestCase):
 
   def test_is_crash_important_7(self):
     """If this unreproducible testcase spiked only for a certain interval, then
-    it is not important."""
+        it is not important."""
     self.mock.get_last_successful_hour.return_value = 417325
-    self.mock.get.return_value = (1, [{
-        'totalCount':
-            125,
-        'groups': [{
-            'indices': [{
-                'count': 125,
-                'hour': 417301,
+    self.mock.get.return_value = (
+        1,
+        [{
+            "totalCount":
+                125,
+            "groups": [{
+                "indices": [{
+                    "count": 125,
+                    "hour": 417301
+                }],
+                "name": "false"
             }],
-            'name': 'false',
-        },]
-    }])
+        }],
+    )
     testcase = test_utils.create_generic_testcase()
     testcase.one_time_crasher_flag = True
     testcase.put()
@@ -136,19 +144,22 @@ class CrashImportantTest(unittest.TestCase):
 
   def test_is_crash_important_8(self):
     """If this unreproducible testcase is crashing frequently, then it is an
-    important crash."""
+        important crash."""
     self.mock.get_last_successful_hour.return_value = 417325
     indices = [{
-        'count': 10,
-        'hour': day_index
+        "count": 10,
+        "hour": day_index
     } for day_index in range(417325, 416989, -24)]
-    self.mock.get.return_value = (1, [{
-        'totalCount': 140,
-        'groups': [{
-            'indices': indices,
-            'name': 'false',
-        },]
-    }])
+    self.mock.get.return_value = (
+        1,
+        [{
+            "totalCount": 140,
+            "groups": [{
+                "indices": indices,
+                "name": "false"
+            }]
+        }],
+    )
     testcase = test_utils.create_generic_testcase()
     testcase.one_time_crasher_flag = True
     testcase.put()
@@ -157,36 +168,37 @@ class CrashImportantTest(unittest.TestCase):
 
   def test_is_crash_important_9(self):
     """If this unreproducible testcase is crashing frequently, but its crash
-    type is one of crash type ignores, then it is not an important crash."""
+        type is one of crash type ignores, then it is not an important crash."""
     self.mock.get_last_successful_hour.return_value = 417325
     indices = [{
-        'count': 10,
-        'hour': day_index
+        "count": 10,
+        "hour": day_index
     } for day_index in range(417325, 416989, -24)]
-    self.mock.get.return_value = (1, [{
-        'totalCount': 140,
-        'groups': [{
-            'indices': indices,
-            'name': 'false',
-        },]
-    }])
+    self.mock.get.return_value = (
+        1,
+        [{
+            "totalCount": 140,
+            "groups": [{
+                "indices": indices,
+                "name": "false"
+            }]
+        }],
+    )
     testcase = test_utils.create_generic_testcase()
     testcase.one_time_crasher_flag = True
     testcase.put()
 
-    for crash_type in ['Hang', 'Out-of-memory', 'Stack-overflow', 'Timeout']:
+    for crash_type in ["Out-of-memory", "Stack-overflow", "Timeout"]:
       testcase.crash_type = crash_type
       self.assertFalse(triage._is_crash_important(testcase))
 
 
-@test_utils.with_cloud_emulators('datastore')
+@test_utils.with_cloud_emulators("datastore")
 class CheckAndUpdateSimilarBug(unittest.TestCase):
   """Tests for _check_and_update_similar_bug."""
 
   def setUp(self):
-    helpers.patch(self, [
-        'base.utils.utcnow',
-    ])
+    helpers.patch(self, ["base.utils.utcnow"])
     self.mock.utcnow.return_value = test_utils.CURRENT_TIME
 
     self.testcase = test_utils.create_generic_testcase()
@@ -197,31 +209,34 @@ class CheckAndUpdateSimilarBug(unittest.TestCase):
     """Tests result is false when there is no other similar testcase."""
     self.assertEqual(
         False,
-        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker))
+        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker),
+    )
 
   def test_similar_testcase_without_bug_information(self):
     """Tests result is false when there is a similar testcase but without an
-    associated bug."""
-    similar_testcase = test_utils.create_generic_testcase()  # pylint: disable=unused-variable
+        associated bug."""
+    similar_testcase = (test_utils.create_generic_testcase())  # pylint: disable=unused-variable
 
     self.assertEqual(
         False,
-        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker))
+        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker),
+    )
 
   def test_similar_testcase_get_issue_failed(self):
     """Tests result is false when there is a similar testcase with an associated
-    bug but we are unable to fetch it via get_issue."""
+        bug but we are unable to fetch it via get_issue."""
     similar_testcase = test_utils.create_generic_testcase()
-    similar_testcase.bug_information = '2'  # Non-existent.
+    similar_testcase.bug_information = "2"  # Non-existent.
     similar_testcase.put()
 
     self.assertEqual(
         False,
-        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker))
+        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker),
+    )
 
   def test_similar_testcase_is_reproducible_and_open(self):
     """Tests result is true when there is a similar testcase which is
-    reproducible, open and has an accessible associated bug."""
+        reproducible, open and has an accessible associated bug."""
     self.issue.save()
 
     similar_testcase = test_utils.create_generic_testcase()
@@ -232,13 +247,14 @@ class CheckAndUpdateSimilarBug(unittest.TestCase):
 
     self.assertEqual(
         True,
-        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker))
+        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker),
+    )
 
   def test_similar_testcase_reproducible_and_closed_but_issue_open_1(self):
     """Tests result is true when there is a similar testcase which is
-    reproducible and fixed due to flakiness but issue is kept open. Only update
-    testcase bug mapping if similar testcase is fixed longer than the grace
-    period."""
+        reproducible and fixed due to flakiness but issue is kept open. Only update
+        testcase bug mapping if similar testcase is fixed longer than the grace
+        period."""
     self.issue.save()
 
     similar_testcase = test_utils.create_generic_testcase()
@@ -249,24 +265,27 @@ class CheckAndUpdateSimilarBug(unittest.TestCase):
 
     self.assertEqual(
         True,
-        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker))
+        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker),
+    )
     testcase = data_handler.get_testcase_by_id(self.testcase.key.id())
     self.assertEqual(None, testcase.bug_information)
-    self.assertEqual('', self.issue._monorail_issue.comment)
+    self.assertEqual("", self.issue._monorail_issue.comment)
 
     similar_testcase.set_metadata(
-        'closed_time',
+        "closed_time",
         test_utils.CURRENT_TIME -
-        datetime.timedelta(hours=data_types.MIN_ELAPSED_TIME_SINCE_FIXED + 1))
+        datetime.timedelta(hours=data_types.MIN_ELAPSED_TIME_SINCE_FIXED + 1),
+    )
     self.assertEqual(
         True,
-        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker))
+        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker),
+    )
 
   def test_similar_testcase_reproducible_and_closed_but_issue_open_2(self):
     """Tests result is true when there is a similar testcase which is
-    reproducible and fixed due to flakiness but issue is kept open. Don't update
-    testcase bug mapping if another reproducible testcase is open and attached
-    to this bug."""
+        reproducible and fixed due to flakiness but issue is kept open. Don't update
+        testcase bug mapping if another reproducible testcase is open and attached
+        to this bug."""
     self.issue.save()
 
     similar_testcase_1 = test_utils.create_generic_testcase()
@@ -283,15 +302,16 @@ class CheckAndUpdateSimilarBug(unittest.TestCase):
 
     self.assertEqual(
         True,
-        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker))
+        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker),
+    )
     testcase = data_handler.get_testcase_by_id(self.testcase.key.id())
     self.assertEqual(None, testcase.bug_information)
-    self.assertEqual('', self.issue._monorail_issue.comment)
+    self.assertEqual("", self.issue._monorail_issue.comment)
 
   def test_similar_testcase_unreproducible_but_issue_open(self):
     """Tests result is true when there is a similar testcase which is
-    unreproducible but issue is kept open. Update testcase bug mapping always
-    since this testcase is reproducible."""
+        unreproducible but issue is kept open. Update testcase bug mapping always
+        since this testcase is reproducible."""
     self.issue.save()
 
     similar_testcase = test_utils.create_generic_testcase()
@@ -302,14 +322,15 @@ class CheckAndUpdateSimilarBug(unittest.TestCase):
 
     self.assertEqual(
         True,
-        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker))
+        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker),
+    )
 
   def test_similar_testcase_with_issue_closed_with_ignore_label(self):
     """Tests result is true when there is a similar testcase with closed issue
-    blacklisted with ignore label."""
-    self.issue.status = 'WontFix'
+        blacklisted with ignore label."""
+    self.issue.status = "WontFix"
     self.issue._monorail_issue.open = False
-    self.issue.labels.add('ClusterFuzz-Ignore')
+    self.issue.labels.add("ClusterFuzz-Ignore")
     self.issue.save()
 
     similar_testcase = test_utils.create_generic_testcase()
@@ -320,18 +341,20 @@ class CheckAndUpdateSimilarBug(unittest.TestCase):
 
     self.assertEqual(
         True,
-        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker))
+        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker),
+    )
 
     testcase = data_handler.get_testcase_by_id(self.testcase.key.id())
     self.assertEqual(
-        'Skipping filing a bug since similar testcase (2) in issue (1) '
-        'is blacklisted with ClusterFuzz-Ignore label.',
-        testcase.get_metadata(triage.TRIAGE_MESSAGE_KEY))
+        "Skipping filing a bug since similar testcase (2) in issue (1) "
+        "is blacklisted with ClusterFuzz-Ignore label.",
+        testcase.get_metadata(triage.TRIAGE_MESSAGE_KEY),
+    )
 
   def test_similar_testcase_with_issue_recently_closed(self):
     """Tests result is true when there is a similar testcase with issue closed
-    recently."""
-    self.issue.status = 'Fixed'
+        recently."""
+    self.issue.status = "Fixed"
     self.issue._monorail_issue.open = False
     self.issue._monorail_issue.closed = (
         test_utils.CURRENT_TIME -
@@ -346,9 +369,12 @@ class CheckAndUpdateSimilarBug(unittest.TestCase):
 
     self.assertEqual(
         True,
-        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker))
+        triage._check_and_update_similar_bug(self.testcase, self.issue_tracker),
+    )
 
     testcase = data_handler.get_testcase_by_id(self.testcase.key.id())
     self.assertEqual(
-        'Delaying filing a bug since similar testcase (2) in issue (1) '
-        'was just fixed.', testcase.get_metadata(triage.TRIAGE_MESSAGE_KEY))
+        "Delaying filing a bug since similar testcase (2) in issue (1) "
+        "was just fixed.",
+        testcase.get_metadata(triage.TRIAGE_MESSAGE_KEY),
+    )

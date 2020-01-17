@@ -13,9 +13,9 @@
 # limitations under the License.
 """environment tests."""
 import os
-import parameterized
 import unittest
 
+import parameterized
 from system import environment
 from tests.test_libs import helpers as test_helpers
 
@@ -29,7 +29,7 @@ class EnvironmentTest(unittest.TestCase):
 
   def test_reset_environment(self):
     """Tests that reset_environment() works as intended."""
-    variable = 'NEW_VARIABLE'
+    variable = "NEW_VARIABLE"
     # Check that the test's assumptions are correct.
     self.assertNotIn(variable, os.environ)
     # Test that reset_environment() works properly.
@@ -39,27 +39,27 @@ class EnvironmentTest(unittest.TestCase):
 
   def test_set_bot_environment_default_variables(self):
     """Tests that set_bot_environment() sets default variables as
-    intended."""
-    self.assertNotIn('TEST_TIMEOUT', os.environ)
-    self.assertNotIn('VERSION_PATTERN', os.environ)
-    self.assertNotIn('WATCH_FOR_PROCESS_EXIT', os.environ)
+        intended."""
+    self.assertNotIn("TEST_TIMEOUT", os.environ)
+    self.assertNotIn("VERSION_PATTERN", os.environ)
+    self.assertNotIn("WATCH_FOR_PROCESS_EXIT", os.environ)
 
     # Now test that setting default variables works properly.
     environment.set_bot_environment()
-    self.assertEqual(environment.get_value('TEST_TIMEOUT'), 10)
-    self.assertEqual(environment.get_value('VERSION_PATTERN'), '')
-    self.assertEqual(environment.get_value('WATCH_FOR_PROCESS_EXIT'), False)
+    self.assertEqual(environment.get_value("TEST_TIMEOUT"), 10)
+    self.assertEqual(environment.get_value("VERSION_PATTERN"), "")
+    self.assertEqual(environment.get_value("WATCH_FOR_PROCESS_EXIT"), False)
 
 
 class GetExecutableFileNameTest(unittest.TestCase):
   """Tests for get_executable_filename."""
 
-  EXECUTABLE = 'fuzzer_executable'
+  EXECUTABLE = "fuzzer_executable"
 
   def setUp(self):
-    test_helpers.patch(self, ['system.environment.platform'])
+    test_helpers.patch(self, ["system.environment.platform"])
 
-  @parameterized.parameterized.expand(['MAC', 'LINUX'])
+  @parameterized.parameterized.expand(["MAC", "LINUX"])
   def test_non_windows(self, platform):
     """Tests that it behaves as intended on platforms that aren't Windows."""
     self.mock.platform.return_value = platform
@@ -68,16 +68,19 @@ class GetExecutableFileNameTest(unittest.TestCase):
 
   def test_windows(self):
     """Tests that it behaves as intended on Windows."""
-    self.mock.platform.return_value = 'WINDOWS'
-    executable_with_extension = self.EXECUTABLE + '.exe'
+    self.mock.platform.return_value = "WINDOWS"
+    executable_with_extension = self.EXECUTABLE + ".exe"
     # Test that it adds an extension if needed.
-    self.assertEqual(executable_with_extension,
-                     environment.get_executable_filename(self.EXECUTABLE))
+    self.assertEqual(
+        executable_with_extension,
+        environment.get_executable_filename(self.EXECUTABLE),
+    )
 
     # Now test that it doesn't add an extension when not needed.
     self.assertEqual(
         executable_with_extension,
-        environment.get_executable_filename(executable_with_extension))
+        environment.get_executable_filename(executable_with_extension),
+    )
 
 
 class ParseMemoryToolOptionsTest(unittest.TestCase):
@@ -85,75 +88,75 @@ class ParseMemoryToolOptionsTest(unittest.TestCase):
 
   def setUp(self):
     test_helpers.patch(self,
-                       ['metrics.logs.log_warn', 'metrics.logs.log_error'])
+                       ["metrics.logs.log_warn", "metrics.logs.log_error"])
 
     self.windows_expected = {
-        'redzone':
+        "redzone":
             64,
-        'strict_string_check':
+        "strict_string_check":
             1,
-        'print_suppressions':
+        "print_suppressions":
             0,
-        'strict_memcmp':
+        "strict_memcmp":
             1,
-        'allow_user_segv_handler':
+        "allow_user_segv_handler":
             0,
-        'handle_sigfpe':
+        "handle_sigfpe":
             1,
-        'handle_sigbus':
+        "handle_sigbus":
             1,
-        'detect_stack_use_after_return':
+        "detect_stack_use_after_return":
             0,
-        'alloc_dealloc_mismatch':
+        "alloc_dealloc_mismatch":
             0,
-        'print_scariness':
+        "print_scariness":
             1,
-        'allocator_may_return_null':
+        "allocator_may_return_null":
             1,
-        'quarantine_size_mb':
+        "quarantine_size_mb":
             256,
-        'detect_odr_violation':
+        "detect_odr_violation":
             0,
-        'external_symbolizer_path':
+        "external_symbolizer_path":
             r'"c:\clusterfuzz\resources\platform\windows\llvm-symbolizer.exe"',
-        'handle_sigill':
+        "handle_sigill":
             1,
-        'allocator_release_to_os_interval_ms':
+        "allocator_release_to_os_interval_ms":
             500,
-        'use_sigaltstack':
+        "use_sigaltstack":
             1,
-        'fast_unwind_on_fatal':
+        "fast_unwind_on_fatal":
             1,
-        'detect_leaks':
+        "detect_leaks":
             0,
-        'handle_segv':
+        "handle_segv":
             1,
-        'handle_abort':
+        "handle_abort":
             1,
-        'check_malloc_usable_size':
+        "check_malloc_usable_size":
             0,
-        'detect_container_overflow':
+        "detect_container_overflow":
             0,
-        'symbolize':
+        "symbolize":
             1,
-        'print_summary':
-            1
+        "print_summary":
+            1,
     }
 
     self.windows_options_str = (
-        'redzone=64:print_summary=1:external_symbolizer_path='
+        "redzone=64:print_summary=1:external_symbolizer_path="
         r'"c:\clusterfuzz\resources\platform\windows\llvm-symbolizer.exe"'
-        ':handle_sigill=1:strict_string_check=1:allocator_release_to_os_interva'
-        'l_ms=500:print_suppressions=0:strict_memcmp=1:allow_user_segv_handler='
-        '0:use_sigaltstack=1:handle_sigfpe=1:handle_sigbus=1:detect_stack_use_a'
-        'fter_return=0:alloc_dealloc_mismatch=0:detect_leaks=0:print_scariness='
-        '1:allocator_may_return_null=1:handle_abort=1:check_malloc_usable_size='
-        '0:detect_container_overflow=0:quarantine_size_mb=256:detect_odr_violat'
-        'ion=0:symbolize=1:handle_segv=1:fast_unwind_on_fatal=1')
+        ":handle_sigill=1:strict_string_check=1:allocator_release_to_os_interva"
+        "l_ms=500:print_suppressions=0:strict_memcmp=1:allow_user_segv_handler="
+        "0:use_sigaltstack=1:handle_sigfpe=1:handle_sigbus=1:detect_stack_use_a"
+        "fter_return=0:alloc_dealloc_mismatch=0:detect_leaks=0:print_scariness="
+        "1:allocator_may_return_null=1:handle_abort=1:check_malloc_usable_size="
+        "0:detect_container_overflow=0:quarantine_size_mb=256:detect_odr_violat"
+        "ion=0:symbolize=1:handle_segv=1:fast_unwind_on_fatal=1")
 
   def _helper(self, options_str, expected):
     """Helper function to parse |options_str| and assert parsing was successful
-    had |expected| result."""
+        had |expected| result."""
     parsed_options = environment._parse_memory_tool_options(options_str)  # pylint: disable=protected-access
     self.assertEqual(expected, parsed_options)
     self.assertEqual(0, self.mock.log_error.call_count)
@@ -162,55 +165,55 @@ class ParseMemoryToolOptionsTest(unittest.TestCase):
   def test_non_windows(self):
     """Test that a non-Windows options string is parsed correctly."""
     options_str = (
-        'redzone=64:strict_string_check=1:print_suppressions=0:strict_memcmp=1:'
-        'allow_user_segv_handler=0:allocator_may_return_null=1:handle_sigfpe=1:'
-        'handle_sigbus=1:detect_stack_use_after_return=1:alloc_dealloc_mismatch'
-        '=0:print_scariness=1:max_uar_stack_size_log=16:quarantine_size_mb=256:'
-        'detect_odr_violation=0:handle_sigill=1:allocator_release_to_os_interva'
-        'l_ms=500:use_sigaltstack=1:fast_unwind_on_fatal=1:detect_leaks=1:print'
-        '_summary=1:handle_abort=1:check_malloc_usable_size=0:detect_container'
-        '_overflow=1:symbolize=0:handle_segv=1')
+        "redzone=64:strict_string_check=1:print_suppressions=0:strict_memcmp=1:"
+        "allow_user_segv_handler=0:allocator_may_return_null=1:handle_sigfpe=1:"
+        "handle_sigbus=1:detect_stack_use_after_return=1:alloc_dealloc_mismatch"
+        "=0:print_scariness=1:max_uar_stack_size_log=16:quarantine_size_mb=256:"
+        "detect_odr_violation=0:handle_sigill=1:allocator_release_to_os_interva"
+        "l_ms=500:use_sigaltstack=1:fast_unwind_on_fatal=1:detect_leaks=1:print"
+        "_summary=1:handle_abort=1:check_malloc_usable_size=0:detect_container"
+        "_overflow=1:symbolize=0:handle_segv=1")
 
     expected = {
-        'redzone': 64,
-        'strict_string_check': 1,
-        'print_suppressions': 0,
-        'strict_memcmp': 1,
-        'allow_user_segv_handler': 0,
-        'max_uar_stack_size_log': 16,
-        'handle_sigfpe': 1,
-        'handle_sigbus': 1,
-        'detect_stack_use_after_return': 1,
-        'alloc_dealloc_mismatch': 0,
-        'print_scariness': 1,
-        'allocator_may_return_null': 1,
-        'quarantine_size_mb': 256,
-        'detect_odr_violation': 0,
-        'handle_sigill': 1,
-        'allocator_release_to_os_interval_ms': 500,
-        'use_sigaltstack': 1,
-        'fast_unwind_on_fatal': 1,
-        'detect_leaks': 1,
-        'handle_segv': 1,
-        'handle_abort': 1,
-        'check_malloc_usable_size': 0,
-        'detect_container_overflow': 1,
-        'symbolize': 0,
-        'print_summary': 1
+        "redzone": 64,
+        "strict_string_check": 1,
+        "print_suppressions": 0,
+        "strict_memcmp": 1,
+        "allow_user_segv_handler": 0,
+        "max_uar_stack_size_log": 16,
+        "handle_sigfpe": 1,
+        "handle_sigbus": 1,
+        "detect_stack_use_after_return": 1,
+        "alloc_dealloc_mismatch": 0,
+        "print_scariness": 1,
+        "allocator_may_return_null": 1,
+        "quarantine_size_mb": 256,
+        "detect_odr_violation": 0,
+        "handle_sigill": 1,
+        "allocator_release_to_os_interval_ms": 500,
+        "use_sigaltstack": 1,
+        "fast_unwind_on_fatal": 1,
+        "detect_leaks": 1,
+        "handle_segv": 1,
+        "handle_abort": 1,
+        "check_malloc_usable_size": 0,
+        "detect_container_overflow": 1,
+        "symbolize": 0,
+        "print_summary": 1,
     }
     self._helper(options_str, expected)
 
   def test_windows_double_quotes(self):
     """Test that a Windows options string with double quotes is parsed
-    correctly."""
+        correctly."""
     self._helper(self.windows_options_str, self.windows_expected)
 
   def test_windows_single_quotes(self):
     """Test that a Windows options string with single quotes is parsed
-    correctly."""
-    self.windows_options_str = self.windows_options_str.replace('"', '\'')
-    self.windows_expected['external_symbolizer_path'] = (
-        self.windows_expected['external_symbolizer_path'].replace('"', '\''))
+        correctly."""
+    self.windows_options_str = self.windows_options_str.replace('"', "'")
+    self.windows_expected["external_symbolizer_path"] = self.windows_expected[
+        "external_symbolizer_path"].replace('"', "'")
     self._helper(self.windows_options_str, self.windows_expected)
 
 
@@ -219,13 +222,12 @@ class EvalValueTest(unittest.TestCase):
 
   @parameterized.parameterized.expand([
       # Test normal evaling.
-      ('1', 1),
-      ('-1.0', -1.0),
-      ('"string"', 'string'),
-      ("'string'", 'string'),
-
+      ("1", 1),
+      ("-1.0", -1.0),
+      ('"string"', "string"),
+      ("'string'", "string"),
       # Test handling of strings that can't be evaled.
-      ('1..', '1..')
+      ("1..", "1.."),
   ])
   def test_eval_value(self, value_string, expected_result):
     """Test that evaluating a value string produces the expected result."""
@@ -236,22 +238,65 @@ class EvalValueTest(unittest.TestCase):
 class ResetCurrentMemoryToolOptionsTest(unittest.TestCase):
   """Tests for reset_current_memory_tool_options."""
 
+  def setUp(self):
+    test_helpers.patch_environ(self)
+
   def test_windows_symbolizer(self):
     """Test that the reset_current_memory_tool_options returns the expected path
-    to the llvm symbolizer on Windows."""
-    test_helpers.patch_environ(self)
-    os.environ['JOB_NAME'] = 'windows_libfuzzer_chrome_asan'
-    test_helpers.patch(self, [
-        'system.environment.platform',
-        'system.environment.get_llvm_symbolizer_path'
-    ])
-    self.mock.platform.return_value = 'WINDOWS'
+        to the llvm symbolizer on Windows."""
+    os.environ["JOB_NAME"] = "windows_libfuzzer_chrome_asan"
+    test_helpers.patch(
+        self,
+        [
+            "system.environment.platform",
+            "system.environment.get_llvm_symbolizer_path",
+        ],
+    )
+    self.mock.platform.return_value = "WINDOWS"
     windows_symbolizer_path = (
-        r'c:\clusterfuzz\resources\platform\windows\llvm-symbolizer.exe')
+        r"c:\clusterfuzz\resources\platform\windows\llvm-symbolizer.exe")
     self.mock.get_llvm_symbolizer_path.return_value = windows_symbolizer_path
     environment.reset_current_memory_tool_options()
-    self.assertIn('external_symbolizer_path="%s"' % windows_symbolizer_path,
-                  os.environ['ASAN_OPTIONS'])
+    self.assertIn(
+        'external_symbolizer_path="%s"' % windows_symbolizer_path,
+        os.environ["ASAN_OPTIONS"],
+    )
+
+  def test_ubsan_enabled(self):
+    """Test reset_current_memory_tool_options when ubsan is enabled."""
+    os.environ["JOB_NAME"] = "libfuzzer_chrome_asan"
+    os.environ["UBSAN"] = "True"
+    environment.reset_current_memory_tool_options(disable_ubsan=False)
+    self.assertDictEqual(
+        {
+            "halt_on_error": 1,
+            "handle_abort": 1,
+            "handle_segv": 1,
+            "handle_sigbus": 1,
+            "handle_sigfpe": 1,
+            "handle_sigill": 1,
+            "print_stacktrace": 1,
+            "print_summary": 1,
+            "print_suppressions": 0,
+            "silence_unsigned_overflow": 1,
+            "use_sigaltstack": 1,
+        },
+        environment.get_memory_tool_options("UBSAN_OPTIONS"),
+    )
+
+  def test_ubsan_disabled(self):
+    """Test reset_current_memory_tool_options when ubsan is disabled."""
+    os.environ["JOB_NAME"] = "libfuzzer_chrome_asan"
+    os.environ["UBSAN"] = "True"
+    environment.reset_current_memory_tool_options(disable_ubsan=True)
+    self.assertDictEqual(
+        {
+            "halt_on_error": 0,
+            "print_stacktrace": 0,
+            "print_suppressions": 0
+        },
+        environment.get_memory_tool_options("UBSAN_OPTIONS"),
+    )
 
 
 class MaybeConvertToIntTest(unittest.TestCase):
@@ -259,18 +304,17 @@ class MaybeConvertToIntTest(unittest.TestCase):
 
   @parameterized.parameterized.expand([
       # Test int deserializing.
-      ('1', 1),
-      ('-9', -9),
-
+      ("1", 1),
+      ("-9", -9),
       # Test that other types are not deserialized
-      ('C:\\path.exe', 'C:\\path.exe'),
-      ('1.0', '1.0'),
-      ('True', 'True'),
-      ('true', 'true'),
+      ("C:\\path.exe", "C:\\path.exe"),
+      ("1.0", "1.0"),
+      ("True", "True"),
+      ("true", "true"),
   ])
   def test_maybe_convert_to_int(self, literal_value, expected_result):
     """Test calling _maybe_convert_to_int on a string produces the expected
-    result."""
+        result."""
     actual_result = environment._maybe_convert_to_int(literal_value)  # pylint: disable=protected-access
     self.assertEqual(expected_result, actual_result)
 
@@ -280,23 +324,26 @@ class GetMemoryToolOptionsTest(unittest.TestCase):
 
   def test_doesnt_mutate_options(self):
     """Test that calling get_memory_tool_options followed by
-    set_memory_tool_options does not mutate sanitizer options unless we
-    do so explicitly."""
+        set_memory_tool_options does not mutate sanitizer options unless we
+        do so explicitly."""
     # Make environment module use the Windows symbolizer, since its path is
     # hard to get right.
     test_helpers.patch_environ(self)
-    os.environ['JOB_NAME'] = 'windows_libfuzzer_chrome_asan'
-    test_helpers.patch(self, [
-        'system.environment.platform',
-        'system.environment.get_llvm_symbolizer_path'
-    ])
-    self.mock.platform.return_value = 'WINDOWS'
+    os.environ["JOB_NAME"] = "windows_libfuzzer_chrome_asan"
+    test_helpers.patch(
+        self,
+        [
+            "system.environment.platform",
+            "system.environment.get_llvm_symbolizer_path",
+        ],
+    )
+    self.mock.platform.return_value = "WINDOWS"
     windows_symbolizer_path = (
-        r'c:\clusterfuzz\resources\platform\windows\llvm-symbolizer.exe')
+        r"c:\clusterfuzz\resources\platform\windows\llvm-symbolizer.exe")
 
     self.mock.get_llvm_symbolizer_path.return_value = windows_symbolizer_path
     environment.reset_current_memory_tool_options()
-    memory_tool_var = 'ASAN_OPTIONS'
+    memory_tool_var = "ASAN_OPTIONS"
     first_asan_options_dict = environment.get_memory_tool_options(
         memory_tool_var)
     environment.set_memory_tool_options(memory_tool_var,
@@ -310,7 +357,7 @@ class AppEngineNoopTest(unittest.TestCase):
   """Tests for appengine_noop."""
 
   def setUp(self):
-    test_helpers.patch(self, ['system.environment.is_running_on_app_engine'])
+    test_helpers.patch(self, ["system.environment.is_running_on_app_engine"])
 
   def test_appengine(self):
     """Test calling function in App Engine environment."""
@@ -337,7 +384,7 @@ class BotNoopTest(unittest.TestCase):
   """Tests for bot_noop."""
 
   def setUp(self):
-    test_helpers.patch(self, ['system.environment.is_running_on_app_engine'])
+    test_helpers.patch(self, ["system.environment.is_running_on_app_engine"])
 
   def test_appengine(self):
     """Test calling function in App Engine environment."""
@@ -366,7 +413,7 @@ class LocalNoopTest(unittest.TestCase):
   def setUp(self):
     test_helpers.patch_environ(self)
     test_helpers.patch(
-        self, ['system.environment.is_running_on_app_engine_development'])
+        self, ["system.environment.is_running_on_app_engine_development"])
 
   def test_prod(self):
     """Test calling function in production environment."""
@@ -390,8 +437,8 @@ class LocalNoopTest(unittest.TestCase):
 
   def test_local_bot(self):
     """Test calling function in local environment."""
-    environment.set_value('LOCAL_DEVELOPMENT', True)
-    environment.set_value('PY_UNITTESTS', False)
+    environment.set_value("LOCAL_DEVELOPMENT", True)
+    environment.set_value("PY_UNITTESTS", False)
     self.mock.is_running_on_app_engine_development.return_value = False
 
     @environment.local_noop

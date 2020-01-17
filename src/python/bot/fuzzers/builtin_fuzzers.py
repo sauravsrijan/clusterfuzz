@@ -12,21 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Builtin fuzzers."""
-
-import six
-
 from bot.fuzzers.afl import fuzzer as afl
 from bot.fuzzers.libFuzzer import fuzzer as libFuzzer
 
-BUILTIN_FUZZERS = {
-    'afl': afl.Afl(),
-    'libFuzzer': libFuzzer.LibFuzzer(),
-}
-
-
-def all():  # pylint: disable=redefined-builtin
-  """Yield pairs of (name, BuiltinFuzzer)."""
-  return six.iteritems(BUILTIN_FUZZERS)
+BUILTIN_FUZZERS = {"afl": afl.Afl(), "libFuzzer": libFuzzer.LibFuzzer()}
 
 
 def get(fuzzer_name):
@@ -35,12 +24,3 @@ def get(fuzzer_name):
     return None
 
   return BUILTIN_FUZZERS[fuzzer_name]
-
-
-def get_fuzzer_for_job(job_name):
-  """Return a fuzzer override for engine jobs."""
-  for fuzzer_name in BUILTIN_FUZZERS:
-    if fuzzer_name.lower() in job_name.lower():
-      return fuzzer_name
-
-  return None

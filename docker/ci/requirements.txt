@@ -1,5 +1,4 @@
 beautifulsoup4==4.5.1
-coverage==4.2
 ecdsa==0.13.3
 extras==1.0.0
 fixtures==3.0.0
@@ -18,6 +17,6 @@ six==1.12.0
 testtools==2.2.0
 traceback2==1.4.0
 unittest2==1.1.0
-waitress==1.0.0
+waitress==1.4.2
 WebTest==2.0.23
 yapf==0.22.0

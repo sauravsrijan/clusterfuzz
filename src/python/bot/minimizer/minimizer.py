@@ -14,18 +14,20 @@
 """Base classes for other minimizers."""
 from __future__ import absolute_import
 
-from future import standard_library
-standard_library.install_aliases()
-from builtins import object
-from builtins import range
 import copy
 import functools
 import os
 import tempfile
 import threading
 import time
+from builtins import object
+from builtins import range
+
+from future import standard_library
 
 from . import errors
+
+standard_library.install_aliases()
 
 DEFAULT_CLEANUP_INTERVAL = 20
 DEFAULT_THREAD_COUNT = 8
@@ -51,11 +53,13 @@ class DummyLock(object):
 class TestQueue(object):
   """Queue to store commands that should be executed to test hypotheses."""
 
-  def __init__(self,
-               thread_count,
-               deadline_check=None,
-               progress_report_function=None,
-               per_thread_cleanup_function=None):
+  def __init__(
+      self,
+      thread_count,
+      deadline_check=None,
+      progress_report_function=None,
+      per_thread_cleanup_function=None,
+  ):
     self.thread_count = thread_count
     self.deadline_check = deadline_check
     self.progress_report_function = progress_report_function
@@ -78,7 +82,7 @@ class TestQueue(object):
       if not current_item:
         break
 
-      test, test_function, completion_callback, should_run = current_item  # pylint: disable=unpacking-non-sequence
+      test, test_function, completion_callback, should_run = (current_item)  # pylint: disable=unpacking-non-sequence
       if not should_run():
         continue
 
@@ -156,12 +160,14 @@ class Testcase(object):
     self.currently_processing = False
     self.last_progress_report_time = 0
     self.runs_since_last_cleanup = 0
+    self.runs_executed = 0
 
     if minimizer.max_threads > 1:
       self.test_queue = TestQueue(
           minimizer.max_threads,
           deadline_check=self._deadline_exceeded,
-          progress_report_function=self._report_progress)
+          progress_report_function=self._report_progress,
+      )
       self.merge_preparation_lock = threading.Lock()
       self.merge_lock = threading.Lock()
       self.cache_lock = threading.Lock()
@@ -207,17 +213,23 @@ class Testcase(object):
     except OSError:
       pass
 
-  def _report_progress(self):
+  def _report_progress(self, is_final_progress_report=False):
     """Call a function to report progress if the minimizer uses one."""
     if not self.minimizer.progress_report_function:
       return
 
-    if time.time() - self.last_progress_report_time < PROGRESS_REPORT_INTERVAL:
+    if (time.time() - self.last_progress_report_time < PROGRESS_REPORT_INTERVAL
+        and not is_final_progress_report):
       return
 
     self.last_progress_report_time = time.time()
-    message = '%d/%d tokens remaining.' % (len(self.get_required_tokens()),
-                                           len(self.required_tokens))
+    message = "%d/%d tokens remaining. %d runs executed so far." % (
+        len(self.get_required_tokens()),
+        len(self.required_tokens),
+        self.runs_executed,
+    )
+    if is_final_progress_report:
+      message = "Done with this round of minimization. " + message
     self.minimizer.progress_report_function(message)
 
   # Functions used when preparing tests.
@@ -279,6 +291,7 @@ class Testcase(object):
     if self._has_tested(hypothesis):
       return
 
+    self.runs_executed += 1
     # If we are single-threaded, just run and process results immediately.
     if not self.test_queue:
       # In the threaded case, we call the cleanup function before each pass
@@ -463,6 +476,8 @@ class Testcase(object):
   # Result checking functions.
   def get_result(self):
     """Get the result of minimization."""
+    # Done with minimization, output log one more time
+    self._report_progress(is_final_progress_report=True)
     if not self.minimizer.tokenize:
       return self.get_required_tokens()
     return str(self)
@@ -478,31 +493,33 @@ class Testcase(object):
 
 def _default_tokenizer(s):
   """Default string tokenizer which splits on newlines."""
-  return s.split('\n')
+  return s.split("\n")
 
 
 def _default_combiner(tokens):
   """Default token combiner which assumes each token is a line."""
-  return '\n'.join(tokens)
+  return "\n".join(tokens)
 
 
 class Minimizer(object):
   """Base class for minimizers."""
 
-  def __init__(self,
-               test_function,
-               max_threads=1,
-               tokenizer=_default_tokenizer,
-               token_combiner=_default_combiner,
-               tokenize=True,
-               cleanup_function=None,
-               single_thread_cleanup_interval=DEFAULT_CLEANUP_INTERVAL,
-               deadline=None,
-               get_temp_file=None,
-               delete_temp_files=True,
-               batch_size=None,
-               progress_report_function=None,
-               file_extension=''):
+  def __init__(
+      self,
+      test_function,
+      max_threads=1,
+      tokenizer=_default_tokenizer,
+      token_combiner=_default_combiner,
+      tokenize=True,
+      cleanup_function=None,
+      single_thread_cleanup_interval=DEFAULT_CLEANUP_INTERVAL,
+      deadline=None,
+      get_temp_file=None,
+      delete_temp_files=True,
+      batch_size=None,
+      progress_report_function=None,
+      file_extension="",
+  ):
     """Initialize a minimizer. A minimizer object can be used multiple times."""
     self.test_function = test_function
     self.max_threads = max_threads
@@ -524,10 +541,11 @@ class Minimizer(object):
     if not get_temp_file:
       self.get_temp_file = functools.partial(
           tempfile.NamedTemporaryFile,
-          mode='wb',
+          mode="wb",
           delete=False,
-          prefix='min_',
-          suffix=file_extension)
+          prefix="min_",
+          suffix=file_extension,
+      )
     else:
       self.get_temp_file = get_temp_file
 
@@ -560,6 +578,6 @@ class Minimizer(object):
     return testcase.get_result()
 
   @staticmethod
-  def run(data, thread_count=DEFAULT_THREAD_COUNT, file_extension=''):
+  def run(data, thread_count=DEFAULT_THREAD_COUNT, file_extension=""):
     """Minimize |data| using this minimizer's default configuration."""
     raise NotImplementedError

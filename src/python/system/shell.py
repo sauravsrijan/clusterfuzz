@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Shell related functions."""
-
 import os
 import re
 import shlex
@@ -33,7 +32,7 @@ except ImportError:
 LOW_DISK_SPACE_THRESHOLD = 2 * 1024 * 1024 * 1024  # 2 GB
 FILE_COPY_BUFFER_SIZE = 10 * 1024 * 1024  # 10 MB.
 HANDLE_OUTPUT_FILE_TYPE_REGEX = re.compile(
-    r'.*pid:\s*(\d+)\s*type:\s*File\s*([a-fA-F0-9]+):\s*(.*)')
+    r".*pid:\s*(\d+)\s*type:\s*File\s*([a-fA-F0-9]+):\s*(.*)")
 
 _system_temp_dir = None
 
@@ -41,13 +40,13 @@ _system_temp_dir = None
 def copy_file(source_file_path, destination_file_path):
   """Faster version of shutil.copy with buffer size."""
   if not os.path.exists(source_file_path):
-    logs.log_error('Source file %s for copy not found.' % source_file_path)
+    logs.log_error("Source file %s for copy not found." % source_file_path)
     return False
 
   error_occurred = False
   try:
-    with open(source_file_path, 'rb') as source_file_handle:
-      with open(destination_file_path, 'wb') as destination_file_handle:
+    with open(source_file_path, "rb") as source_file_handle:
+      with open(destination_file_path, "wb") as destination_file_handle:
         shutil.copyfileobj(source_file_handle, destination_file_handle,
                            FILE_COPY_BUFFER_SIZE)
   except:
@@ -57,7 +56,7 @@ def copy_file(source_file_path, destination_file_path):
   error_occurred |= not os.path.exists(destination_file_path)
 
   if error_occurred:
-    logs.log_warn('Failed to copy source file %s to destination file %s.' %
+    logs.log_warn("Failed to copy source file %s to destination file %s." %
                   (source_file_path, destination_file_path))
     return False
 
@@ -66,37 +65,38 @@ def copy_file(source_file_path, destination_file_path):
 
 def clear_build_directory():
   """Clears the build directory."""
-  remove_directory(environment.get_value('BUILDS_DIR'), recreate=True)
+  remove_directory(environment.get_value("BUILDS_DIR"), recreate=True)
 
 
 def clear_build_urls_directory():
   """Clears the build url directory."""
-  remove_directory(environment.get_value('BUILD_URLS_DIR'), recreate=True)
+  remove_directory(environment.get_value("BUILD_URLS_DIR"), recreate=True)
 
   if environment.is_trusted_host():
     from bot.untrusted_runner import file_host
+
     file_host.clear_build_urls_directory()
 
 
 def clear_crash_stacktraces_directory():
   """Clears the crash stacktraces directory."""
   remove_directory(
-      environment.get_value('CRASH_STACKTRACES_DIR'), recreate=True)
+      environment.get_value("CRASH_STACKTRACES_DIR"), recreate=True)
 
 
 def clear_common_data_bundles_directory():
   """Clear the common data bundle directory."""
-  remove_directory(environment.get_value('FUZZ_DATA'), recreate=True)
+  remove_directory(environment.get_value("FUZZ_DATA"), recreate=True)
 
 
 def clear_data_bundles_directory():
   """Clears the data bundles directory."""
-  remove_directory(environment.get_value('DATA_BUNDLES_DIR'), recreate=True)
+  remove_directory(environment.get_value("DATA_BUNDLES_DIR"), recreate=True)
 
 
 def clear_mutator_plugins_directory():
   """Clears the mutator plugins directory."""
-  remove_directory(environment.get_value('MUTATOR_PLUGINS_DIR'), recreate=True)
+  remove_directory(environment.get_value("MUTATOR_PLUGINS_DIR"), recreate=True)
 
 
 def clear_data_directories():
@@ -116,7 +116,7 @@ def clear_data_directories():
 
 def clear_data_directories_on_low_disk_space():
   """Clear all data directories on low disk space. This should ideally never
-  happen, but when it does, we do this to keep the bot working in sane state."""
+    happen, but when it does, we do this to keep the bot working in sane state."""
   free_disk_space = get_free_disk_space()
   if free_disk_space is None:
     # Can't determine free disk space, bail out.
@@ -127,31 +127,32 @@ def clear_data_directories_on_low_disk_space():
 
   clear_data_directories()
   logs.log_error(
-      'Low disk space detected, cleared all data directories to free up space.')
+      "Low disk space detected, cleared all data directories to free up space.")
 
 
 def clear_device_temp_directories():
   """Clear device specific temp directories."""
-  if environment.platform() == 'ANDROID':
+  if environment.platform() == "ANDROID":
     from platforms import android
+
     android.device.clear_temp_directories()
 
 
 def clear_fuzzers_directories():
   """Clears the fuzzers directory."""
-  remove_directory(environment.get_value('FUZZERS_DIR'), recreate=True)
+  remove_directory(environment.get_value("FUZZERS_DIR"), recreate=True)
 
 
 def clear_temp_directory(clear_user_profile_directories=True):
   """Clear the temporary directories."""
-  temp_directory = environment.get_value('BOT_TMPDIR')
+  temp_directory = environment.get_value("BOT_TMPDIR")
   remove_directory(temp_directory, recreate=True)
   os.chmod(temp_directory, 0o777)
 
   if not clear_user_profile_directories:
     return
 
-  user_profile_root_directory = environment.get_value('USER_PROFILE_ROOT_DIR')
+  user_profile_root_directory = environment.get_value("USER_PROFILE_ROOT_DIR")
   if not user_profile_root_directory:
     return
 
@@ -169,6 +170,11 @@ def clear_system_temp_directory():
     except:
       pass
 
+  if environment.get_value("SKIP_SYSTEM_TEMP_CLEANUP"):
+    # This provides a way to avoid clearing system temporary directory when it
+    # can interfere with other processes on the system.
+    return
+
   # Cache system temp directory to avoid iterating through the system dir list
   # on every gettempdir call. Also, it helps to avoid a case where temp dir
   # fills up the disk and gets ignored by gettempdir.
@@ -184,35 +190,38 @@ def clear_system_temp_directory():
 
     for name in dirs:
       _delete_object(os.path.join(root, name), os.rmdir)
-  logs.log('Cleared system temp directory: %s' % _system_temp_dir)
+  logs.log("Cleared system temp directory: %s" % _system_temp_dir)
 
 
 def clear_testcase_directories():
   """Clears the testcase directories."""
-  remove_directory(environment.get_value('FUZZ_INPUTS'), recreate=True)
-  remove_directory(environment.get_value('FUZZ_INPUTS_DISK'), recreate=True)
+  remove_directory(environment.get_value("FUZZ_INPUTS"), recreate=True)
+  remove_directory(environment.get_value("FUZZ_INPUTS_DISK"), recreate=True)
 
-  if environment.platform() == 'ANDROID':
+  if environment.platform() == "ANDROID":
     from platforms import android
+
     android.device.clear_testcase_directory()
-  if environment.platform() == 'FUCHSIA':
+  if environment.platform() == "FUCHSIA":
     from platforms import fuchsia
+
     fuchsia.device.clear_testcase_directory()
   if environment.is_trusted_host():
     from bot.untrusted_runner import file_host
+
     file_host.clear_testcase_directories()
 
 
 def close_open_file_handles_if_needed(path):
   """Try to close all open file handle for a specific path."""
-  if environment.platform() != 'WINDOWS':
+  if environment.platform() != "WINDOWS":
     # Handle closing is only applicable on Windows platform.
     return
 
   resources_directory = environment.get_platform_resources_directory()
-  handle_executable_path = os.path.join(resources_directory, 'handle.exe')
-  handle_output = execute_command(
-      '%s -accepteula "%s"' % (handle_executable_path, path))
+  handle_executable_path = os.path.join(resources_directory, "handle.exe")
+  handle_output = execute_command('%s -accepteula "%s"' %
+                                  (handle_executable_path, path))
   for line in handle_output.splitlines():
     match = HANDLE_OUTPUT_FILE_TYPE_REGEX.match(line)
     if not match:
@@ -222,16 +231,16 @@ def close_open_file_handles_if_needed(path):
     file_handle_id = match.group(2)
     file_path = match.group(3)
 
-    logs.log(
-        'Closing file handle id %s for path %s.' % (file_handle_id, file_path))
-    execute_command('%s -accepteula -c %s -p %s -y' %
+    logs.log("Closing file handle id %s for path %s." %
+             (file_handle_id, file_path))
+    execute_command("%s -accepteula -c %s -p %s -y" %
                     (handle_executable_path, file_handle_id, process_id))
 
 
 def create_directory(directory, create_intermediates=False, recreate=False):
   """Creates |directory|. Create intermediate directories if
-  |create_intermediates|. Ignore if it already exists and |recreate| is
-   False."""
+    |create_intermediates|. Ignore if it already exists and |recreate| is
+     False."""
   if os.path.exists(directory):
     if recreate:
       remove_directory(directory)
@@ -244,7 +253,7 @@ def create_directory(directory, create_intermediates=False, recreate=False):
     else:
       os.mkdir(directory)
   except:
-    logs.log_error('Unable to create directory %s.' % directory)
+    logs.log_error("Unable to create directory %s." % directory)
     return False
 
   return True
@@ -258,17 +267,18 @@ def execute_command(shell_command):
         shell=True,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
+        stderr=subprocess.PIPE,
+    )
     output, _ = process_handle.communicate()
   except:
-    logs.log_error('Error while executing command %s.' % shell_command)
-    return ''
+    logs.log_error("Error while executing command %s." % shell_command)
+    return ""
 
   return output
 
 
 def get_command_and_arguments(command_line):
-  if environment.platform() == 'WINDOWS':
+  if environment.platform() == "WINDOWS":
     command = command_line
   else:
     command = shlex.split(command_line, posix=True)
@@ -318,7 +328,7 @@ def get_files_list(directory_path):
   return files_list
 
 
-def get_free_disk_space(path='/'):
+def get_free_disk_space(path="/"):
   """Return free disk space."""
   if not os.path.exists(path):
     return None
@@ -329,13 +339,13 @@ def get_free_disk_space(path='/'):
 def get_interpreter(file_to_execute):
   """Gives the interpreter needed to execute |file_to_execute|."""
   interpreter_extension_map = {
-      '.bash': 'bash',
-      '.class': 'java',
-      '.js': 'node',
-      '.pl': 'perl',
-      '.py': 'python',
-      '.pyc': 'python',
-      '.sh': 'sh'
+      ".bash": "bash",
+      ".class": "java",
+      ".js": "node",
+      ".pl": "perl",
+      ".py": "python",
+      ".pyc": "python",
+      ".sh": "sh",
   }
 
   try:
@@ -349,10 +359,10 @@ def get_execute_command(file_to_execute):
   interpreter_path = get_interpreter(file_to_execute)
 
   # Hack for Java scripts.
-  file_to_execute = file_to_execute.replace('.class', '')
+  file_to_execute = file_to_execute.replace(".class", "")
 
   if interpreter_path:
-    command = '%s %s' % (interpreter_path, file_to_execute)
+    command = "%s %s" % (interpreter_path, file_to_execute)
   else:
     # Handle executables that don't need an interpreter.
     command = file_to_execute
@@ -361,12 +371,12 @@ def get_execute_command(file_to_execute):
 
 def move(src, dst):
   """Wrapper around shutil.move(src, dst). If shutil.move throws an shutil.Error
-  the exception is caught, an error is logged, and False is returned."""
+    the exception is caught, an error is logged, and False is returned."""
   try:
     shutil.move(src, dst)
     return True
   except shutil.Error:
-    logs.log_error('Failed to move %s to %s' % (src, dst))
+    logs.log_error("Failed to move %s to %s" % (src, dst))
     return False
 
 
@@ -381,7 +391,7 @@ def remove_empty_files(root_path):
       try:
         os.remove(path)
       except:
-        logs.log_error('Unable to remove the empty file: %s (%s).' %
+        logs.log_error("Unable to remove the empty file: %s (%s)." %
                        (path, sys.exc_info()[0]))
 
 
@@ -403,7 +413,7 @@ def remove_empty_directories(path):
     try:
       os.rmdir(path)
     except:
-      logs.log_error('Unable to remove empty folder %s.' % path)
+      logs.log_error("Unable to remove empty folder %s." % path)
 
 
 def remove_file(file_path):
@@ -422,7 +432,7 @@ def remove_directory(directory, recreate=False, ignore_errors=False):
 
   def clear_read_only(func, path, _):
     """Clear the read-only bit and reattempt the removal again.
-    This is needed on Windows."""
+        This is needed on Windows."""
 
     try:
       os.chmod(path, 0o750)
@@ -436,15 +446,15 @@ def remove_directory(directory, recreate=False, ignore_errors=False):
       # Log errors for all cases except device or resource busy errors, as such
       # errors are expected in cases when mounts are used.
       error_message = sys.exc_info()[1]
-      if 'Device or resource busy' not in error_message:
+      if "Device or resource busy" not in error_message:
         logs.log_warn(
-            'Failed to remove directory %s failed because %s with %s failed. %s'
+            "Failed to remove directory %s failed because %s with %s failed. %s"
             % (directory, func, path, error_message))
 
   # Try the os-specific deletion commands first. This helps to overcome issues
   # with unicode filename handling.
   if os.path.exists(directory):
-    if environment.platform() == 'WINDOWS':
+    if environment.platform() == "WINDOWS":
       os.system('rd /s /q "%s" > nul 2>&1' % directory)
     else:
       os.system('rm -rf "%s" > /dev/null 2>&1' % directory)
@@ -463,7 +473,7 @@ def remove_directory(directory, recreate=False, ignore_errors=False):
     #    existed.
     if not os.path.ismount(directory) or os.listdir(directory):
       # Directory could not be cleared. Bail out.
-      log_error_func('Failed to clear directory %s.' % directory)
+      log_error_func("Failed to clear directory %s." % directory)
       return False
 
     return True
@@ -474,7 +484,7 @@ def remove_directory(directory, recreate=False, ignore_errors=False):
   try:
     os.makedirs(directory)
   except:
-    log_error_func('Unable to re-create directory %s.' % directory)
+    log_error_func("Unable to re-create directory %s." % directory)
     return False
 
   return True
@@ -485,13 +495,13 @@ def remove_directory(directory, recreate=False, ignore_errors=False):
 # yapf: disable
 def which(cmd, mode=os.F_OK | os.X_OK, path=None):
   """Given a command, mode, and a PATH string, return the path which
-  conforms to the given mode on the PATH, or None if there is no such
-  file.
-  `mode` defaults to os.F_OK | os.X_OK. `path` defaults to the result
-  of os.environ.get("PATH"), or can be overridden with a custom search
-  path.
-  Note: This function was backported from the Python 3 source code.
-  """
+    conforms to the given mode on the PATH, or None if there is no such
+    file.
+    `mode` defaults to os.F_OK | os.X_OK. `path` defaults to the result
+    of os.environ.get("PATH"), or can be overridden with a custom search
+    path.
+    Note: This function was backported from the Python 3 source code.
+    """
 
   # Check that a given file can be accessed with the correct mode.
   # Additionally check that `file` is not a directory, as on Windows
@@ -499,7 +509,8 @@ def which(cmd, mode=os.F_OK | os.X_OK, path=None):
 
   def _access_check(fn, mode):
     return (
-        os.path.exists(fn) and os.access(fn, mode) and not os.path.isdir(fn)
+        os.path.exists(fn) and os.access(
+            fn, mode) and not os.path.isdir(fn)
     )
 
   # If we're given a path with a directory part, look it up directly

@@ -15,17 +15,17 @@
 # pylint: disable=invalid-name
 # TODO(ochang): Remove V3 from names once all metrics are migrated to
 # stackdriver.
-
-from builtins import object
-from builtins import range
 import bisect
 import collections
 import functools
 import itertools
 import re
-import six
 import threading
 import time
+from builtins import object
+from builtins import range
+
+import six
 
 try:
   from google.cloud import monitoring_v3
@@ -43,9 +43,9 @@ from google_cloud_utils import credentials
 from metrics import logs
 from system import environment
 
-CUSTOM_METRIC_PREFIX = 'custom.googleapis.com/'
+CUSTOM_METRIC_PREFIX = "custom.googleapis.com/"
 FLUSH_INTERVAL_SECONDS = 10 * 60  # 10 minutes.
-RETRY_DEADLINE_SECONDS = 90
+RETRY_DEADLINE_SECONDS = 3 * 60  # 3 minutes.
 MAX_TIME_SERIES_PER_CALL = 200
 
 _retry_wrap = retry.Retry(
@@ -55,7 +55,8 @@ _retry_wrap = retry.Retry(
         exceptions.ServerError,
         exceptions.ServiceUnavailable,
     )),
-    deadline=RETRY_DEADLINE_SECONDS)
+    deadline=RETRY_DEADLINE_SECONDS,
+)
 
 
 class _MockMetric(object):
@@ -106,7 +107,7 @@ class _FlusherThread(threading.Thread):
         if time_series:
           create_time_series(project_path, time_series)
       except Exception:
-        logs.log_error('Failed to flush metrics.')
+        logs.log_error("Failed to flush metrics.")
 
   def stop(self):
     self.stop_event.set()
@@ -114,7 +115,7 @@ class _FlusherThread(threading.Thread):
 
 
 _StoreValue = collections.namedtuple(
-    '_StoreValue', ['metric', 'labels', 'start_time', 'value'])
+    "_StoreValue", ["metric", "labels", "start_time", "value"])
 
 
 class _MetricsStore(object):
@@ -252,8 +253,8 @@ class Metric(object):
       metric.labels[key] = str(value)
 
     # Default labels.
-    bot_name = environment.get_value('BOT_NAME')
-    metric.labels['region'] = _get_region(bot_name)
+    bot_name = environment.get_value("BOT_NAME")
+    metric.labels["region"] = _get_region(bot_name)
 
     return metric
 
@@ -357,7 +358,7 @@ class FixedWidthBucketer(_Bucketer):
     self.num_finite_buckets = num_finite_buckets
 
     # [-Inf, 0), [0, width), [width, 2*width], ... , [n*width, Inf)
-    self._lower_bounds = [float('-Inf')]
+    self._lower_bounds = [float("-Inf")]
     self._lower_bounds.extend(
         [width * i for i in range(num_finite_buckets + 1)])
 
@@ -372,7 +373,7 @@ class GeometricBucketer(_Bucketer):
 
     # [-Inf, scale), [scale, scale*growth),
     # [scale*growth^i, scale*growth^(i+1)), ..., [scale*growth^n, Inf)
-    self._lower_bounds = [float('-Inf')]
+    self._lower_bounds = [float("-Inf")]
     self._lower_bounds.extend(
         [scale * growth_factor**i for i in range(num_finite_buckets + 1)])
 
@@ -410,8 +411,7 @@ class _Distribution(object):
     else:
       assert isinstance(self.bucketer, GeometricBucketer)
 
-      distribution.bucket_options.exponential_buckets.scale = (
-          self.bucketer.scale)
+      distribution.bucket_options.exponential_buckets.scale = self.bucketer.scale
       distribution.bucket_options.exponential_buckets.growth_factor = (
           self.bucketer.growth_factor)
       distribution.bucket_options.exponential_buckets.num_finite_buckets = (
@@ -456,9 +456,7 @@ _monitored_resource = None
 # Add fields very conservatively here. There is a limit of 10 labels per metric
 # descriptor, and metrics should be low in cardinality. That is, only add fields
 # which have a small number of possible values.
-DEFAULT_FIELDS = [
-    StringField('region'),
-]
+DEFAULT_FIELDS = [StringField("region")]
 
 
 def check_module_loaded(module):
@@ -489,22 +487,22 @@ def _initialize_monitored_resource():
   _monitored_resource = monitoring_v3.types.MonitoredResource()
 
   # TODO(ochang): Use generic_node when that is available.
-  _monitored_resource.type = 'gce_instance'
+  _monitored_resource.type = "gce_instance"
 
   # The project ID must be the same as the one we write metrics to, not the ID
   # where the instance lives.
-  _monitored_resource.labels['project_id'] = utils.get_application_id()
+  _monitored_resource.labels["project_id"] = utils.get_application_id()
 
   # Use bot name here instance as that's more useful to us.
-  _monitored_resource.labels['instance_id'] = environment.get_value('BOT_NAME')
+  _monitored_resource.labels["instance_id"] = environment.get_value("BOT_NAME")
 
   if compute_metadata.is_gce():
     # Returned in the form projects/{id}/zones/{zone}
-    zone = compute_metadata.get('instance/zone').split('/')[-1]
-    _monitored_resource.labels['zone'] = zone
+    zone = compute_metadata.get("instance/zone").split("/")[-1]
+    _monitored_resource.labels["zone"] = zone
   else:
     # Default zone for instances not on GCE.
-    _monitored_resource.labels['zone'] = 'us-central1-f'
+    _monitored_resource.labels["zone"] = "us-central1-f"
 
 
 def _time_to_timestamp(timestamp, time_seconds):
@@ -518,10 +516,10 @@ def initialize():
   global _monitoring_v3_client
   global _flusher_thread
 
-  if environment.get_value('LOCAL_DEVELOPMENT'):
+  if environment.get_value("LOCAL_DEVELOPMENT"):
     return
 
-  if not local_config.ProjectConfig().get('monitoring.enabled'):
+  if not local_config.ProjectConfig().get("monitoring.enabled"):
     return
 
   if check_module_loaded(monitoring_v3):
@@ -548,13 +546,13 @@ def _get_region(bot_name):
   try:
     regions = local_config.MonitoringRegionsConfig()
   except errors.BadConfigError:
-    return 'unknown'
+    return "unknown"
 
-  for pattern in regions.get('patterns'):
-    if re.match(pattern['pattern'], bot_name):
-      return pattern['name']
+  for pattern in regions.get("patterns"):
+    if re.match(pattern["pattern"], bot_name):
+      return pattern["name"]
 
-  return 'unknown'
+  return "unknown"
 
 
 @stub_unavailable(monitoring_v3)

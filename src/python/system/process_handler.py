@@ -12,11 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Functions for process management."""
-
-from future import standard_library
-standard_library.install_aliases()
-from builtins import object
-from past.builtins import basestring
 import copy
 import datetime
 import logging
@@ -26,15 +21,20 @@ import subprocess
 import sys
 import threading
 import time
+from builtins import object
 
 from base import utils
 from crash_analysis import crash_analyzer
+from future import standard_library
 from metrics import logs
+from past.builtins import basestring
 from platforms import android
 from platforms import linux
 from platforms import windows
 from system import environment
 from system import shell
+
+standard_library.install_aliases()
 
 # FIXME: Find a better way to handle this case. These imports
 # will fail and are not needed from App Engine.
@@ -81,8 +81,8 @@ class ProcessStatus(object):
 
 def start_process(process_handle):
   """Start the process using process handle and override list2cmdline for
-  Windows."""
-  is_win = environment.platform() == 'WINDOWS'
+    Windows."""
+  is_win = environment.platform() == "WINDOWS"
   if is_win:
     # Override list2cmdline on Windows to return first index of list as string.
     # This is to workaround a mozprocess bug since it passes command as list
@@ -99,37 +99,47 @@ def start_process(process_handle):
 def cleanup_defunct_processes():
   """Cleans up defunct processes."""
   # Defunct processes happen only on unix platforms.
-  if environment.platform() != 'WINDOWS':
-    while 1:
+  if environment.platform() != "WINDOWS":
+    while True:
       try:
         # Matches any defunct child process.
         p, _ = os.waitpid(-1, os.WNOHANG)
         if not p:
           break
 
-        logs.log('Clearing defunct process %s.' % str(p))
+        logs.log("Clearing defunct process %s." % str(p))
       except:
         break
 
 
 # Note: changes to this function may require changes to untrusted_runner.proto.
-def run_process(cmdline,
-                current_working_directory=None,
-                timeout=DEFAULT_TEST_TIMEOUT,
-                need_shell=False,
-                gestures=None,
-                env_copy=None,
-                testcase_run=True,
-                ignore_children=True):
+def run_process(
+    cmdline,
+    current_working_directory=None,
+    timeout=DEFAULT_TEST_TIMEOUT,
+    need_shell=False,
+    gestures=None,
+    env_copy=None,
+    testcase_run=True,
+    ignore_children=True,
+):
   """Executes a process with a given command line and other parameters."""
   # FIXME(mbarbella): Using LAUNCHER_PATH here is error prone. It forces us to
   # do certain operations before fuzzer setup (e.g. bad build check).
-  launcher = environment.get_value('LAUNCHER_PATH')
+  launcher = environment.get_value("LAUNCHER_PATH")
   if environment.is_trusted_host() and testcase_run and not launcher:
     from bot.untrusted_runner import remote_process_host
+
     return remote_process_host.run_process(
-        cmdline, current_working_directory, timeout, need_shell, gestures,
-        env_copy, testcase_run, ignore_children)
+        cmdline,
+        current_working_directory,
+        timeout,
+        need_shell,
+        gestures,
+        env_copy,
+        testcase_run,
+        ignore_children,
+    )
 
   if gestures is None:
     gestures = []
@@ -140,42 +150,42 @@ def run_process(cmdline,
   # This is used when running scripts on native linux OS and not on the device.
   # E.g. running a fuzzer to generate testcases or launcher script.
   plt = environment.platform()
-  if plt in ['ANDROID', 'FUCHSIA'] and (not testcase_run or launcher):
-    plt = 'LINUX'
-  elif plt == 'IOS' and (not testcase_run or launcher):
-    plt = 'MAC'
+  if plt in ["ANDROID", "FUCHSIA"] and (not testcase_run or launcher):
+    plt = "LINUX"
+  elif plt == "IOS" and (not testcase_run or launcher):
+    plt = "MAC"
 
   # Lower down testcase timeout slightly to account for time for crash analysis.
   timeout -= CRASH_ANALYSIS_TIME
 
   # LeakSanitizer hack - give time for stdout/stderr processing.
-  lsan = environment.get_value('LSAN', False)
+  lsan = environment.get_value("LSAN", False)
   if lsan:
     timeout -= LSAN_ANALYSIS_TIME
 
   # Initialize variables.
   adb_output = None
-  process_output = ''
+  process_output = ""
   process_status = None
   return_code = 0
-  process_poll_interval = environment.get_value('PROCESS_POLL_INTERVAL', 0.5)
+  process_poll_interval = environment.get_value("PROCESS_POLL_INTERVAL", 0.5)
   start_time = time.time()
   watch_for_process_exit = (
-      environment.get_value('WATCH_FOR_PROCESS_EXIT')
-      if plt == 'ANDROID' else True)
+      environment.get_value("WATCH_FOR_PROCESS_EXIT")
+      if plt == "ANDROID" else True)
   window_list = []
 
   # Get gesture start time from last element in gesture list.
   gestures = copy.deepcopy(gestures)
-  if gestures and gestures[-1].startswith('Trigger'):
-    gesture_start_time = int(gestures[-1].split(':')[1])
+  if gestures and gestures[-1].startswith("Trigger"):
+    gesture_start_time = int(gestures[-1].split(":")[1])
     gestures.pop()
   else:
     gesture_start_time = timeout // 2
 
-  logs.log('Process (%s) started.' % str(cmdline), level=logging.DEBUG)
+  logs.log("Process (%s) started." % str(cmdline), level=logging.DEBUG)
 
-  if plt == 'ANDROID':
+  if plt == "ANDROID":
     # Clear the log upfront.
     android.logger.clear_log()
 
@@ -194,11 +204,12 @@ def run_process(cmdline,
           shell=need_shell,
           processOutputLine=[process_output],
           onFinish=[process_status],
-          ignore_children=ignore_children)
+          ignore_children=ignore_children,
+      )
       start_process(process_handle)
     except:
-      logs.log_error('Exception occurred when running command: %s.' % cmdline)
-      return None, None, ''
+      logs.log_error("Exception occurred when running command: %s." % cmdline)
+      return None, None, ""
 
   while True:
     time.sleep(process_poll_interval)
@@ -211,20 +222,30 @@ def run_process(cmdline,
       # so that the next check is after 1 second.
       gesture_start_time += 1
 
-      if plt == 'LINUX':
-        linux.gestures.run_gestures(gestures, process_handle.pid,
-                                    process_status, start_time, timeout,
-                                    window_list)
-      elif plt == 'WINDOWS':
-        windows.gestures.run_gestures(gestures, process_handle.pid,
-                                      process_status, start_time, timeout,
-                                      window_list)
-      elif plt == 'ANDROID':
+      if plt == "LINUX":
+        linux.gestures.run_gestures(
+            gestures,
+            process_handle.pid,
+            process_status,
+            start_time,
+            timeout,
+            window_list,
+        )
+      elif plt == "WINDOWS":
+        windows.gestures.run_gestures(
+            gestures,
+            process_handle.pid,
+            process_status,
+            start_time,
+            timeout,
+            window_list,
+        )
+      elif plt == "ANDROID":
         android.gestures.run_gestures(gestures, start_time, timeout)
 
         # TODO(mbarbella): We add a fake window here to prevent gestures on
         # Android from getting executed more than once.
-        window_list = ['FAKE']
+        window_list = ["FAKE"]
 
     if time.time() - start_time >= timeout:
       break
@@ -232,7 +253,7 @@ def run_process(cmdline,
     # Collect the process output.
     output = (
         android.logger.log_output()
-        if plt == 'ANDROID' else '\n'.join(process_output.output))
+        if plt == "ANDROID" else "\n".join(process_output.output))
     if crash_analyzer.is_memory_tool_crash(output):
       break
 
@@ -240,7 +261,7 @@ def run_process(cmdline,
     if watch_for_process_exit:
       # If |watch_for_process_exit| is set, then we already completed running
       # our app launch command. So, we can bail out.
-      if plt == 'ANDROID':
+      if plt == "ANDROID":
         break
 
       # On desktop, we bail out as soon as the process finishes.
@@ -250,7 +271,7 @@ def run_process(cmdline,
         break
 
   # Process output based on platform.
-  if plt == 'ANDROID':
+  if plt == "ANDROID":
     # Get current log output. If device is in reboot mode, logcat automatically
     # waits for device to be online.
     time.sleep(ANDROID_CRASH_LOGCAT_WAIT_TIME)
@@ -259,7 +280,7 @@ def run_process(cmdline,
     if android.constants.LOW_MEMORY_REGEX.search(output):
       # If the device is low on memory, we should force reboot and bail out to
       # prevent device from getting in a frozen state.
-      logs.log('Device is low on memory, rebooting.', output=output)
+      logs.log("Device is low on memory, rebooting.", output=output)
       android.adb.hard_reset()
       android.adb.wait_for_device()
 
@@ -268,9 +289,13 @@ def run_process(cmdline,
       # and kernel logs content to output.
       log_before_last_reboot = android.logger.log_output_before_last_reboot()
       kernel_log = android.adb.get_kernel_log_content()
-      output = '%s%s%s%s%s' % (
-          log_before_last_reboot, utils.get_line_seperator('Device rebooted'),
-          output, utils.get_line_seperator('Kernel Log'), kernel_log)
+      output = "%s%s%s%s%s" % (
+          log_before_last_reboot,
+          utils.get_line_seperator("Device rebooted"),
+          output,
+          utils.get_line_seperator("Kernel Log"),
+          kernel_log,
+      )
       # Make sure to reset SE Linux Permissive Mode. This can be done cheaply
       # in ~0.15 sec and is needed especially between runs for kernel crashes.
       android.adb.run_as_root()
@@ -279,14 +304,14 @@ def run_process(cmdline,
 
     # Add output from adb to the front.
     if adb_output:
-      output = '%s\n\n%s' % (adb_output, output)
+      output = "%s\n\n%s" % (adb_output, output)
 
     # Kill the application if it is still running. We do this at the end to
     # prevent this from adding noise to the logcat output.
-    task_name = environment.get_value('TASK_NAME')
+    task_name = environment.get_value("TASK_NAME")
     child_process_termination_pattern = environment.get_value(
-        'CHILD_PROCESS_TERMINATION_PATTERN')
-    if task_name == 'fuzz' and child_process_termination_pattern:
+        "CHILD_PROCESS_TERMINATION_PATTERN")
+    if task_name == "fuzz" and child_process_termination_pattern:
       # In some cases, we do not want to terminate the application after each
       # run to avoid long startup times (e.g. for chrome). Terminate processes
       # matching a particular pattern for light cleanup in this case.
@@ -320,13 +345,13 @@ def run_process(cmdline,
     if lsan:
       time.sleep(LSAN_ANALYSIS_TIME)
 
-    output = '\n'.join(process_output.output)
+    output = "\n".join(process_output.output)
 
     # X Server hack when max client reached.
-    if ('Maximum number of clients reached' in output or
-        'Unable to get connection to X server' in output):
-      logs.log_error('Unable to connect to X server, exiting.')
-      os.system('sudo killall -9 Xvfb blackbox >/dev/null 2>&1')
+    if ("Maximum number of clients reached" in output or
+        "Unable to get connection to X server" in output):
+      logs.log_error("Unable to connect to X server, exiting.")
+      os.system("sudo killall -9 Xvfb blackbox >/dev/null 2>&1")
       sys.exit(0)
 
   if testcase_run and (crash_analyzer.is_memory_tool_crash(output) or
@@ -334,16 +359,17 @@ def run_process(cmdline,
     return_code = 1
 
   # If a crash is found, then we add the memory state as well.
-  if return_code and plt == 'ANDROID':
+  if return_code and plt == "ANDROID":
     ps_output = android.adb.get_ps_output()
     if ps_output:
-      output += utils.get_line_seperator('Memory Statistics')
+      output += utils.get_line_seperator("Memory Statistics")
       output += ps_output
 
   logs.log(
-      'Process (%s) ended, exit code (%s), output (%s).' %
+      "Process (%s) ended, exit code (%s), output (%s)." %
       (str(cmdline), str(return_code), str(output)),
-      level=logging.DEBUG)
+      level=logging.DEBUG,
+  )
 
   return return_code, round(time.time() - start_time, 1), output
 
@@ -364,7 +390,7 @@ def close_queue(queue_to_close):
   try:
     queue_to_close.close()
   except:
-    logs.log_error('Unable to close queue.')
+    logs.log_error("Unable to close queue.")
 
 
 def get_process():
@@ -385,21 +411,22 @@ def get_runtime_snapshot():
   process_strings = []
   for process in psutil.process_iter():
     try:
-      process_info = process.as_dict(attrs=['name', 'cmdline', 'pid', 'ppid'])
-      process_string = '{name} ({pid}, {ppid})'.format(
-          name=process_info['name'],
-          pid=process_info['pid'],
-          ppid=process_info['ppid'])
-      process_cmd_line = process_info['cmdline']
+      process_info = process.as_dict(attrs=["name", "cmdline", "pid", "ppid"])
+      process_string = "{name} ({pid}, {ppid})".format(
+          name=process_info["name"],
+          pid=process_info["pid"],
+          ppid=process_info["ppid"],
+      )
+      process_cmd_line = process_info["cmdline"]
       if process_cmd_line:
-        process_string += ': {cmd_line}'.format(
-            cmd_line=(' '.join(process_cmd_line)))
+        process_string += ": {cmd_line}".format(
+            cmd_line=(" ".join(process_cmd_line)))
       process_strings.append(process_string)
     except (psutil.AccessDenied, psutil.NoSuchProcess, OSError):
       # Ignore the error, use whatever info is available for access.
       pass
 
-  return '\n'.join(sorted(process_strings))
+  return "\n".join(sorted(process_strings))
 
 
 def get_queue():
@@ -414,7 +441,7 @@ def get_queue():
   except:
     # FIXME: Invalid cross-device link error. Happens sometimes with
     # chroot jobs even though /dev/shm and /run/shm are mounted.
-    logs.log_error('Unable to get multiprocessing queue.')
+    logs.log_error("Unable to get multiprocessing queue.")
     return None
 
   return result_queue
@@ -429,10 +456,11 @@ def terminate_hung_threads(threads):
       return
     time.sleep(0.1)
 
-  logs.log_warn('Hang detected.', snapshot=get_runtime_snapshot())
+  logs.log_warn("Hang detected.", snapshot=get_runtime_snapshot())
 
   if environment.is_trusted_host():
     from bot.untrusted_runner import host
+
     # Bail out on trusted hosts since we're using threads and can't clean up.
     host.host_exit_no_return()
 
@@ -445,7 +473,7 @@ def terminate_hung_threads(threads):
 
 def terminate_root_and_child_processes(root_pid):
   """Terminate the root process along with any children it spawned."""
-  app_name = environment.get_value('APP_NAME')
+  app_name = environment.get_value("APP_NAME")
   direct_children = utils.get_process_ids(root_pid, recursive=False)
 
   for child_pid in direct_children:
@@ -491,36 +519,37 @@ def terminate_stale_application_instances():
   """Kill stale instances of the application running for this command."""
   if environment.is_trusted_host():
     from bot.untrusted_runner import remote_process_host
+
     remote_process_host.terminate_stale_application_instances()
     return
 
   # Stale instance cleanup is sometimes disabled for local testing.
-  if not environment.get_value('KILL_STALE_INSTANCES', True):
+  if not environment.get_value("KILL_STALE_INSTANCES", True):
     return
 
   additional_process_to_kill = environment.get_value(
-      'ADDITIONAL_PROCESSES_TO_KILL')
-  builds_directory = environment.get_value('BUILDS_DIR')
+      "ADDITIONAL_PROCESSES_TO_KILL")
+  builds_directory = environment.get_value("BUILDS_DIR")
   llvm_symbolizer_filename = environment.get_executable_filename(
-      'llvm-symbolizer')
+      "llvm-symbolizer")
   platform = environment.platform()
   start_time = time.time()
 
   processes_to_kill = []
   # Avoid killing the test binary when running the reproduce tool. It is
   # commonly in-use on the side on developer workstations.
-  if not environment.get_value('REPRODUCE_TOOL'):
-    app_name = environment.get_value('APP_NAME')
+  if not environment.get_value("REPRODUCE_TOOL"):
+    app_name = environment.get_value("APP_NAME")
     processes_to_kill += [app_name]
 
   if additional_process_to_kill:
-    processes_to_kill += additional_process_to_kill.split(' ')
+    processes_to_kill += additional_process_to_kill.split(" ")
   processes_to_kill = [x for x in processes_to_kill if x]
 
-  if platform == 'ANDROID':
+  if platform == "ANDROID":
     # Cleanup any stale adb connections.
-    device_serial = environment.get_value('ANDROID_SERIAL')
-    adb_search_string = 'adb -s %s' % device_serial
+    device_serial = environment.get_value("ANDROID_SERIAL")
+    adb_search_string = "adb -s %s" % device_serial
 
     # Terminate llvm symbolizer processes matching exact path. This is important
     # for Android where multiple device instances run on same host.
@@ -547,13 +576,13 @@ def terminate_stale_application_instances():
     # the storage permissions.
     android.app.reset()
 
-  elif platform == 'WINDOWS':
+  elif platform == "WINDOWS":
     processes_to_kill += [
-        'cdb.exe',
-        'handle.exe',
-        'msdt.exe',
-        'openwith.exe',
-        'WerFault.exe',
+        "cdb.exe",
+        "handle.exe",
+        "msdt.exe",
+        "openwith.exe",
+        "WerFault.exe",
         llvm_symbolizer_filename,
     ]
     terminate_processes_matching_names(processes_to_kill, kill=True)
@@ -565,12 +594,12 @@ def terminate_stale_application_instances():
   else:
     # Handle Linux and Mac platforms.
     processes_to_kill += [
-        'addr2line',
-        'atos',
-        'chrome-devel-sandbox',
-        'gdb',
-        'nacl_helper',
-        'xdotool',
+        "addr2line",
+        "atos",
+        "chrome-devel-sandbox",
+        "gdb",
+        "nacl_helper",
+        "xdotool",
         llvm_symbolizer_filename,
     ]
     terminate_processes_matching_names(processes_to_kill, kill=True)
@@ -578,8 +607,8 @@ def terminate_stale_application_instances():
 
   duration = int(time.time() - start_time)
   if duration >= 5:
-    logs.log('Process kill took longer than usual - %s.' % str(
-        datetime.timedelta(seconds=duration)))
+    logs.log("Process kill took longer than usual - %s." %
+             str(datetime.timedelta(seconds=duration)))
 
 
 def terminate_process(process_id, kill=False):
@@ -593,7 +622,7 @@ def terminate_process(process_id, kill=False):
       process.terminate()
 
   except (psutil.AccessDenied, psutil.NoSuchProcess, OSError):
-    logs.log_warn('Failed to terminate process.')
+    logs.log_warn("Failed to terminate process.")
 
 
 def terminate_processes_matching_names(match_strings, kill=False):
@@ -603,13 +632,13 @@ def terminate_processes_matching_names(match_strings, kill=False):
 
   for process in psutil.process_iter():
     try:
-      process_info = process.as_dict(attrs=['name', 'pid'])
-      process_name = process_info['name']
+      process_info = process.as_dict(attrs=["name", "pid"])
+      process_name = process_info["name"]
     except (psutil.AccessDenied, psutil.NoSuchProcess, OSError):
       continue
 
     if any(x == process_name for x in match_strings):
-      terminate_process(process_info['pid'], kill)
+      terminate_process(process_info["pid"], kill)
 
 
 def terminate_processes_matching_cmd_line(match_strings,
@@ -621,21 +650,21 @@ def terminate_processes_matching_cmd_line(match_strings,
     # important so that the reproduce tool does not terminate itself, as the
     # rest of its command line may contain strings we usually terminate such
     # as paths to build directories.
-    exclude_strings = ['butler.py', 'reproduce.sh']
+    exclude_strings = ["butler.py", "reproduce.sh"]
 
   if isinstance(match_strings, basestring):
     match_strings = [match_strings]
 
   for process in psutil.process_iter():
     try:
-      process_info = process.as_dict(attrs=['cmdline', 'pid'])
-      process_cmd_line = process_info['cmdline']
+      process_info = process.as_dict(attrs=["cmdline", "pid"])
+      process_cmd_line = process_info["cmdline"]
       if not process_cmd_line:
         continue
-      process_path = ' '.join(process_cmd_line)
+      process_path = " ".join(process_cmd_line)
     except (psutil.AccessDenied, psutil.NoSuchProcess, OSError):
       continue
 
     if any(x in process_path for x in match_strings):
       if not any([x in process_path for x in exclude_strings]):
-        terminate_process(process_info['pid'], kill)
+        terminate_process(process_info["pid"], kill)

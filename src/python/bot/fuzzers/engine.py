@@ -12,15 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Fuzzing engine interface."""
-
 from builtins import object
 
 _ENGINES = {}
 
 
+class Error(Exception):
+  """Engine error."""
+
+
+class TimeoutError(Exception):
+  """TimeoutError."""
+
+  # TODO(ochang): Remove once migrated to Python 3.
+
+
 class FuzzOptions(object):
   """Represents options passed to the engine. Can be overridden to provide more
-  options."""
+    options."""
 
   def __init__(self, corpus_dir, arguments, strategies):
     self.corpus_dir = corpus_dir
@@ -40,7 +49,7 @@ class Crash(object):
 
 class FuzzResult(object):
   """Represents a result of a fuzzing session: a list of crashes found and the
-  stats generated."""
+    stats generated."""
 
   def __init__(self, logs, command, crashes, stats, time_executed):
     self.logs = logs
@@ -70,101 +79,114 @@ class Engine(object):
 
   def prepare(self, corpus_dir, target_path, build_dir):
     """Prepare for a fuzzing session, by generating options. Returns a
-    FuzzOptions object.
+        FuzzOptions object.
 
-    Args:
-      corpus_dir: The main corpus directory.
-      target_path: Path to the target.
-      build_dir: Path to the build directory.
+        Args:
+          corpus_dir: The main corpus directory.
+          target_path: Path to the target.
+          build_dir: Path to the build directory.
 
-    Returns:
-      A FuzzOptions object.
-    """
+        Returns:
+          A FuzzOptions object.
+        """
     raise NotImplementedError
 
   def fuzz(self, target_path, options, reproducers_dir, max_time):
     """Run a fuzz session.
 
-    Args:
-      target_path: Path to the target.
-      options: The FuzzOptions object returned by prepare().
-      reproducers_dir: The directory to put reproducers in when crashes
-          are found.
-      max_time: Maximum allowed time for the fuzzing to run.
+        Args:
+          target_path: Path to the target.
+          options: The FuzzOptions object returned by prepare().
+          reproducers_dir: The directory to put reproducers in when crashes
+              are found.
+          max_time: Maximum allowed time for the fuzzing to run.
 
-    Returns:
-      A FuzzResult object.
-    """
+        Returns:
+          A FuzzResult object.
+        """
     raise NotImplementedError
 
   def reproduce(self, target_path, input_path, arguments, max_time):
     """Reproduce a crash given an input.
 
-    Args:
-      target_path: Path to the target.
-      input_path: Path to the reproducer input.
-      arguments: Additional arguments needed for reproduction.
-      max_time: Maximum allowed time for the reproduction.
+        Args:
+          target_path: Path to the target.
+          input_path: Path to the reproducer input.
+          arguments: Additional arguments needed for reproduction.
+          max_time: Maximum allowed time for the reproduction.
 
-    Returns:
-      A ReproduceResult.
-    """
+        Returns:
+          A ReproduceResult.
+
+        Raises:
+          TimeoutError: If the reproduction exceeds max_time.
+        """
     raise NotImplementedError
 
   def minimize_corpus(self, target_path, arguments, input_dirs, output_dir,
                       reproducers_dir, max_time):
     """Optional (but recommended): run corpus minimization.
 
-    Args:
-      target_path: Path to the target.
-      arguments: Additional arguments needed for corpus minimization.
-      input_dirs: Input corpora.
-      output_dir: Output directory to place minimized corpus.
-      reproducers_dir: The directory to put reproducers in when crashes are
-          found.
-      max_time: Maximum allowed time for the minimization.
+        Args:
+          target_path: Path to the target.
+          arguments: Additional arguments needed for corpus minimization.
+          input_dirs: Input corpora.
+          output_dir: Output directory to place minimized corpus.
+          reproducers_dir: The directory to put reproducers in when crashes are
+              found.
+          max_time: Maximum allowed time for the minimization.
 
-    Returns:
-      A FuzzResult object.
-    """
+        Returns:
+          A FuzzResult object.
+
+        Raises:
+          TimeoutError: If the corpus minimization exceeds max_time.
+          Error: If the merge failed in some other way.
+        """
     raise NotImplementedError
 
   def minimize_testcase(self, target_path, arguments, input_path, output_path,
                         max_time):
     """Optional (but recommended): Minimize a testcase.
 
-    Args:
-      target_path: Path to the target.
-      arguments: Additional arguments needed for testcase minimization.
-      input_path: Path to the reproducer input.
-      output_path: Path to the minimized output.
-      max_time: Maximum allowed time for the minimization.
+        Args:
+          target_path: Path to the target.
+          arguments: Additional arguments needed for testcase minimization.
+          input_path: Path to the reproducer input.
+          output_path: Path to the minimized output.
+          max_time: Maximum allowed time for the minimization.
 
-    Returns:
-      A ReproduceResult.
-    """
+        Returns:
+          A ReproduceResult.
+
+        Raises:
+          TimeoutError: If the testcase minimization exceeds max_time.
+        """
     raise NotImplementedError
 
   def cleanse(self, target_path, arguments, input_path, output_path, max_time):
     """Optional (but recommended): Cleanse a testcase.
 
-    Args:
-      target_path: Path to the target.
-      arguments: Additional arguments needed for testcase cleanse.
-      input_path: Path to the reproducer input.
-      output_path: Path to the cleansed output.
-      max_time: Maximum allowed time for the cleanse.
+        Args:
+          target_path: Path to the target.
+          arguments: Additional arguments needed for testcase cleanse.
+          input_path: Path to the reproducer input.
+          output_path: Path to the cleansed output.
+          max_time: Maximum allowed time for the cleanse.
 
-    Returns:
-      A ReproduceResult.
-    """
+        Returns:
+          A ReproduceResult.
+
+        Raises:
+          TimeoutError: If the cleanse exceeds max_time.
+        """
     raise NotImplementedError
 
 
 def register(name, engine_class):
   """Register a fuzzing engine."""
   if name in _ENGINES:
-    raise ValueError('Engine {name} is already registered'.format(name=name))
+    raise ValueError("Engine {name} is already registered".format(name=name))
 
   _ENGINES[name] = engine_class
 

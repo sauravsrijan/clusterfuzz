@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Highlights and generates suppressions for LSAN reports."""
-
 import os
 import re
 
@@ -24,24 +23,24 @@ from metrics import logs
 from system import environment
 
 # Constants for highlighting.
-DIRECT_LEAK_LABEL = 'Direct-leak'
-DIRECT_LEAK_REGEX = re.compile(r'^ *Direct leak of')
-FIRST_LEAK_DIVIDER = ('%s\nThe following leaks are not necessarily related '
-                      'to the first leak.\n\n' % ('=' * 80))
-STACK_REGEX = re.compile(r'^ *#[0-9]+\s0x[A-Za-z0-9]+')
-STACK_START_REGEX = re.compile(r'^ *#0 ')
-BLANK_LINE_REGEX = re.compile(r'^\s*$')
+DIRECT_LEAK_LABEL = "Direct-leak"
+DIRECT_LEAK_REGEX = re.compile(r"^ *Direct leak of")
+FIRST_LEAK_DIVIDER = ("%s\nThe following leaks are not necessarily related "
+                      "to the first leak.\n\n" % ("=" * 80))
+STACK_REGEX = re.compile(r"^ *#[0-9]+\s0x[A-Za-z0-9]+")
+STACK_START_REGEX = re.compile(r"^ *#0 ")
+BLANK_LINE_REGEX = re.compile(r"^\s*$")
 
-LSAN_TOOL_NAME = 'lsan'
-LSAN_SUPPRESSION_LINE = 'leak:{function}\n'
+LSAN_TOOL_NAME = "lsan"
+LSAN_SUPPRESSION_LINE = "leak:{function}\n"
 
 
 def create_empty_local_blacklist():
   """Creates an empty local blacklist."""
   lsan_suppressions_path = get_local_blacklist_file_path()
-  with open(lsan_suppressions_path, 'w') as local_blacklist:
+  with open(lsan_suppressions_path, "wb") as local_blacklist:
     # Insert comment on top to avoid parsing errors on empty file.
-    local_blacklist.write('# This is a LSAN suppressions file.\n')
+    local_blacklist.write("# This is a LSAN suppressions file.\n")
 
 
 def cleanup_global_blacklist():
@@ -66,7 +65,7 @@ def cleanup_global_blacklist():
 
 def copy_global_to_local_blacklist(excluded_testcase=None):
   """Copies contents of global blacklist into local blacklist file, excluding
-  a particular testcase (if any)."""
+    a particular testcase (if any)."""
   lsan_suppressions_path = get_local_blacklist_file_path()
   excluded_function_name = (
       get_leak_function_for_blacklist(excluded_testcase)
@@ -74,8 +73,8 @@ def copy_global_to_local_blacklist(excluded_testcase=None):
 
   # The local suppressions file should always have a comment on top
   # to prevent parsing errors.
-  with open(lsan_suppressions_path, 'w') as local_blacklist:
-    local_blacklist.write('# This is a LSAN suppressions file.\n')
+  with open(lsan_suppressions_path, "wb") as local_blacklist:
+    local_blacklist.write("# This is a LSAN suppressions file.\n")
 
     # Copy global blacklist into local blacklist.
     global_blacklists = data_types.Blacklist.query(
@@ -104,7 +103,7 @@ def get_leak_function_for_blacklist(testcase):
 def get_local_blacklist_file_path():
   """Return the file path to the local blacklist text file."""
   local_blacklist_path = os.path.join(environment.get_suppressions_directory(),
-                                      'lsan_suppressions.txt')
+                                      "lsan_suppressions.txt")
 
   # Create the directory if it does not exists, since we need to write to it.
   blacklist_directory = os.path.dirname(local_blacklist_path)
@@ -124,14 +123,15 @@ def add_crash_to_global_blacklist_if_needed(testcase):
   """Adds relevant function from testcase crash state to global blacklist."""
   testcase_id = testcase.key.id()
   if not should_be_blacklisted(testcase):
-    logs.log('Testcase %s is not a reproducible leak, skipping leak blacklist.'
-             % testcase_id)
+    logs.log(
+        "Testcase %s is not a reproducible leak, skipping leak blacklist." %
+        testcase_id)
     return False
 
   function_name = get_leak_function_for_blacklist(testcase)
   if not function_name:
     logs.log_error(
-        'Testcase %s has invalid crash state, skipping leak blacklist.' %
+        "Testcase %s has invalid crash state, skipping leak blacklist." %
         testcase_id)
     return False
 
@@ -143,7 +143,7 @@ def add_crash_to_global_blacklist_if_needed(testcase):
       data_types.Blacklist.tool_name == LSAN_TOOL_NAME)
 
   if existing_query.get():
-    logs.log_error('Item already in leak blacklist.')
+    logs.log_error("Item already in leak blacklist.")
     return False
 
   blacklist_item = data_types.Blacklist(
@@ -151,7 +151,7 @@ def add_crash_to_global_blacklist_if_needed(testcase):
       testcase_id=testcase_id,
       tool_name=LSAN_TOOL_NAME)
   blacklist_item.put()
-  logs.log('Added %s to leak blacklist.' % function_name)
+  logs.log("Added %s to leak blacklist." % function_name)
 
   return blacklist_item
 
@@ -159,12 +159,12 @@ def add_crash_to_global_blacklist_if_needed(testcase):
 def highlight_first_direct_leak(crash_stacktrace):
   """Highlights the first direct leak in a report.
 
-  Args:
-    crash_stacktrace: The crash report.
+    Args:
+      crash_stacktrace: The crash report.
 
-  Returns:
-    new_report: Updated crash report with first direct leak highlighted.
-  """
+    Returns:
+      new_report: Updated crash report with first direct leak highlighted.
+    """
   new_report = []
   processed_first_leak = False
   num_stacks = 0
@@ -194,7 +194,7 @@ def highlight_first_direct_leak(crash_stacktrace):
 
       # If the line is in the first stack, highlight.
       if currently_highlighting:
-        line = '<b>%s</b>' % line
+        line = "<b>%s</b>" % line
 
     if not processed_first_leak:
       divider_index += 1
@@ -209,4 +209,4 @@ def highlight_first_direct_leak(crash_stacktrace):
   if highlighted_stack_index != num_stacks:
     new_report.insert(divider_index + 1, FIRST_LEAK_DIVIDER)
 
-  return '\n'.join(new_report)
+  return "\n".join(new_report)

@@ -15,20 +15,19 @@
 from __future__ import print_function
 
 from builtins import object
+
 import six
-
-from google.cloud import monitoring_v3
-
 from base import utils
 from datastore import data_types
+from google.cloud import monitoring_v3
 from metrics import monitor
 from metrics import monitoring_metrics
 
 LIBFUZZER_TEMPLATE = """MAX_FUZZ_THREADS = 1
 MAX_TESTCASES = 4
 FUZZ_TEST_TIMEOUT = 4800
-TEST_TIMEOUT = 30
-WARMUP_TIMEOUT = 30
+TEST_TIMEOUT = 65
+WARMUP_TIMEOUT = 65
 BAD_BUILD_CHECK = False
 THREAD_ALIVE_CHECK_INTERVAL = 1
 REPORT_OOMS_AND_HANGS = True
@@ -51,39 +50,52 @@ ENABLE_GESTURES = False
 THREAD_DELAY  = 30.0
 """
 
+HONGGFUZZ_TEMPLATE = """MAX_FUZZ_THREADS = 1
+MAX_TESTCASES = 4
+FUZZ_TEST_TIMEOUT = 4800
+TEST_TIMEOUT = 65
+WARMUP_TIMEOUT = 65
+BAD_BUILD_CHECK = False
+THREAD_ALIVE_CHECK_INTERVAL = 1
+CORPUS_FUZZER_NAME_OVERRIDE = libFuzzer
+ENABLE_GESTURES = False
+THREAD_DELAY = 30.0
+"""
+
 ENGINE_ASAN_TEMPLATE = """LSAN = True
 ADDITIONAL_ASAN_OPTIONS = quarantine_size_mb=64:strict_memcmp=1:symbolize=0:fast_unwind_on_fatal=0:allocator_release_to_os_interval_ms=500
 """
 
-ENGINE_MSAN_TEMPLATE = ('ADDITIONAL_MSAN_OPTIONS = symbolize=0:print_stats=1:'
-                        'allocator_release_to_os_interval_ms=500:'
-                        'halt_on_error=1')
+ENGINE_MSAN_TEMPLATE = ("ADDITIONAL_MSAN_OPTIONS = symbolize=0:print_stats=1:"
+                        "allocator_release_to_os_interval_ms=500:"
+                        "halt_on_error=1")
 
 ENGINE_UBSAN_TEMPLATE = """LSAN = False
 ADDITIONAL_UBSAN_OPTIONS = symbolize=0:allocator_release_to_os_interval_ms=500
 """
 
-PRUNE_TEMPLATE = 'CORPUS_PRUNE = True'
+PRUNE_TEMPLATE = "CORPUS_PRUNE = True"
 
 TEMPLATES = {
-    'afl': AFL_TEMPLATE,
-    'engine_asan': ENGINE_ASAN_TEMPLATE,
-    'engine_msan': ENGINE_MSAN_TEMPLATE,
-    'engine_ubsan': ENGINE_UBSAN_TEMPLATE,
-    'libfuzzer': LIBFUZZER_TEMPLATE,
-    'prune': PRUNE_TEMPLATE,
+    "afl": AFL_TEMPLATE,
+    "engine_asan": ENGINE_ASAN_TEMPLATE,
+    "engine_msan": ENGINE_MSAN_TEMPLATE,
+    "engine_ubsan": ENGINE_UBSAN_TEMPLATE,
+    "honggfuzz": HONGGFUZZ_TEMPLATE,
+    "libfuzzer": LIBFUZZER_TEMPLATE,
+    "prune": PRUNE_TEMPLATE,
 }
 
 
 class BaseBuiltinFuzzerDefaults(object):
   """Default values for a builtin Fuzzer data_type. Note this class should be
-  inherited and should not be used directly."""
+    inherited and should not be used directly."""
 
   def __init__(self):
     # Set defaults for any builtin fuzzer.
     self.revision = 1
-    self.file_size = 'builtin'
-    self.source = 'builtin'
+    self.file_size = "builtin"
+    self.source = "builtin"
     self.builtin = True
 
     # Create attributes that must be set by child classes.
@@ -94,7 +106,7 @@ class BaseBuiltinFuzzerDefaults(object):
 
   def create_fuzzer(self):
     """Create a Fuzzer data_type with columns set to the defaults specified by
-    this object."""
+        this object."""
     assert self.name is not None
     return data_types.Fuzzer(
         id=self.key_id,
@@ -104,7 +116,8 @@ class BaseBuiltinFuzzerDefaults(object):
         name=self.name,
         builtin=self.builtin,
         stats_column_descriptions=self.stats_column_descriptions,
-        stats_columns=self.stats_columns)
+        stats_columns=self.stats_columns,
+    )
 
 
 class LibFuzzerDefaults(BaseBuiltinFuzzerDefaults):
@@ -113,7 +126,7 @@ class LibFuzzerDefaults(BaseBuiltinFuzzerDefaults):
   def __init__(self):
     super(LibFuzzerDefaults, self).__init__()
     # Override empty values from parent.
-    self.name = 'libFuzzer'
+    self.name = "libFuzzer"
     self.key_id = 1337
     # Use single quotes since the string ends in a double quote.
     # pylint: disable=line-too-long
@@ -165,7 +178,7 @@ class AflDefaults(BaseBuiltinFuzzerDefaults):
   def __init__(self):
     super(AflDefaults, self).__init__()
     # Override empty values from parent.
-    self.name = 'afl'
+    self.name = "afl"
     self.key_id = 1338
     # Use single quotes since the string ends in a double quote.
     # pylint: disable=line-too-long
@@ -201,6 +214,15 @@ _FUZZER_RUN_LOGS as logs,
 _CORPUS_BACKUP as corpus_backup,"""
 
 
+class HonggfuzzDefaults(BaseBuiltinFuzzerDefaults):
+  """Default values for honggfuzz."""
+
+  def __init__(self):
+    super(HonggfuzzDefaults, self).__init__()
+    self.name = "honggfuzz"
+    self.key_id = 1339
+
+
 def setup_config(non_dry_run):
   """Set up configuration."""
   config = data_types.Config.query().get()
@@ -208,21 +230,24 @@ def setup_config(non_dry_run):
     config = data_types.Config()
 
     if non_dry_run:
-      print('Creating config')
+      print("Creating config")
       config.put()
     else:
-      print('Skip creating config (dry-run mode)')
+      print("Skip creating config (dry-run mode)")
 
 
 def setup_fuzzers(non_dry_run):
   """Set up fuzzers."""
-  for fuzzer_defaults in [AflDefaults(), LibFuzzerDefaults()]:
+  for fuzzer_defaults in [
+      AflDefaults(), LibFuzzerDefaults(),
+      HonggfuzzDefaults()
+  ]:
     fuzzer = data_types.Fuzzer.query(
         data_types.Fuzzer.name == fuzzer_defaults.name).get()
     if fuzzer:
-      print(fuzzer_defaults.name, 'fuzzer already exists')
+      print(fuzzer_defaults.name, "fuzzer already exists")
       if non_dry_run:
-        print('Updating stats metrics.')
+        print("Updating stats metrics.")
         fuzzer.stats_columns = fuzzer_defaults.stats_columns
         fuzzer.stats_column_descriptions = (
             fuzzer_defaults.stats_column_descriptions)
@@ -231,10 +256,10 @@ def setup_fuzzers(non_dry_run):
       continue
 
     if non_dry_run:
-      print('Creating fuzzer', fuzzer_defaults.name)
+      print("Creating fuzzer", fuzzer_defaults.name)
       fuzzer_defaults.create_fuzzer().put()
     else:
-      print('Skip creating fuzzer', fuzzer_defaults.name, '(dry-run mode)')
+      print("Skip creating fuzzer", fuzzer_defaults.name, "(dry-run mode)")
 
 
 def setup_templates(non_dry_run):
@@ -243,14 +268,14 @@ def setup_templates(non_dry_run):
     job = data_types.JobTemplate.query(
         data_types.JobTemplate.name == name).get()
     if job:
-      print('Template with name', name, 'already exists.')
+      print("Template with name", name, "already exists.")
       continue
 
     if non_dry_run:
-      print('Creating template', name)
+      print("Creating template", name)
       data_types.JobTemplate(name=name, environment_string=template).put()
     else:
-      print('Skip creating template', name, '(dry-run mode)')
+      print("Skip creating template", name, "(dry-run mode)")
 
 
 def setup_metrics(non_dry_run):
@@ -268,10 +293,10 @@ def setup_metrics(non_dry_run):
     metric.monitoring_v3_metric_descriptor(descriptor)
 
     if non_dry_run:
-      print('Creating metric', descriptor)
+      print("Creating metric", descriptor)
       client.create_metric_descriptor(project_path, descriptor)
     else:
-      print('Skip creating metric', descriptor, '(dry-run mode)')
+      print("Skip creating metric", descriptor, "(dry-run mode)")
 
 
 def execute(args):
@@ -283,4 +308,4 @@ def execute(args):
   if not args.local:
     setup_metrics(args.non_dry_run)
 
-  print('Done')
+  print("Done")

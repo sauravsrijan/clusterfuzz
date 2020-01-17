@@ -12,15 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Run command based on the current task."""
-
 import functools
-import six
 import sys
 import time
 
+import six
 from base import errors
 from base import tasks
 from base import utils
+from datastore import data_handler
+from datastore import data_types
+from metrics import logs
+from system import environment
+from system import process_handler
+from system import shell
+
 from bot.tasks import analyze_task
 from bot.tasks import blame_task
 from bot.tasks import corpus_pruning_task
@@ -35,27 +41,21 @@ from bot.tasks import unpack_task
 from bot.tasks import upload_reports_task
 from bot.tasks import variant_task
 from bot.webserver import http_server
-from datastore import data_handler
-from datastore import data_types
-from metrics import logs
-from system import environment
-from system import process_handler
-from system import shell
 
 COMMAND_MAP = {
-    'analyze': analyze_task,
-    'blame': blame_task,
-    'corpus_pruning': corpus_pruning_task,
-    'fuzz': fuzz_task,
-    'impact': impact_task,
-    'minimize': minimize_task,
-    'ml_train': ml_train_task,
-    'progression': progression_task,
-    'regression': regression_task,
-    'symbolize': symbolize_task,
-    'unpack': unpack_task,
-    'upload_reports': upload_reports_task,
-    'variant': variant_task,
+    "analyze": analyze_task,
+    "blame": blame_task,
+    "corpus_pruning": corpus_pruning_task,
+    "fuzz": fuzz_task,
+    "impact": impact_task,
+    "minimize": minimize_task,
+    "ml_train": ml_train_task,
+    "progression": progression_task,
+    "regression": regression_task,
+    "symbolize": symbolize_task,
+    "unpack": unpack_task,
+    "upload_reports": upload_reports_task,
+    "variant": variant_task,
 }
 
 
@@ -97,7 +97,7 @@ def is_supported_cpu_arch_for_job():
     # No cpu architecture check is defined for this platform, bail out.
     return True
 
-  supported_cpu_arch = environment.get_value('CPU_ARCH')
+  supported_cpu_arch = environment.get_value("CPU_ARCH")
   if not supported_cpu_arch:
     # No specific cpu architecture requirement specified in job, bail out.
     return True
@@ -111,31 +111,32 @@ def is_supported_cpu_arch_for_job():
 def update_environment_for_job(environment_string):
   """Process the environment variable string included with a job."""
   # Now parse the job's environment definition.
-  environment_values = (
-      environment.parse_environment_definition(environment_string))
+  environment_values = environment.parse_environment_definition(
+      environment_string)
 
   for key, value in six.iteritems(environment_values):
     environment.set_value(key, value)
 
   # If we share the build with another job type, force us to be a custom binary
   # job type.
-  if environment.get_value('SHARE_BUILD_WITH_JOB_TYPE'):
-    environment.set_value('CUSTOM_BINARY', True)
+  if environment.get_value("SHARE_BUILD_WITH_JOB_TYPE"):
+    environment.set_value("CUSTOM_BINARY", True)
 
   # Allow the default FUZZ_TEST_TIMEOUT and MAX_TESTCASES to be overridden on
   # machines that are preempted more often.
   fuzz_test_timeout_override = environment.get_value(
-      'FUZZ_TEST_TIMEOUT_OVERRIDE')
+      "FUZZ_TEST_TIMEOUT_OVERRIDE")
   if fuzz_test_timeout_override:
-    environment.set_value('FUZZ_TEST_TIMEOUT', fuzz_test_timeout_override)
+    environment.set_value("FUZZ_TEST_TIMEOUT", fuzz_test_timeout_override)
 
-  max_testcases_override = environment.get_value('MAX_TESTCASES_OVERRIDE')
+  max_testcases_override = environment.get_value("MAX_TESTCASES_OVERRIDE")
   if max_testcases_override:
-    environment.set_value('MAX_TESTCASES', max_testcases_override)
+    environment.set_value("MAX_TESTCASES", max_testcases_override)
 
   if environment.is_trusted_host():
-    environment_values['JOB_NAME'] = environment.get_value('JOB_NAME')
+    environment_values["JOB_NAME"] = environment.get_value("JOB_NAME")
     from bot.untrusted_runner import environment as worker_environment
+
     worker_environment.update_environment(environment_values)
 
 
@@ -145,15 +146,15 @@ def set_task_payload(func):
   @functools.wraps(func)
   def wrapper(task):
     """Wrapper."""
-    environment.set_value('TASK_PAYLOAD', task.payload())
+    environment.set_value("TASK_PAYLOAD", task.payload())
     try:
       return func(task)
     except:  # Truly catch *all* exceptions.
       e = sys.exc_info()[1]
-      e.extras = {'task_payload': environment.get_value('TASK_PAYLOAD')}
+      e.extras = {"task_payload": environment.get_value("TASK_PAYLOAD")}
       raise
     finally:
-      environment.remove_key('TASK_PAYLOAD')
+      environment.remove_key("TASK_PAYLOAD")
 
   return wrapper
 
@@ -162,14 +163,24 @@ def should_update_task_status(task_name):
   """Whether the task status should be automatically handled."""
   return task_name not in [
       # Multiple fuzz tasks are expected to run in parallel.
-      'fuzz',
-
+      "fuzz",
       # The task payload can't be used as-is for de-duplication purposes as it
       # includes revision. corpus_pruning_task calls update_task_status itself
       # to handle this.
       # TODO(ochang): This will be cleaned up as part of migration to Pub/Sub.
-      'corpus_pruning',
+      "corpus_pruning",
   ]
+
+
+def start_web_server_if_needed():
+  """Start web server for blackbox fuzzer jobs (non-engine fuzzer jobs)."""
+  if environment.is_engine_fuzzer_job():
+    return
+
+  try:
+    http_server.start()
+  except Exception:
+    logs.log_error("Failed to start web server, skipping.")
 
 
 def run_command(task_name, task_argument, job_name):
@@ -181,12 +192,12 @@ def run_command(task_name, task_argument, job_name):
   task_module = COMMAND_MAP[task_name]
 
   # If applicable, ensure this is the only instance of the task running.
-  task_state_name = ' '.join([task_name, task_argument, job_name])
+  task_state_name = " ".join([task_name, task_argument, job_name])
   if should_update_task_status(task_name):
     if not data_handler.update_task_status(task_state_name,
                                            data_types.TaskState.STARTED):
       logs.log('Another instance of "{}" already '
-               'running, exiting.'.format(task_state_name))
+               "running, exiting.".format(task_state_name))
       raise AlreadyRunningError
 
   try:
@@ -195,7 +206,7 @@ def run_command(task_name, task_argument, job_name):
     # It is difficult to try to handle the case where a test case is deleted
     # during processing. Rather than trying to catch by checking every point
     # where a test case is reloaded from the datastore, just abort the task.
-    logs.log_error('Test case %s no longer exists.' % task_argument)
+    logs.log_error("Test case %s no longer exists." % task_argument)
   except BaseException:
     # On any other exceptions, update state to reflect error and re-raise.
     if should_update_task_status(task_name):
@@ -217,7 +228,7 @@ def process_command(task):
   """Figures out what to do with the given task and executes the command."""
   logs.log("Executing command '%s'" % task.payload())
   if not task.payload().strip():
-    logs.log_error('Empty task received.')
+    logs.log_error("Empty task received.")
     return
 
   # Parse task payload.
@@ -225,10 +236,10 @@ def process_command(task):
   task_argument = task.argument
   job_name = task.job
 
-  environment.set_value('TASK_NAME', task_name)
-  environment.set_value('TASK_ARGUMENT', task_argument)
-  environment.set_value('JOB_NAME', job_name)
-  if job_name != 'none':
+  environment.set_value("TASK_NAME", task_name)
+  environment.set_value("TASK_ARGUMENT", task_argument)
+  environment.set_value("JOB_NAME", job_name)
+  if job_name != "none":
     job = data_types.Job.query(data_types.Job.name == job_name).get()
     # Job might be removed. In that case, we don't want an exception
     # raised and causing this task to be retried by another bot.
@@ -248,7 +259,7 @@ def process_command(task):
     if job_queue_suffix != bot_queue_suffix:
       # This happens rarely, store this as a hard exception.
       logs.log_error(
-          'Wrong platform for job %s: job queue [%s], bot queue [%s].' %
+          "Wrong platform for job %s: job queue [%s], bot queue [%s]." %
           (job_name, job_queue_suffix, bot_queue_suffix))
 
       # Try to recreate the job in the correct task queue.
@@ -267,10 +278,10 @@ def process_command(task):
           # This can happen on trying to publish on a non-existent topic, e.g.
           # a topic for a high-end bot on another platform. In this case, just
           # give up.
-          logs.log_error('Failed to fix platform and re-add task.')
+          logs.log_error("Failed to fix platform and re-add task.")
 
       # Add a wait interval to avoid overflowing task creation.
-      failure_wait_interval = environment.get_value('FAIL_WAIT')
+      failure_wait_interval = environment.get_value("FAIL_WAIT")
       time.sleep(failure_wait_interval)
       return
 
@@ -285,10 +296,10 @@ def process_command(task):
       # This can happen when you have different type of devices (e.g
       # android) on the same platform group. In this case, we just recreate
       # the task.
-      if (task_name != 'variant' and testcase_platform_id and
+      if (task_name != "variant" and testcase_platform_id and
           not utils.fields_match(testcase_platform_id, current_platform_id)):
         logs.log(
-            'Testcase %d platform (%s) does not match with ours (%s), exiting' %
+            "Testcase %d platform (%s) does not match with ours (%s), exiting" %
             (testcase.key.id(), testcase_platform_id, current_platform_id))
         tasks.add_task(task_name, task_argument, job_name)
         return
@@ -297,7 +308,7 @@ def process_command(task):
     # set for them. Append these for tests generated by these fuzzers and for
     # the fuzz command itself.
     fuzzer_name = None
-    if task_name == 'fuzz':
+    if task_name == "fuzz":
       fuzzer_name = task_argument
     elif testcase:
       fuzzer_name = testcase.fuzzer_name
@@ -305,44 +316,44 @@ def process_command(task):
     # Get job's environment string.
     environment_string = job.get_environment_string()
 
-    if task_name == 'minimize':
+    if task_name == "minimize":
       # Let jobs specify a different job and fuzzer to minimize with.
       job_environment = job.get_environment()
-      minimize_job_override = job_environment.get('MINIMIZE_JOB_OVERRIDE')
+      minimize_job_override = job_environment.get("MINIMIZE_JOB_OVERRIDE")
       if minimize_job_override:
         minimize_job = data_types.Job.query(
             data_types.Job.name == minimize_job_override).get()
         if minimize_job:
-          environment.set_value('JOB_NAME', minimize_job_override)
+          environment.set_value("JOB_NAME", minimize_job_override)
           environment_string = minimize_job.get_environment_string()
-          environment_string += '\nORIGINAL_JOB_NAME = %s\n' % job_name
+          environment_string += "\nORIGINAL_JOB_NAME = %s\n" % job_name
           job_name = minimize_job_override
         else:
-          logs.log_error(
-              'Job for minimization not found: %s.' % minimize_job_override)
+          logs.log_error("Job for minimization not found: %s." %
+                         minimize_job_override)
           # Fallback to using own job for minimization.
 
-      minimize_fuzzer_override = job_environment.get('MINIMIZE_FUZZER_OVERRIDE')
+      minimize_fuzzer_override = job_environment.get("MINIMIZE_FUZZER_OVERRIDE")
       fuzzer_name = minimize_fuzzer_override or fuzzer_name
 
     if fuzzer_name:
       fuzzer = data_types.Fuzzer.query(
           data_types.Fuzzer.name == fuzzer_name).get()
-      additional_default_variables = ''
-      additional_variables_for_job = ''
-      if (fuzzer and hasattr(fuzzer, 'additional_environment_string') and
+      additional_default_variables = ""
+      additional_variables_for_job = ""
+      if (fuzzer and hasattr(fuzzer, "additional_environment_string") and
           fuzzer.additional_environment_string):
         for line in fuzzer.additional_environment_string.splitlines():
           # Job specific values may be defined in fuzzer additional
           # environment variable name strings in the form
           # job_name:VAR_NAME = VALUE.
-          if '=' in line and ':' in line.split('=', 1)[0]:
-            fuzzer_job_name, environment_definition = line.split(':', 1)
+          if "=" in line and ":" in line.split("=", 1)[0]:
+            fuzzer_job_name, environment_definition = line.split(":", 1)
             if fuzzer_job_name == job_name:
-              additional_variables_for_job += '\n%s' % environment_definition
+              additional_variables_for_job += ("\n%s" % environment_definition)
             continue
 
-          additional_default_variables += '\n%s' % line
+          additional_default_variables += "\n%s" % line
 
       environment_string += additional_default_variables
       environment_string += additional_variables_for_job
@@ -354,18 +365,14 @@ def process_command(task):
   # If they don't match, then bail out and recreate task.
   if not is_supported_cpu_arch_for_job():
     logs.log(
-        'Unsupported cpu architecture specified in job definition, exiting.')
+        "Unsupported cpu architecture specified in job definition, exiting.")
     tasks.add_task(task_name, task_argument, job_name)
     return
 
   # Initial cleanup.
   cleanup_task_state()
 
-  # Start http(s) servers.
-  try:
-    http_server.start()
-  except Exception:
-    logs.log_error('Failed to start web server, skipping.')
+  start_web_server_if_needed()
 
   try:
     run_command(task_name, task_argument, job_name)

@@ -12,18 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Handler that uploads a testcase"""
-
-from future import standard_library
-standard_library.install_aliases()
-from builtins import object
-from builtins import str
-
 import ast
 import cgi
 import datetime
 import io
 import json
 import os
+from builtins import object
+from builtins import str
 
 from base import external_users
 from base import tasks
@@ -31,6 +27,7 @@ from base import utils
 from datastore import data_handler
 from datastore import data_types
 from datastore import ndb
+from future import standard_library
 from google_cloud_utils import blobs
 from google_cloud_utils import storage
 from handlers import base_handler
@@ -43,46 +40,53 @@ from libs.issue_management import issue_tracker_utils
 from libs.query import datastore_query
 from system import archive
 
+standard_library.install_aliases()
+
 MAX_RETRIES = 50
-RUN_FILE_PATTERNS = ['run', 'fuzz-', 'index.', 'crash.']
+RUN_FILE_PATTERNS = ["run", "fuzz-", "index.", "crash."]
 PAGE_SIZE = 20
 MORE_LIMIT = 100 - PAGE_SIZE
-UPLOAD_URL = '/upload-testcase/upload-oauth'
+UPLOAD_URL = "/upload-testcase/upload-oauth"
+
+
+def _is_uploader_allowed(email):
+  """Return bool on whether user is allowed to upload to any job or fuzzer."""
+  return external_users.is_upload_allowed_for_user(email)
 
 
 def attach_testcases(rows):
   """Attach testcase to each crash."""
   testcases = {}
   for index, row in enumerate(rows):
-    testcases[index] = query_testcase(row['testcaseId'])
+    testcases[index] = query_testcase(row["testcaseId"])
 
   for index, row in enumerate(rows):
     testcase = (list(testcases[index]) or [None])[0]
     if testcase:
       testcase = {
-          'crashType': testcase.crash_type,
-          'crashStateLines': (testcase.crash_state or '').strip().splitlines(),
-          'isSecurity': testcase.security_flag,
-          'issueNumber': testcase.bug_information,
-          'job': testcase.job_type,
-          'fuzzerName': testcase.actual_fuzzer_name(),
-          'projectName': testcase.project_name,
+          "crashType": testcase.crash_type,
+          "crashStateLines": (testcase.crash_state or "").strip().splitlines(),
+          "isSecurity": testcase.security_flag,
+          "issueNumber": testcase.bug_information,
+          "job": testcase.job_type,
+          "fuzzerName": testcase.actual_fuzzer_name(),
+          "projectName": testcase.project_name,
       }
-    row['testcase'] = testcase
+    row["testcase"] = testcase
 
 
 def get_result(this):
   """Get the result."""
   params = {k: v for k, v in this.request.iterparams()}
   page = helpers.cast(
-      this.request.get('page') or 1, int, "'page' is not an int.")
+      this.request.get("page") or 1, int, "'page' is not an int.")
 
   query = datastore_query.Query(data_types.TestcaseUploadMetadata)
-  query.order('timestamp', is_desc=True)
+  query.order("timestamp", is_desc=True)
 
   if not access.has_access(need_privileged_access=True):
-    query.filter('uploader_email', helpers.get_user_email())
-    params['permission'] = {'uploaderEmail': helpers.get_user_email()}
+    query.filter("uploader_email", helpers.get_user_email())
+    params["permission"] = {"uploaderEmail": helpers.get_user_email()}
 
   entities, total_pages, total_items, has_more = query.fetch_page(
       page=page, page_size=PAGE_SIZE, projection=None, more_limit=MORE_LIMIT)
@@ -90,24 +94,24 @@ def get_result(this):
   items = []
   for entity in entities:
     items.append({
-        'timestamp': utils.utc_datetime_to_timestamp(entity.timestamp),
-        'testcaseId': entity.testcase_id,
-        'uploaderEmail': entity.uploader_email,
-        'filename': entity.filename,
-        'bundled': entity.bundled,
-        'pathInArchive': entity.path_in_archive,
-        'status': entity.status
+        "timestamp": utils.utc_datetime_to_timestamp(entity.timestamp),
+        "testcaseId": entity.testcase_id,
+        "uploaderEmail": entity.uploader_email,
+        "filename": entity.filename,
+        "bundled": entity.bundled,
+        "pathInArchive": entity.path_in_archive,
+        "status": entity.status,
     })
 
   attach_testcases(items)
 
   result = {
-      'hasMore': has_more,
-      'items': items,
-      'page': page,
-      'pageSize': PAGE_SIZE,
-      'totalItems': total_items,
-      'totalPages': total_pages,
+      "hasMore": has_more,
+      "items": items,
+      "page": page,
+      "pageSize": PAGE_SIZE,
+      "totalItems": total_items,
+      "totalPages": total_pages,
   }
   return result, params
 
@@ -116,7 +120,7 @@ def _read_to_bytesio(gcs_path):
   """Return a bytesio representing a GCS object."""
   data = storage.read_data(gcs_path)
   if not data:
-    raise helpers.EarlyExitException('Failed to read uploaded archive.', 500)
+    raise helpers.EarlyExitException("Failed to read uploaded archive.", 500)
 
   return io.BytesIO(data)
 
@@ -150,18 +154,19 @@ def query_testcase(testcase_id):
               data_types.Testcase.fuzzer_name,
               data_types.Testcase.overridden_fuzzer_name,
               data_types.Testcase.project_name,
-          ])
+          ],
+      )
 
 
 def filter_target_names(targets, engine):
   """Filter target names for a fuzzer and remove parent fuzzer prefixes."""
-  prefix = engine + '_'
+  prefix = engine + "_"
   return [t[len(prefix):] for t in targets if t.startswith(prefix)]
 
 
 def find_fuzz_target(engine, target_name, job_name):
   """Find a fuzz target given the engine, target name (which may or may not be
-  prefixed with project), and job."""
+    prefixed with project), and job."""
   project_name = data_handler.get_project_name(job_name)
   candidate_name = data_types.fuzz_target_fully_qualified_name(
       engine, project_name, target_name)
@@ -175,14 +180,14 @@ def find_fuzz_target(engine, target_name, job_name):
 
 def _allow_unprivileged_metadata(testcase_metadata):
   """Returns whether or not the provided testcase metadata can be set by an
-  unprivileged user."""
+    unprivileged user."""
   if utils.is_oss_fuzz():
     # Labels in OSS-Fuzz are privileged and control things like disclosure
     # deadlines. Do not let these be editable.
     return False
 
   # Allow *only* issue labels to be set.
-  return len(testcase_metadata) == 1 and 'issue_labels' in testcase_metadata
+  return len(testcase_metadata) == 1 and "issue_labels" in testcase_metadata
 
 
 class Handler(base_handler.Handler):
@@ -197,9 +202,8 @@ class Handler(base_handler.Handler):
 
     is_privileged_or_domain_user = access.has_access(
         need_privileged_access=False)
-
-    if is_privileged_or_domain_user:
-      # Privileged and domain users can see all job and fuzzer names.
+    if is_privileged_or_domain_user or _is_uploader_allowed(email):
+      # Privileged, domain and upload users can see all job and fuzzer names.
       allowed_jobs = data_handler.get_all_job_type_names()
       allowed_fuzzers = data_handler.get_all_fuzzer_names_including_children(
           include_parents=True)
@@ -216,30 +220,32 @@ class Handler(base_handler.Handler):
 
     result, params = get_result(self)
     self.render(
-        'upload.html', {
-            'fieldValues': {
-                'jobs':
+        "upload.html",
+        {
+            "fieldValues": {
+                "jobs":
                     allowed_jobs,
-                'libfuzzerTargets':
-                    filter_target_names(allowed_fuzzers, 'libFuzzer'),
-                'aflTargets':
-                    filter_target_names(allowed_fuzzers, 'afl'),
-                'isChromium':
+                "libfuzzerTargets":
+                    filter_target_names(allowed_fuzzers, "libFuzzer"),
+                "aflTargets":
+                    filter_target_names(allowed_fuzzers, "afl"),
+                "isChromium":
                     utils.is_chromium(),
-                'sandboxedJobs':
+                "sandboxedJobs":
                     data_types.INTERNAL_SANDBOXED_JOB_TYPES,
-                'csrfToken':
+                "csrfToken":
                     form.generate_csrf_token(),
-                'isExternalUser':
+                "isExternalUser":
                     not is_privileged_or_domain_user,
-                'uploadInfo':
+                "uploadInfo":
                     gcs.prepare_blob_upload()._asdict(),
-                'hasIssueTracker':
+                "hasIssueTracker":
                     has_issue_tracker,
             },
-            'params': params,
-            'result': result
-        })
+            "params": params,
+            "result": result,
+        },
+    )
 
 
 class PrepareUploadHandler(base_handler.Handler):
@@ -248,7 +254,7 @@ class PrepareUploadHandler(base_handler.Handler):
   @handler.check_user_access(need_privileged_access=False)
   def post(self):
     """Serves the url."""
-    self.render_json({'uploadInfo': gcs.prepare_blob_upload()._asdict()})
+    self.render_json({"uploadInfo": gcs.prepare_blob_upload()._asdict()})
 
 
 class UploadUrlHandlerOAuth(base_handler.Handler):
@@ -258,9 +264,7 @@ class UploadUrlHandlerOAuth(base_handler.Handler):
   @handler.check_user_access(need_privileged_access=False)
   def post(self):
     """Serves the url."""
-    self.render_json({
-        'uploadUrl': self.request.host_url + UPLOAD_URL,
-    })
+    self.render_json({"uploadUrl": self.request.host_url + UPLOAD_URL})
 
 
 class JsonHandler(base_handler.Handler):
@@ -285,7 +289,8 @@ class UploadHandlerCommon(object):
 
   def do_post(self):
     """Upload a testcase."""
-    testcase_id = self.request.get('testcaseId')
+    email = helpers.get_user_email()
+    testcase_id = self.request.get("testcaseId")
     uploaded_file = self.get_upload()
     if testcase_id and not uploaded_file:
       testcase = helpers.get_testcase(testcase_id)
@@ -295,93 +300,92 @@ class UploadHandlerCommon(object):
       # Use minimized testcase for upload (if available).
       key = (
           testcase.minimized_keys if testcase.minimized_keys and
-          testcase.minimized_keys != 'NA' else testcase.fuzzed_keys)
+          testcase.minimized_keys != "NA" else testcase.fuzzed_keys)
 
       uploaded_file = blobs.get_blob_info(key)
 
       # Extract filename part from blob.
       uploaded_file.filename = os.path.basename(
-          uploaded_file.filename.replace('\\', os.sep))
+          uploaded_file.filename.replace("\\", os.sep))
 
-    job_type = self.request.get('job')
+    job_type = self.request.get("job")
     if not job_type:
-      raise helpers.EarlyExitException('Missing job name.', 400)
+      raise helpers.EarlyExitException("Missing job name.", 400)
 
     if (not data_types.Job.VALID_NAME_REGEX.match(job_type) or
         not data_types.Job.query(data_types.Job.name == job_type).get()):
-      raise helpers.EarlyExitException('Invalid job name.', 400)
+      raise helpers.EarlyExitException("Invalid job name.", 400)
 
-    fuzzer_name = ''
+    fuzzer_name = ""
     job_type_lowercase = job_type.lower()
-    if 'libfuzzer' in job_type_lowercase:
-      fuzzer_name = 'libFuzzer'
-    elif 'afl' in job_type_lowercase:
-      fuzzer_name = 'afl'
+    if "libfuzzer" in job_type_lowercase:
+      fuzzer_name = "libFuzzer"
+    elif "afl" in job_type_lowercase:
+      fuzzer_name = "afl"
 
-    target_name = self.request.get('target')
+    target_name = self.request.get("target")
     if not fuzzer_name and target_name:
       raise helpers.EarlyExitException(
-          'Target name is not applicable to non-engine jobs (AFL, libFuzzer).',
-          400)
+          "Target name is not applicable to non-engine jobs (AFL, libFuzzer).",
+          400,
+      )
 
     if fuzzer_name and not target_name:
       raise helpers.EarlyExitException(
-          'Missing target name for engine job (AFL, libFuzzer).', 400)
+          "Missing target name for engine job (AFL, libFuzzer).", 400)
 
-    if (target_name and
-        not data_types.Fuzzer.VALID_NAME_REGEX.match(target_name)):
-      raise helpers.EarlyExitException('Invalid target name.', 400)
+    if target_name and not data_types.Fuzzer.VALID_NAME_REGEX.match(
+        target_name):
+      raise helpers.EarlyExitException("Invalid target name.", 400)
 
-    fully_qualified_fuzzer_name = ''
+    fully_qualified_fuzzer_name = ""
     if fuzzer_name and target_name:
       fully_qualified_fuzzer_name, target_name = find_fuzz_target(
           fuzzer_name, target_name, job_type)
       if not fully_qualified_fuzzer_name:
-        raise helpers.EarlyExitException('Target does not exist.', 400)
+        raise helpers.EarlyExitException("Target does not exist.", 400)
 
     if not access.has_access(
         need_privileged_access=False,
         job_type=job_type,
-        fuzzer_name=(fully_qualified_fuzzer_name or fuzzer_name)):
+        fuzzer_name=(fully_qualified_fuzzer_name or fuzzer_name),
+    ) and not _is_uploader_allowed(email):
       raise helpers.AccessDeniedException()
 
-    multiple_testcases = bool(self.request.get('multiple'))
-    http_flag = bool(self.request.get('http'))
-    high_end_job = bool(self.request.get('highEnd'))
-    bug_information = self.request.get('issue')
-    crash_revision = self.request.get('revision')
-    timeout = self.request.get('timeout')
-    retries = self.request.get('retries')
-    bug_summary_update_flag = bool(self.request.get('updateIssue'))
-    quiet_flag = bool(self.request.get('quiet'))
-    additional_arguments = self.request.get('args')
-    app_launch_command = self.request.get('cmd')
-    platform_id = self.request.get('platform')
-    issue_labels = self.request.get('issue_labels')
+    multiple_testcases = bool(self.request.get("multiple"))
+    http_flag = bool(self.request.get("http"))
+    high_end_job = bool(self.request.get("highEnd"))
+    bug_information = self.request.get("issue")
+    crash_revision = self.request.get("revision")
+    timeout = self.request.get("timeout")
+    retries = self.request.get("retries")
+    bug_summary_update_flag = bool(self.request.get("updateIssue"))
+    quiet_flag = bool(self.request.get("quiet"))
+    additional_arguments = self.request.get("args")
+    app_launch_command = self.request.get("cmd")
+    platform_id = self.request.get("platform")
+    issue_labels = self.request.get("issue_labels")
+    gestures = self.request.get("gestures") or "[]"
 
-    testcase_metadata = self.request.get('metadata', {})
+    testcase_metadata = self.request.get("metadata", {})
     if testcase_metadata:
       try:
         testcase_metadata = json.loads(testcase_metadata)
-        if not isinstance(testcase_metadata, dict):
-          raise helpers.EarlyExitException('Metadata is not a JSON object.',
-                                           400)
       except Exception:
-        raise helpers.EarlyExitException('Invalid metadata JSON.', 400)
-
+        raise helpers.EarlyExitException("Invalid metadata JSON.", 400)
+      if not isinstance(testcase_metadata, dict):
+        raise helpers.EarlyExitException("Metadata is not a JSON object.", 400)
     if issue_labels:
-      testcase_metadata['issue_labels'] = issue_labels
+      testcase_metadata["issue_labels"] = issue_labels
+
+    try:
+      gestures = ast.literal_eval(gestures)
+    except Exception:
+      raise helpers.EarlyExitException("Failed to parse gestures.", 400)
 
     archive_state = 0
     bundled = False
-    file_path_input = ''
-    email = helpers.get_user_email()
-
-    # If we have a AFL or libFuzzer target, use that for arguments.
-    # Launch command looks like
-    # python launcher.py {testcase_path}
-    if target_name:
-      additional_arguments = '%TESTCASE%'
+    file_path_input = ""
 
     # Certain modifications such as app launch command, issue updates are only
     # allowed for privileged users.
@@ -389,44 +393,56 @@ class UploadHandlerCommon(object):
     if not privileged_user:
       if bug_information or bug_summary_update_flag:
         raise helpers.EarlyExitException(
-            'You are not privileged to update existing issues.', 400)
+            "You are not privileged to update existing issues.", 400)
 
       need_privileged_access = utils.string_is_true(
           data_handler.get_value_from_job_definition(job_type,
-                                                     'PRIVILEGED_ACCESS'))
+                                                     "PRIVILEGED_ACCESS"))
       if need_privileged_access:
         raise helpers.EarlyExitException(
-            'You are not privileged to run this job type.', 400)
+            "You are not privileged to run this job type.", 400)
 
       if app_launch_command:
         raise helpers.EarlyExitException(
-            'You are not privileged to run arbitary launch commands.', 400)
+            "You are not privileged to run arbitrary launch commands.", 400)
 
-      if (testcase_metadata and
-          not _allow_unprivileged_metadata(testcase_metadata)):
+      if testcase_metadata and not _allow_unprivileged_metadata(
+          testcase_metadata):
         raise helpers.EarlyExitException(
-            'You are not privileged to set testcase metadata.', 400)
+            "You are not privileged to set testcase metadata.", 400)
+
+      if additional_arguments:
+        raise helpers.EarlyExitException(
+            "You are not privileged to add command-line arguments.", 400)
+
+      if gestures:
+        raise helpers.EarlyExitException(
+            "You are not privileged to run arbitrary gestures.", 400)
+
+    # TODO(aarya): Remove once AFL is migrated to engine pipeline.
+    if target_name:
+      additional_arguments = "%TESTCASE%"
 
     if crash_revision and crash_revision.isdigit():
       crash_revision = int(crash_revision)
     else:
       crash_revision = 0
 
-    if bug_information == '0':  # Auto-recover from this bad input.
+    if bug_information == "0":  # Auto-recover from this bad input.
       bug_information = None
     if bug_information and not bug_information.isdigit():
-      raise helpers.EarlyExitException('Bug is not a number.', 400)
+      raise helpers.EarlyExitException("Bug is not a number.", 400)
 
     if not timeout:
       timeout = 0
-    elif not timeout.isdigit() or timeout == '0':
+    elif not timeout.isdigit() or timeout == "0":
       raise helpers.EarlyExitException(
-          'Testcase timeout must be a number greater than 0.', 400)
+          "Testcase timeout must be a number greater than 0.", 400)
     else:
       timeout = int(timeout)
       if timeout > 120:
         raise helpers.EarlyExitException(
-            'Testcase timeout may not be greater than 120 seconds.', 400)
+            "Testcase timeout may not be greater than 120 seconds.", 400)
 
     if retries:
       if retries.isdigit():
@@ -436,32 +452,22 @@ class UploadHandlerCommon(object):
 
       if retries is None or retries > MAX_RETRIES:
         raise helpers.EarlyExitException(
-            'Testcase retries must be a number less than %d.' % MAX_RETRIES,
+            "Testcase retries must be a number less than %d." % MAX_RETRIES,
             400)
     else:
       retries = None
 
-    try:
-      gestures = ast.literal_eval(self.request.get('gestures'))
-    except:
-      gestures = []
-    if not gestures:
-      gestures = []
-
     job_queue = tasks.queue_for_job(job_type, is_high_end=high_end_job)
 
     if uploaded_file is not None:
-      filename = ''.join([
-          x for x in uploaded_file.filename if x not in ' ;/?:@&=+$,{}|<>()\\'
+      filename = "".join([
+          x for x in uploaded_file.filename if x not in " ;/?:@&=+$,{}|<>()\\"
       ])
       key = str(uploaded_file.key())
       if archive.is_archive(filename):
         archive_state = data_types.ArchiveStatus.FUZZED
       if archive_state:
         if multiple_testcases:
-          if testcase_metadata:
-            raise helpers.EarlyExitException(
-                'Testcase metadata not supported with multiple testcases.', 400)
           # Create a job to unpack an archive.
           metadata = data_types.BundledArchiveMetadata()
           metadata.blobstore_key = key
@@ -483,10 +489,11 @@ class UploadHandlerCommon(object):
           metadata.put()
 
           tasks.add_task(
-              'unpack',
+              "unpack",
               str(metadata.key.id()),
               job_type,
-              queue=tasks.queue_for_job(job_type))
+              queue=tasks.queue_for_job(job_type),
+          )
 
           # Create a testcase metadata object to show the user their upload.
           upload_metadata = data_types.TestcaseUploadMetadata()
@@ -494,25 +501,30 @@ class UploadHandlerCommon(object):
           upload_metadata.filename = filename
           upload_metadata.blobstore_key = key
           upload_metadata.original_blobstore_key = key
-          upload_metadata.status = 'Pending'
+          upload_metadata.status = "Pending"
           upload_metadata.bundled = True
           upload_metadata.uploader_email = email
           upload_metadata.retries = retries
           upload_metadata.bug_summary_update_flag = bug_summary_update_flag
+          upload_metadata.quiet_flag = quiet_flag
+          upload_metadata.additional_metadata_string = json.dumps(
+              testcase_metadata)
           upload_metadata.put()
 
-          helpers.log('Uploaded multiple testcases.', helpers.VIEW_OPERATION)
-          self.render_json({'multiple': True})
+          helpers.log("Uploaded multiple testcases.", helpers.VIEW_OPERATION)
+          self.render_json({"multiple": True})
           return
 
         file_path_input = guess_input_file(uploaded_file, filename)
         if not file_path_input:
           raise helpers.EarlyExitException(
-              ("Unable to detect which file to launch. The main file\'s name "
-               'must contain either of %s.' % str(RUN_FILE_PATTERNS)), 400)
+              ("Unable to detect which file to launch. The main file's name "
+               "must contain either of %s." % str(RUN_FILE_PATTERNS)),
+              400,
+          )
 
     else:
-      raise helpers.EarlyExitException('Please select a file to upload.', 400)
+      raise helpers.EarlyExitException("Please select a file to upload.", 400)
 
     testcase_id = data_handler.create_user_uploaded_testcase(
         key,
@@ -538,7 +550,8 @@ class UploadHandlerCommon(object):
         retries,
         bug_summary_update_flag,
         quiet_flag,
-        additional_metadata=testcase_metadata)
+        additional_metadata=testcase_metadata,
+    )
 
     if not quiet_flag:
       testcase = data_handler.get_testcase_by_id(testcase_id)
@@ -547,12 +560,12 @@ class UploadHandlerCommon(object):
         report_url = data_handler.TESTCASE_REPORT_URL.format(
             domain=data_handler.get_domain(), testcase_id=testcase_id)
 
-        comment = ('ClusterFuzz is analyzing your testcase. '
-                   'Developers can follow the progress at %s.' % report_url)
+        comment = ("ClusterFuzz is analyzing your testcase. "
+                   "Developers can follow the progress at %s." % report_url)
         issue.save(new_comment=comment)
 
-    helpers.log('Uploaded testcase %s' % testcase_id, helpers.VIEW_OPERATION)
-    self.render_json({'id': '%s' % testcase_id})
+    helpers.log("Uploaded testcase %s" % testcase_id, helpers.VIEW_OPERATION)
+    self.render_json({"id": "%s" % testcase_id})
 
 
 class UploadHandler(UploadHandlerCommon, base_handler.GcsUploadHandler):
@@ -561,7 +574,7 @@ class UploadHandler(UploadHandlerCommon, base_handler.GcsUploadHandler):
   # pylint: disable=unused-argument
   def before_render_json(self, values, status):
     """Add upload info when the request fails."""
-    values['uploadInfo'] = gcs.prepare_blob_upload()._asdict()
+    values["uploadInfo"] = gcs.prepare_blob_upload()._asdict()
 
   def get_upload(self):
     return base_handler.GcsUploadHandler.get_upload(self)
@@ -586,13 +599,13 @@ class UploadHandlerOAuth(base_handler.Handler, UploadHandlerCommon):
   # pylint: disable=unused-argument
   def before_render_json(self, values, status):
     """Add upload info when the request fails."""
-    values['uploadUrl'] = self.request.host_url + UPLOAD_URL
+    values["uploadUrl"] = self.request.host_url + UPLOAD_URL
 
   def get_upload(self):
     """Get the upload."""
-    uploaded_file = self.request.POST.get('file')
+    uploaded_file = self.request.POST.get("file")
     if not isinstance(uploaded_file, cgi.FieldStorage):
-      raise helpers.EarlyExitException('File upload not found.', 400)
+      raise helpers.EarlyExitException("File upload not found.", 400)
 
     bytes_io = NamedBytesIO(uploaded_file.filename, uploaded_file.file.read())
     key = blobs.write_blob(bytes_io)

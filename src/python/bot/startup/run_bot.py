@@ -14,45 +14,47 @@
 """Bot startup script."""
 from __future__ import print_function
 
-# We want to use utf-8 encoding everywhere throughout the application
-# instead of the default 'ascii' encoding. This must happen before any
-# other imports.
-import sys
-reload(sys)
-sys.setdefaultencoding('utf-8')
-
-# Before other modules import os, we patch path-related methods, so they are
-# compatible with windows.
-from system import path_patcher
-path_patcher.patch()
-
-# Before any other imports, we must fix the path. Some libraries might expect
-# to be able to import dependencies directly, but we must store these in
-# subdirectories of common so that they are shared with App Engine.
-from python.base import modules
-modules.fix_module_search_paths()
-
-from future import standard_library
-standard_library.install_aliases()
-from builtins import object
 import os
+import sys
 import time
 import traceback
+from builtins import object
 
 from base import dates
 from base import errors
 from base import tasks
 from base import untrusted
 from base import utils
-from bot.fuzzers import init as fuzzers_init
-from bot.tasks import commands
-from bot.tasks import update_task
 from datastore import data_handler
+from future import standard_library
 from metrics import logs
 from metrics import monitor
 from metrics import monitoring_metrics
 from metrics import profiler
+from python.base import modules
 from system import environment
+from system import path_patcher
+
+from bot.fuzzers import init as fuzzers_init
+from bot.tasks import commands
+from bot.tasks import update_task
+# We want to use utf-8 encoding everywhere throughout the application
+# instead of the default 'ascii' encoding. This must happen before any
+# other imports.
+
+reload(sys)
+sys.setdefaultencoding("utf-8")
+
+# Before other modules import os, we patch path-related methods, so they are
+# compatible with windows.
+path_patcher.patch()
+
+# Before any other imports, we must fix the path. Some libraries might expect
+# to be able to import dependencies directly, but we must store these in
+# subdirectories of common so that they are shared with App Engine.
+modules.fix_module_search_paths()
+
+standard_library.install_aliases()
 
 
 class _Monitor(object):
@@ -65,8 +67,8 @@ class _Monitor(object):
 
   def __enter__(self):
     monitoring_metrics.TASK_COUNT.increment({
-        'task': self.task.command or '',
-        'job': self.task.job or '',
+        "task": self.task.command or "",
+        "job": self.task.job or ""
     })
     self.start_time = self.time_module.time()
 
@@ -97,18 +99,18 @@ def task_loop():
           commands.process_command(task)
     except SystemExit as e:
       exception_occurred = True
-      clean_exit = (e.code == 0)
+      clean_exit = e.code == 0
       if not clean_exit and not isinstance(e, untrusted.HostException):
-        logs.log_error('SystemExit occurred while working on task.')
+        logs.log_error("SystemExit occurred while working on task.")
     except commands.AlreadyRunningError:
       exception_occurred = False
     except Exception:
-      logs.log_error('Error occurred while working on task.')
+      logs.log_error("Error occurred while working on task.")
       exception_occurred = True
 
     if exception_occurred:
       # Prevent looping too quickly. See: crbug.com/644830
-      failure_wait_interval = environment.get_value('FAIL_WAIT')
+      failure_wait_interval = environment.get_value("FAIL_WAIT")
       time.sleep(utils.random_number(1, failure_wait_interval))
       break
 
@@ -118,26 +120,27 @@ def task_loop():
 
 def main():
   """Prepare the configuration options and start requesting tasks."""
-  logs.configure('run_bot')
+  logs.configure("run_bot")
 
-  root_directory = environment.get_value('ROOT_DIR')
+  root_directory = environment.get_value("ROOT_DIR")
   if not root_directory:
-    print('Please set ROOT_DIR environment variable to the root of the source '
-          'checkout before running. Exiting.')
-    print('For an example, check init.bash in the local directory.')
+    print("Please set ROOT_DIR environment variable to the root of the source "
+          "checkout before running. Exiting.")
+    print("For an example, check init.bash in the local directory.")
     return
 
   dates.initialize_timezone_from_environment()
   environment.set_bot_environment()
   monitor.initialize()
 
-  if not profiler.start_if_needed('python_profiler_bot'):
+  if not profiler.start_if_needed("python_profiler_bot"):
     sys.exit(-1)
 
   fuzzers_init.run()
 
   if environment.is_trusted_host(ensure_connected=False):
     from bot.untrusted_runner import host
+
     host.init()
 
   if environment.is_untrusted_worker():
@@ -145,8 +148,9 @@ def main():
     update_task.track_revision()
 
     from bot.untrusted_runner import untrusted as untrusted_worker
+
     untrusted_worker.start_server()
-    assert False, 'Unreachable code'
+    assert False, "Unreachable code"
 
   while True:
     # task_loop should be an infinite loop,
@@ -156,25 +160,24 @@ def main():
     # Print the error trace to the console.
     if not clean_exit:
       print('Exception occurred while running "%s".' % task_payload)
-      print('-' * 80)
+      print("-" * 80)
       print(error_stacktrace)
-      print('-' * 80)
+      print("-" * 80)
 
-    should_terminate = (
-        clean_exit or errors.error_in_list(error_stacktrace,
-                                           errors.BOT_ERROR_TERMINATION_LIST))
+    should_terminate = clean_exit or errors.error_in_list(
+        error_stacktrace, errors.BOT_ERROR_TERMINATION_LIST)
     if should_terminate:
       return
 
     logs.log_error(
-        'Task exited with exception.',
+        'Task exited with exception (payload="%s").' % task_payload,
         error_stacktrace=error_stacktrace,
-        task_payload=task_payload)
+    )
 
     should_hang = errors.error_in_list(error_stacktrace,
                                        errors.BOT_ERROR_HANG_LIST)
     if should_hang:
-      logs.log('Start hanging forever.')
+      logs.log("Start hanging forever.")
       while True:
         # Sleep to avoid consuming 100% of CPU.
         time.sleep(60)
@@ -187,7 +190,7 @@ def main():
     sys.exc_clear()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
   try:
     main()
     exit_code = 0

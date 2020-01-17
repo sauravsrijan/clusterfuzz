@@ -12,17 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """memoize tests."""
-
+import unittest
 from builtins import object
 from builtins import range
-from pyfakefs import fake_filesystem_unittest
-import unittest
 
-from google.appengine.api import memcache
-from google.appengine.ext import testbed
-
+import six
 from base import memoize
 from base import persistent_cache
+from pyfakefs import fake_filesystem_unittest
 from system import environment
 from tests.test_libs import helpers as test_helpers
 from tests.test_libs import test_utils
@@ -148,21 +145,21 @@ class FifoInMemoryTest(unittest.TestCase):
     def fn():
       pass
 
-    key = self.cache.get_key(fn, ('a', 'b'), {'c': 'd'})
+    key = self.cache.get_key(fn, ("a", "b"), {"c": "d"})
 
     self.assertIsNone(self.cache.get(key))
-    self.cache.put(key, 'b')
-    self.assertEqual('b', self.cache.get(key))
+    self.cache.put(key, "b")
+    self.assertEqual("b", self.cache.get(key))
 
   def test_hit_limit(self):
     """Test hitting the limit."""
     for i in range(6):
-      self.cache.put(i, 'a')
+      self.cache.put(i, "a")
 
     self.assertIsNone(self.cache.get(0))
 
     for i in range(1, 6):
-      self.assertEqual('a', self.cache.get(i))
+      self.assertEqual("a", self.cache.get(i))
 
 
 class FifoOnDiskTest(fake_filesystem_unittest.TestCase):
@@ -171,7 +168,7 @@ class FifoOnDiskTest(fake_filesystem_unittest.TestCase):
   def setUp(self):
     test_helpers.patch_environ(self)
     test_utils.set_up_pyfakefs(self)
-    environment.set_value('CACHE_DIR', '/tmp/test-cache')
+    environment.set_value("CACHE_DIR", "/tmp/test-cache")
     persistent_cache.initialize()
 
     self.cache = memoize.FifoOnDisk(5)
@@ -182,100 +179,63 @@ class FifoOnDiskTest(fake_filesystem_unittest.TestCase):
     def fn():
       pass
 
-    key = self.cache.get_key(fn, ('a', 'b'), {'c': 'd'})
+    key = self.cache.get_key(fn, ("a", "b"), {"c": "d"})
 
     self.assertIsNone(self.cache.get(key))
-    self.cache.put(key, 'b')
-    self.assertEqual('b', self.cache.get(key))
+    self.cache.put(key, "b")
+    self.assertEqual("b", self.cache.get(key))
 
   def test_hit_limit(self):
     """Test hitting the limit."""
     for i in range(6):
-      self.cache.put(i, 'a')
+      self.cache.put(i, "a")
 
     self.assertIsNone(self.cache.get(0))
 
     for i in range(1, 6):
-      self.assertEqual('a', self.cache.get(i))
+      self.assertEqual("a", self.cache.get(i))
+
+
+class _MockRedis(object):
+  """Mock redis client."""
+
+  def __init__(self):
+    self._store = {}
+
+  def get(self, key):
+    """Get a value."""
+    assert isinstance(key, six.string_types)
+    return self._store.get(key)
+
+  def set(self, key, value, ex=None):  # pylint: disable=unused-argument
+    """Set a value."""
+    assert isinstance(key, six.string_types)
+    assert isinstance(value, six.string_types)
+    self._store[key] = value
 
 
 class MemcacheTest(unittest.TestCase):
   """Test Memcache."""
 
   def setUp(self):
-    test_helpers.patch(self, [
-        'system.environment.is_running_on_app_engine',
-    ])
+    test_helpers.patch(
+        self, ["redis.Redis", "system.environment.is_running_on_app_engine"])
+    self.mock.Redis.return_value = _MockRedis()
     self.mock.is_running_on_app_engine.return_value = True
 
-    self.testbed = testbed.Testbed()
-    self.testbed.activate()
-    self.testbed.init_memcache_stub()
     self.cache = memoize.Memcache(100)
 
     def fn():
       pass
 
-    self.key = self.cache.get_key(fn, ('a', 'b'), {'c': 'd'})
-    self.value = 'b'
-
-  def tearDown(self):
-    self.testbed.deactivate()
+    self.key = self.cache.get_key(fn, ("a", "b"), {"c": "d"})
+    self.value = "b"
 
   def test_get(self):
     """Test store and get."""
     self.assertIsNone(self.cache.get(self.key))
     self.cache.put(self.key, self.value)
     self.assertEqual(self.value, self.cache.get(self.key))
-
-  def test_noop(self):
-    """Test noop on bot."""
-    self.mock.is_running_on_app_engine.return_value = False
-
-    self.assertIsNone(self.cache.get(self.key))
-    self.cache.put(self.key, self.value)
-    self.assertIsNone(self.cache.get(self.key))
-
-
-class MemcacheLargeTest(unittest.TestCase):
-  """Tests MemcacheLarge."""
-
-  def setUp(self):
-    test_helpers.patch(self, [
-        'system.environment.is_running_on_app_engine',
-    ])
-    self.mock.is_running_on_app_engine.return_value = True
-
-    self.testbed = testbed.Testbed()
-    self.testbed.activate()
-    self.testbed.init_memcache_stub()
-    self.cache = memoize.MemcacheLarge(100)
-
-    test_helpers.patch(self, [
-        'metrics.logs.log',
-    ])
-
-    def fn():
-      pass
-
-    self.key = self.cache.get_key(fn, ('a', 'b'), {'c': 'd'})
-    self.value = {'z': 'a' * (memoize.MemcacheLarge.CHUNK_LEN + 3) * 5}
-
-  def tearDown(self):
-    self.testbed.deactivate()
-
-  def test_get(self):
-    """Test store and get."""
-    self.assertIsNone(self.cache.get(self.key))
-    self.cache.put(self.key, self.value)
-    self.assertEqual(self.value, self.cache.get(self.key))
-
-  def test_get_evicted(self):
-    """Test getting an evicted key/value."""
-    self.assertIsNone(self.cache.get(self.key))
-    self.cache.put(self.key, self.value)
-    self.assertTrue(memcache.flush_all())
-    self.assertIsNone(self.cache.get(self.key))
 
   def test_noop(self):
     """Test noop on bot."""

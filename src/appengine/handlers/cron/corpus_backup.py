@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """corpus backup handler."""
-
 import datetime
 
 from base import utils
@@ -33,8 +32,11 @@ def _make_corpus_backup_public(target, corpus_fuzzer_name_override,
       days=data_types.CORPUS_BACKUP_PUBLIC_LOOKBACK_DAYS)
 
   corpus_backup_url = corpus_manager.gcs_url_for_backup_file(
-      corpus_backup_bucket_name, corpus_fuzzer_name_override or target.engine,
-      target.project_qualified_name(), corpus_backup_date)
+      corpus_backup_bucket_name,
+      corpus_fuzzer_name_override or target.engine,
+      target.project_qualified_name(),
+      corpus_backup_date,
+  )
 
   try:
     result = storage.get(corpus_backup_url)
@@ -42,31 +44,31 @@ def _make_corpus_backup_public(target, corpus_fuzzer_name_override,
     result = None
 
   if not result:
-    logs.log_warn('Failed to find corpus backup %s.' % corpus_backup_url)
+    logs.log_warn("Failed to find corpus backup %s." % corpus_backup_url)
     return
 
   try:
-    result = storage.get_acl(corpus_backup_url, 'allUsers')
+    result = storage.get_acl(corpus_backup_url, "allUsers")
   except:
     result = None
 
   if result:
     # Backup is already marked public. Skip.
-    logs.log('Corpus backup %s is already marked public, skipping.' %
+    logs.log("Corpus backup %s is already marked public, skipping." %
              corpus_backup_url)
     return
 
   try:
-    result = storage.set_acl(corpus_backup_url, 'allUsers')
+    result = storage.set_acl(corpus_backup_url, "allUsers")
   except:
     result = None
 
   if not result:
-    logs.log_error(
-        'Failed to mark corpus backup %s public.' % corpus_backup_url)
+    logs.log_error("Failed to mark corpus backup %s public." %
+                   corpus_backup_url)
     return
 
-  logs.log('Corpus backup %s is now marked public.' % corpus_backup_url)
+  logs.log("Corpus backup %s is now marked public." % corpus_backup_url)
 
 
 class MakePublicHandler(base_handler.Handler):
@@ -76,23 +78,25 @@ class MakePublicHandler(base_handler.Handler):
   def get(self):
     """Handle a GET request."""
     jobs = ndb_utils.get_all_from_model(data_types.Job)
+    default_backup_bucket = utils.default_backup_bucket()
     for job in jobs:
       job_environment = job.get_environment()
-      if utils.string_is_true(job_environment.get('EXPERIMENTAL')):
+      if utils.string_is_true(job_environment.get("EXPERIMENTAL")):
         # Don't use corpus backups from experimental jobs. Skip.
         continue
 
-      if not utils.string_is_true(job_environment.get('CORPUS_PRUNE')):
+      if not utils.string_is_true(job_environment.get("CORPUS_PRUNE")):
         # There won't be any corpus backups for these jobs. Skip.
         continue
 
-      corpus_backup_bucket_name = job_environment.get('BACKUP_BUCKET')
+      corpus_backup_bucket_name = job_environment.get("BACKUP_BUCKET",
+                                                      default_backup_bucket)
       if not corpus_backup_bucket_name:
         # No backup bucket found. Skip.
         continue
 
       corpus_fuzzer_name_override = job_environment.get(
-          'CORPUS_FUZZER_NAME_OVERRIDE')
+          "CORPUS_FUZZER_NAME_OVERRIDE")
 
       target_jobs = list(fuzz_target_utils.get_fuzz_target_jobs(job=job.name))
       fuzz_targets = fuzz_target_utils.get_fuzz_targets_for_target_jobs(

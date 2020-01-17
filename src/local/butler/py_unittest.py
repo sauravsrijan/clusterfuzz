@@ -13,15 +13,6 @@
 # limitations under the License.
 """py_unittest.py runs tests under src/appengine and butler/tests"""
 from __future__ import print_function
-from future import standard_library
-standard_library.install_aliases()
-from builtins import object
-from builtins import range
-import coverage
-
-# Coverage needs to be at the top of the page. See: go/why-top-cov
-COV = coverage.Coverage(config_file='.coveragerc')
-COV.start()
 
 import io
 import itertools
@@ -34,13 +25,19 @@ import sys
 import time
 import traceback
 import unittest
+from builtins import object
+from builtins import range
+
+from future import standard_library
 
 from local.butler import appengine
 from local.butler import common
 from src.python.config import local_config
 
-APPENGINE_TEST_DIRECTORY = os.path.join('src', 'python', 'tests', 'appengine')
-CORE_TEST_DIRECTORY = os.path.join('src', 'python', 'tests', 'core')
+standard_library.install_aliases()
+
+APPENGINE_TEST_DIRECTORY = os.path.join("src", "python", "tests", "appengine")
+CORE_TEST_DIRECTORY = os.path.join("src", "python", "tests", "core")
 SLOW_TEST_THRESHOLD = 2  # In seconds.
 
 
@@ -70,7 +67,7 @@ class TrackedTestRunner(unittest.TextTestRunner):
   """TextTestRunner wrapper that reports additional information we collect."""
 
   def __init__(self, *args, **kwargs):
-    kwargs['resultclass'] = TrackedTestResult
+    kwargs["resultclass"] = TrackedTestResult
     super(TrackedTestRunner, self).__init__(*args, **kwargs)
 
   def run(self, test):
@@ -79,33 +76,11 @@ class TrackedTestRunner(unittest.TextTestRunner):
     if not result.slow_tests:
       return result
 
-    self.stream.writeln('\nSlow tests:')
+    self.stream.writeln("\nSlow tests:")
     for elapsed_time, test_name in sorted(result.slow_tests, reverse=True):
-      print('%6.2fs: %s' % (elapsed_time, test_name))
+      print("%6.2fs: %s" % (elapsed_time, test_name))
 
     return result
-
-
-class MeasureCoverage(object):
-  """Use with `with` statement for measuring test coverage."""
-
-  def __init__(self, enabled):
-    self.enabled = enabled
-
-  def __enter__(self):
-    pass
-
-  def __exit__(self, exc_type, value, _):
-    COV.stop()
-
-    if not self.enabled:
-      return
-
-    COV.html_report(directory='coverage')
-
-    print('The tests cover %0.2f%% of the source code.' %
-          COV.report(file=io.BytesIO()))
-    print('The test coverage by lines can be seen at ./coverage/index.html')
 
 
 class TestResult(object):
@@ -121,7 +96,7 @@ class TestResult(object):
 
 def test_worker_init():
   """Initialise test worker process."""
-  if platform.system() != 'Windows':
+  if platform.system() != "Windows":
     # Prevent KeyboardInterrupt error output.
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
@@ -129,7 +104,7 @@ def test_worker_init():
 def run_one_test_parallel(args):
   """Test worker."""
   try:
-    os.environ['PARALLEL_TESTS'] = '1'
+    os.environ["PARALLEL_TESTS"] = "1"
 
     test_modules, suppress_output = args
     suite = unittest.loader.TestLoader().loadTestsFromNames(test_modules)
@@ -144,25 +119,29 @@ def run_one_test_parallel(args):
         stream=stream, verbosity=0, buffer=suppress_output).run(suite)
 
     stream.flush()
-    return TestResult(stream.raw.getvalue(), len(result.errors),
-                      len(result.failures), len(result.skipped),
-                      result.testsRun)
+    return TestResult(
+        stream.raw.getvalue(),
+        len(result.errors),
+        len(result.failures),
+        len(result.skipped),
+        result.testsRun,
+    )
   except BaseException:
     # Print exception traceback here, as it will be lost otherwise.
     traceback.print_exc()
     raise
 
 
-def run_tests_single_core(args, test_directory, top_level_dir, enable_coverage):
+def run_tests_single_core(args, test_directory, top_level_dir):
   """Run tests (single CPU)."""
   suites = unittest.loader.TestLoader().discover(
       test_directory, pattern=args.pattern, top_level_dir=top_level_dir)
 
-  with MeasureCoverage(enable_coverage):
-    # Verbosity=2 since we want to see real-time test execution with test name
-    # and result.
-    result = TrackedTestRunner(
-        verbosity=2, buffer=(not args.unsuppress_output)).run(suites)
+  # TODO(mbarbella): Re-implement code coverage after migrating to Python 3.
+  # Verbosity=2 since we want to see real-time test execution with test name
+  # and result.
+  result = TrackedTestRunner(
+      verbosity=2, buffer=(not args.unsuppress_output)).run(suites)
 
   if result.errors or result.failures:
     sys.exit(1)
@@ -179,13 +158,13 @@ def run_tests_parallel(args, test_directory, top_level_dir):
       # According to:
       # https://github.com/python/cpython/blob/2.7/Lib/unittest/loader.py#L24,
       # this is how we can get a ModuleImportFailure error.
-      if subsuite.__class__.__name__ == 'ModuleImportFailure':
+      if subsuite.__class__.__name__ == "ModuleImportFailure":
         unittest.TextTestRunner(verbosity=1).run(subsuite)
-        raise Exception('A failure occurred while importing the module.')
+        raise Exception("A failure occurred while importing the module.")
       else:
         for test_class in subsuite._tests:  # pylint: disable=protected-access
-          test_classes.append((test_class.__module__,
-                               test_class.__class__.__name__))
+          test_classes.append(
+              (test_class.__module__, test_class.__class__.__name__))
   test_classes = sorted(test_classes)
 
   test_modules = []
@@ -196,7 +175,7 @@ def run_tests_parallel(args, test_directory, top_level_dir):
   cpu_count = multiprocessing.cpu_count()
   pool = multiprocessing.Pool(cpu_count, test_worker_init)
 
-  total_result = TestResult('', 0, 0, 0, 0)
+  total_result = TestResult("", 0, 0, 0, 0)
 
   # partition tests
   test_args = []
@@ -230,9 +209,12 @@ def run_tests_parallel(args, test_directory, top_level_dir):
     total_result.num_skipped += result.num_skipped
     total_result.total_run += result.total_run
 
-  print('Ran %d tests (%d skipped, %d errors, %d failures).' %
-        (total_result.total_run, total_result.num_skipped,
-         total_result.num_errors, total_result.num_failures))
+  print("Ran %d tests (%d skipped, %d errors, %d failures)." % (
+      total_result.total_run,
+      total_result.num_skipped,
+      total_result.num_errors,
+      total_result.num_failures,
+  ))
 
   if total_result.num_errors or total_result.num_failures:
     sys.exit(1)
@@ -240,33 +222,34 @@ def run_tests_parallel(args, test_directory, top_level_dir):
 
 def execute(args):
   """Run Python unit tests. For unittests involved appengine, sys.path needs
-  certain modification."""
-  os.environ['PY_UNITTESTS'] = 'True'
+    certain modification."""
+  os.environ["PY_UNITTESTS"] = "True"
 
-  if os.getenv('INTEGRATION') or os.getenv('UNTRUSTED_RUNNER_TESTS'):
+  if os.getenv("INTEGRATION") or os.getenv("UNTRUSTED_RUNNER_TESTS"):
     # Set up per-user buckets used by integration tests.
-    os.environ['CORPUS_BUCKET'] = common.test_bucket('TEST_CORPUS_BUCKET')
-    os.environ['QUARANTINE_BUCKET'] = common.test_bucket(
-        'TEST_QUARANTINE_BUCKET')
-    os.environ['BACKUP_BUCKET'] = common.test_bucket('TEST_BACKUP_BUCKET')
-    os.environ['COVERAGE_BUCKET'] = common.test_bucket('TEST_COVERAGE_BUCKET')
+    os.environ["CORPUS_BUCKET"] = common.test_bucket("TEST_CORPUS_BUCKET")
+    os.environ["QUARANTINE_BUCKET"] = common.test_bucket(
+        "TEST_QUARANTINE_BUCKET")
+    os.environ["BACKUP_BUCKET"] = common.test_bucket("TEST_BACKUP_BUCKET")
+    os.environ["COVERAGE_BUCKET"] = common.test_bucket("TEST_COVERAGE_BUCKET")
 
   # Kill leftover instances of emulators and dev appserver.
   common.kill_leftover_emulators()
 
   # Don't use absolute paths to make it easier to compare results in tests.
-  os.environ['CONFIG_DIR_OVERRIDE'] = os.path.join('.', 'configs', 'test')
+  os.environ["CONFIG_DIR_OVERRIDE"] = os.path.join(".", "configs", "test")
 
-  top_level_dir = os.path.join('src', 'python')
-  if args.target == 'appengine':
+  top_level_dir = os.path.join("src", "python")
+  if args.target == "appengine":
     # Build template files.
     appengine.build_templates()
 
     test_directory = APPENGINE_TEST_DIRECTORY
-    sys.path.insert(0, os.path.abspath(os.path.join('src', 'appengine')))
+    sys.path.insert(0, os.path.abspath(os.path.join("src", "appengine")))
 
     # Get additional App Engine third party imports.
     import dev_appserver
+
     sys.path.extend(dev_appserver.EXTRA_PATHS)
 
     # Loading appengine_config from the current project ensures that any
@@ -274,43 +257,44 @@ def execute(args):
     # sys.path modifications, namespaces, etc.)
     try:
       from src.appengine import appengine_config
+
       (appengine_config)  # pylint: disable=pointless-statement
     except ImportError:
-      print('Note: unable to import appengine_config.')
-  elif args.target == 'core':
+      print("Note: unable to import appengine_config.")
+  elif args.target == "core":
     test_directory = CORE_TEST_DIRECTORY
   else:
     # Config module tests.
-    os.environ['CONFIG_DIR_OVERRIDE'] = args.config_dir
-    test_directory = os.path.join(args.config_dir, 'modules')
+    os.environ["CONFIG_DIR_OVERRIDE"] = args.config_dir
+    test_directory = os.path.join(args.config_dir, "modules")
     top_level_dir = None
 
     # Modules may use libs from our App Engine directory.
-    sys.path.insert(0, os.path.abspath(os.path.join('src', 'appengine')))
+    sys.path.insert(0, os.path.abspath(os.path.join("src", "appengine")))
 
     # Fix paths again to get config modules added to the import path.
     from python.base import modules
+
     modules.fix_module_search_paths()
 
   # Set expected environment variables.
   local_config.ProjectConfig().set_environment()
 
   # Needed for NDB to work with cloud datastore emulator.
-  os.environ['DATASTORE_USE_PROJECT_ID_AS_APP_ID'] = 'true'
+  os.environ["DATASTORE_USE_PROJECT_ID_AS_APP_ID"] = "true"
 
   if args.verbose:
     # Force logging to console for this process and child processes.
-    os.environ['LOG_TO_CONSOLE'] = 'True'
+    os.environ["LOG_TO_CONSOLE"] = "True"
   else:
     # Disable logging.
     logging.disable(logging.CRITICAL)
 
-  enable_coverage = args.pattern is None
   if args.pattern is None:
-    args.pattern = '*_test.py'
+    args.pattern = "*_test.py"
 
   if args.parallel:
     # TODO(tanin): Support coverage.
     run_tests_parallel(args, test_directory, top_level_dir)
   else:
-    run_tests_single_core(args, test_directory, top_level_dir, enable_coverage)
+    run_tests_single_core(args, test_directory, top_level_dir)

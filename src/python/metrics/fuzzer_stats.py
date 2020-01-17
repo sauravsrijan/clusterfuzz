@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Classes for dealing with FuzzerStats."""
-
-from builtins import object
 import datetime
 import functools
 import itertools
@@ -21,6 +19,7 @@ import json
 import os
 import random
 import re
+from builtins import object
 
 from base import memoize
 from base import utils
@@ -34,72 +33,88 @@ from metrics import logs
 from system import environment
 from system import shell
 
-STATS_FILE_EXTENSION = '.stats2'
+STATS_FILE_EXTENSION = ".stats2"
 
-PERFORMANCE_REPORT_VIEWER_PATH = '/performance-report/{fuzzer}/{job}/{date}'
+PERFORMANCE_REPORT_VIEWER_PATH = "/performance-report/{fuzzer}/{job}/{date}"
 
 JOB_RUN_SCHEMA = {
-    'fields': [{
-        'name': 'testcases_executed',
-        'type': 'INTEGER',
-        'mode': 'NULLABLE'
-    }, {
-        'name': 'build_revision',
-        'type': 'INTEGER',
-        'mode': 'NULLABLE'
-    }, {
-        'name': 'new_crashes',
-        'type': 'INTEGER',
-        'mode': 'NULLABLE'
-    }, {
-        'name': 'job',
-        'type': 'STRING',
-        'mode': 'NULLABLE'
-    }, {
-        'name': 'timestamp',
-        'type': 'FLOAT',
-        'mode': 'NULLABLE'
-    }, {
-        'name':
-            'crashes',
-        'type':
-            'RECORD',
-        'mode':
-            'REPEATED',
-        'fields': [{
-            'name': 'crash_type',
-            'type': 'STRING',
-            'mode': 'NULLABLE'
-        }, {
-            'name': 'is_new',
-            'type': 'BOOLEAN',
-            'mode': 'NULLABLE'
-        }, {
-            'name': 'crash_state',
-            'type': 'STRING',
-            'mode': 'NULLABLE'
-        }, {
-            'name': 'security_flag',
-            'type': 'BOOLEAN',
-            'mode': 'NULLABLE'
-        }, {
-            'name': 'count',
-            'type': 'INTEGER',
-            'mode': 'NULLABLE'
-        }]
-    }, {
-        'name': 'known_crashes',
-        'type': 'INTEGER',
-        'mode': 'NULLABLE'
-    }, {
-        'name': 'fuzzer',
-        'type': 'STRING',
-        'mode': 'NULLABLE'
-    }, {
-        'name': 'kind',
-        'type': 'STRING',
-        'mode': 'NULLABLE'
-    }]
+    "fields": [
+        {
+            "name": "testcases_executed",
+            "type": "INTEGER",
+            "mode": "NULLABLE"
+        },
+        {
+            "name": "build_revision",
+            "type": "INTEGER",
+            "mode": "NULLABLE"
+        },
+        {
+            "name": "new_crashes",
+            "type": "INTEGER",
+            "mode": "NULLABLE"
+        },
+        {
+            "name": "job",
+            "type": "STRING",
+            "mode": "NULLABLE"
+        },
+        {
+            "name": "timestamp",
+            "type": "FLOAT",
+            "mode": "NULLABLE"
+        },
+        {
+            "name":
+                "crashes",
+            "type":
+                "RECORD",
+            "mode":
+                "REPEATED",
+            "fields": [
+                {
+                    "name": "crash_type",
+                    "type": "STRING",
+                    "mode": "NULLABLE"
+                },
+                {
+                    "name": "is_new",
+                    "type": "BOOLEAN",
+                    "mode": "NULLABLE"
+                },
+                {
+                    "name": "crash_state",
+                    "type": "STRING",
+                    "mode": "NULLABLE"
+                },
+                {
+                    "name": "security_flag",
+                    "type": "BOOLEAN",
+                    "mode": "NULLABLE"
+                },
+                {
+                    "name": "count",
+                    "type": "INTEGER",
+                    "mode": "NULLABLE"
+                },
+            ],
+        },
+        {
+            "name": "known_crashes",
+            "type": "INTEGER",
+            "mode": "NULLABLE"
+        },
+        {
+            "name": "fuzzer",
+            "type": "STRING",
+            "mode": "NULLABLE"
+        },
+        {
+            "name": "kind",
+            "type": "STRING",
+            "mode": "NULLABLE"
+        },
+    ]
 }
 
 
@@ -110,14 +125,14 @@ class FuzzerStatsException(Exception):
 class BaseRun(object):
   """Base run."""
 
-  VALID_FIELDNAME_PATTERN = re.compile(r'[a-zA-Z][a-zA-Z0-9_]*')
+  VALID_FIELDNAME_PATTERN = re.compile(r"[a-zA-Z][a-zA-Z0-9_]*")
 
   def __init__(self, fuzzer, job, build_revision, timestamp):
     self._stats_data = {
-        'fuzzer': fuzzer,
-        'job': job,
-        'build_revision': build_revision,
-        'timestamp': timestamp,
+        "fuzzer": fuzzer,
+        "job": job,
+        "build_revision": build_revision,
+        "timestamp": timestamp,
     }
 
   def __getitem__(self, key):
@@ -125,7 +140,7 @@ class BaseRun(object):
 
   def __setitem__(self, key, value):
     if not re.compile(self.VALID_FIELDNAME_PATTERN):
-      raise ValueError('Invalid key name.')
+      raise ValueError("Invalid key name.")
 
     return self._stats_data.__setitem__(key, value)
 
@@ -149,23 +164,23 @@ class BaseRun(object):
 
   @property
   def kind(self):
-    return self._stats_data['kind']
+    return self._stats_data["kind"]
 
   @property
   def fuzzer(self):
-    return self._stats_data['fuzzer']
+    return self._stats_data["fuzzer"]
 
   @property
   def job(self):
-    return self._stats_data['job']
+    return self._stats_data["job"]
 
   @property
   def build_revision(self):
-    return self._stats_data['build_revision']
+    return self._stats_data["build_revision"]
 
   @property
   def timestamp(self):
-    return self._stats_data['timestamp']
+    return self._stats_data["timestamp"]
 
   @staticmethod
   def from_json(json_data):
@@ -180,15 +195,25 @@ class BaseRun(object):
 
     result = None
     try:
-      kind = data['kind']
-      if kind == 'TestcaseRun':
-        result = TestcaseRun(data['fuzzer'], data['job'],
-                             data['build_revision'], data['timestamp'])
-      elif kind == 'JobRun':
-        result = JobRun(data['fuzzer'], data['job'], data['build_revision'],
-                        data['timestamp'], data['testcases_executed'],
-                        data['new_crashes'], data['known_crashes'],
-                        data.get('crashes'))
+      kind = data["kind"]
+      if kind == "TestcaseRun":
+        result = TestcaseRun(
+            data["fuzzer"],
+            data["job"],
+            data["build_revision"],
+            data["timestamp"],
+        )
+      elif kind == "JobRun":
+        result = JobRun(
+            data["fuzzer"],
+            data["job"],
+            data["build_revision"],
+            data["timestamp"],
+            data["testcases_executed"],
+            data["new_crashes"],
+            data["known_crashes"],
+            data.get("crashes"),
+        )
     except KeyError:
       return None
 
@@ -203,15 +228,24 @@ class JobRun(BaseRun):
   SCHEMA = JOB_RUN_SCHEMA
 
   # `crashes` is a new field that will replace `new_crashes` and `old_crashes`.
-  def __init__(self, fuzzer, job, build_revision, timestamp,
-               number_of_testcases, new_crashes, known_crashes, crashes):
+  def __init__(
+      self,
+      fuzzer,
+      job,
+      build_revision,
+      timestamp,
+      number_of_testcases,
+      new_crashes,
+      known_crashes,
+      crashes,
+  ):
     super(JobRun, self).__init__(fuzzer, job, build_revision, timestamp)
     self._stats_data.update({
-        'kind': 'JobRun',
-        'testcases_executed': number_of_testcases,
-        'new_crashes': new_crashes,
-        'known_crashes': known_crashes,
-        'crashes': crashes
+        "kind": "JobRun",
+        "testcases_executed": number_of_testcases,
+        "new_crashes": new_crashes,
+        "known_crashes": known_crashes,
+        "crashes": crashes,
     })
 
 
@@ -222,9 +256,11 @@ class TestcaseRun(BaseRun):
 
   def __init__(self, fuzzer, job, build_revision, timestamp):
     super(TestcaseRun, self).__init__(fuzzer, job, build_revision, timestamp)
-    self._stats_data.update({
-        'kind': 'TestcaseRun',
-    })
+    self._stats_data.update({"kind": "TestcaseRun"})
+
+    source = environment.get_value("STATS_SOURCE")
+    if source:
+      self._stats_data["source"] = source
 
   @staticmethod
   def get_stats_filename(testcase_file_path):
@@ -254,7 +290,7 @@ class TestcaseRun(BaseRun):
       return
 
     stats_file_path = TestcaseRun.get_stats_filename(testcase_file_path)
-    with open(stats_file_path, 'w') as f:
+    with open(stats_file_path, "w") as f:
       f.write(testcase_run.to_json())
 
 
@@ -272,19 +308,19 @@ class QueryGroupBy(object):
 def group_by_to_field_name(group_by):
   """Convert QueryGroupBy value to its corresponding field name."""
   if group_by == QueryGroupBy.GROUP_BY_REVISION:
-    return 'build_revision'
+    return "build_revision"
 
   if group_by == QueryGroupBy.GROUP_BY_DAY:
-    return 'date'
+    return "date"
 
   if group_by == QueryGroupBy.GROUP_BY_TIME:
-    return 'time'
+    return "time"
 
   if group_by == QueryGroupBy.GROUP_BY_JOB:
-    return 'job'
+    return "job"
 
   if group_by == QueryGroupBy.GROUP_BY_FUZZER:
-    return 'fuzzer'
+    return "fuzzer"
 
   return None
 
@@ -430,17 +466,18 @@ class CoverageField(BaseCoverageField):
       return None
 
     if not total:
-      logs.log_error(
-          'Invalid coverage info: total equals 0 for "%s".' % self.ctx.fuzzer)
-      return BuiltinFieldData('No coverage', sort_key=0.0)
+      logs.log_error('Invalid coverage info: total equals 0 for "%s".' %
+                     self.ctx.fuzzer)
+      return BuiltinFieldData("No coverage", sort_key=0.0)
 
     percentage = 100.0 * float(covered) / total
-    display_value = '%.2f%% (%d/%d)' % (percentage, covered, total)
+    display_value = "%.2f%% (%d/%d)" % (percentage, covered, total)
     return BuiltinFieldData(display_value, sort_key=percentage)
 
 
 class CorpusBackupField(BaseCoverageField):
   """Link to the latest corpus backup archive."""
+
   VALUE_TYPE = str
 
   def __init__(self, ctx=None):
@@ -460,7 +497,7 @@ class CorpusBackupField(BaseCoverageField):
     corpus_backup_location = os.path.dirname(
         coverage_info.corpus_backup_location)
 
-    display_value = 'Download'
+    display_value = "Download"
     return BuiltinFieldData(display_value, link=corpus_backup_location)
 
 
@@ -496,8 +533,10 @@ class CorpusSizeField(BaseCoverageField):
       corpus_size_bytes = coverage_info.quarantine_size_bytes
       corpus_location = coverage_info.quarantine_location
 
-    display_value = '%d (%s)' % (corpus_size_units,
-                                 utils.get_size_string(corpus_size_bytes))
+    display_value = "%d (%s)" % (
+        corpus_size_units,
+        utils.get_size_string(corpus_size_bytes),
+    )
 
     return BuiltinFieldData(
         display_value, sort_key=corpus_size_units, link=corpus_location)
@@ -517,12 +556,12 @@ class CoverageReportField(BaseCoverageField):
     if not coverage_info or not coverage_info.html_report_url:
       return None
 
-    display_value = 'Coverage'
+    display_value = "Coverage"
     return BuiltinFieldData(display_value, link=coverage_info.html_report_url)
 
 
 def _logs_bucket_key_fn(func, args, kwargs):  # pylint: disable=unused-argument
-  return 'fuzzer_logs_bucket:' + args[1]
+  return "fuzzer_logs_bucket:" + args[1]
 
 
 class FuzzerRunLogsContext(BuiltinFieldContext):
@@ -537,7 +576,7 @@ class FuzzerRunLogsContext(BuiltinFieldContext):
   def _get_logs_bucket_from_job(self, job_type):
     """Get logs bucket from job."""
     return data_handler.get_value_from_job_definition_or_environment(
-        job_type, 'FUZZ_LOGS_BUCKET')
+        job_type, "FUZZ_LOGS_BUCKET")
 
   @memoize.wrap(memoize.Memcache(MEMCACHE_TTL, key_fn=_logs_bucket_key_fn))
   def _get_logs_bucket_from_fuzzer(self, fuzzer_name):
@@ -600,7 +639,7 @@ class FuzzerRunLogsField(BuiltinField):
     if not logs_bucket:
       return None
 
-    return 'gs:/' + fuzzer_logs.get_logs_directory(logs_bucket, fuzzer, job,
+    return "gs:/" + fuzzer_logs.get_logs_directory(logs_bucket, fuzzer, job,
                                                    date)
 
   def get(self, group_by, group_by_value):
@@ -609,7 +648,7 @@ class FuzzerRunLogsField(BuiltinField):
     if not logs_path:
       return None
 
-    return BuiltinFieldData('Logs', link=logs_path)
+    return BuiltinFieldData("Logs", link=logs_path)
 
 
 class PerformanceReportField(BuiltinField):
@@ -622,7 +661,7 @@ class PerformanceReportField(BuiltinField):
     """Return performance analysis report path."""
     fuzzer = self.ctx.fuzzer
     job = self.ctx.single_job_or_none()
-    date = 'latest'
+    date = "latest"
 
     if group_by == QueryGroupBy.GROUP_BY_FUZZER:
       fuzzer = group_by_value
@@ -645,7 +684,7 @@ class PerformanceReportField(BuiltinField):
     if not report_path:
       return None
 
-    return BuiltinFieldData('Performance', link=report_path)
+    return BuiltinFieldData("Performance", link=report_path)
 
 
 class QueryField(object):
@@ -663,20 +702,23 @@ class QueryField(object):
 
   def is_custom(self):
     """Return true if this field uses complex query. This field won't appear
-      in the SELECT's fields automatically. We will need to define how to get
-      the data."""
-    return (self.aggregate_function and
-            self.aggregate_function.lower() == 'custom')
+          in the SELECT's fields automatically. We will need to define how to get
+          the data."""
+    return self.aggregate_function and self.aggregate_function.lower(
+    ) == "custom"
 
   def __str__(self):
     if self.aggregate_function:
-      result = '%s(%s.%s)' % (self.aggregate_function, self.table_alias,
-                              self.name)
+      result = "%s(%s.%s)" % (
+          self.aggregate_function,
+          self.table_alias,
+          self.name,
+      )
     else:
-      result = '%s.%s' % (self.table_alias, self.name)
+      result = "%s.%s" % (self.table_alias, self.name)
 
     if self.select_alias:
-      result += ' as ' + self.select_alias
+      result += " as " + self.select_alias
 
     return result
 
@@ -687,10 +729,19 @@ class Query(object):
   def _ensure_valid_name(self, name, regex):
     """Ensure that the given name is valid for fuzzer/jobs."""
     if name and not regex.match(name):
-      raise FuzzerStatsException('Invalid fuzzer or job name.')
+      raise FuzzerStatsException("Invalid fuzzer or job name.")
 
-  def __init__(self, fuzzer_name, job_types, query_fields, group_by, date_start,
-               date_end, base_table, alias):
+  def __init__(
+      self,
+      fuzzer_name,
+      job_types,
+      query_fields,
+      group_by,
+      date_start,
+      date_end,
+      base_table,
+      alias,
+  ):
     assert group_by is not None
 
     self._ensure_valid_name(fuzzer_name, data_types.Fuzzer.VALID_NAME_REGEX)
@@ -713,11 +764,11 @@ class Query(object):
   def _group_by_select(self):
     """Return a group by field."""
     if self.group_by == QueryGroupBy.GROUP_BY_DAY:
-      return ('TIMESTAMP_TRUNC(TIMESTAMP_SECONDS(CAST('
+      return ("TIMESTAMP_TRUNC(TIMESTAMP_SECONDS(CAST("
               'timestamp AS INT64)), DAY, "UTC") as date')
 
     if self.group_by == QueryGroupBy.GROUP_BY_TIME:
-      return 'TIMESTAMP_SECONDS(CAST(timestamp AS INT64)) as time'
+      return "TIMESTAMP_SECONDS(CAST(timestamp AS INT64)) as time"
 
     return group_by_to_field_name(self.group_by)
 
@@ -734,12 +785,13 @@ class Query(object):
       if field.is_custom():
         continue
       if field.aggregate_function:
-        fields.append('%s(%s) as %s' % (field.aggregate_function, field.name,
-                                        field.select_alias))
+        fields.append(
+            "%s(%s) as %s" %
+            (field.aggregate_function, field.name, field.select_alias))
       else:
-        fields.append('%s as %s' % (field.name, field.select_alias))
+        fields.append("%s as %s" % (field.name, field.select_alias))
 
-    return ', '.join(fields)
+    return ", ".join(fields)
 
   def _table_name(self):
     """Return the table name for the query."""
@@ -747,7 +799,7 @@ class Query(object):
 
     dataset = dataset_name(self.fuzzer_or_engine_name)
 
-    return '`%s`.%s.%s' % (app_id, dataset, self.base_table)
+    return "`%s`.%s.%s" % (app_id, dataset, self.base_table)
 
   def _where(self):
     """Return the where part of the query."""
@@ -755,54 +807,57 @@ class Query(object):
     result.extend(self._partition_selector())
     result.extend(self._job_and_fuzzer_selector())
 
-    result = ' AND '.join(result)
+    result = " AND ".join(result)
     if result:
-      return 'WHERE ' + result
+      return "WHERE " + result
 
-    return ''
+    return ""
 
   def _job_and_fuzzer_selector(self):
     """Return the job filter condition."""
     result = []
     if self.job_types:
-      result.append('(%s)' % ' OR '.join(
-          ['job = \'%s\'' % job_type for job_type in self.job_types]))
+      result.append(
+          "(%s)" %
+          " OR ".join(["job = '%s'" % job_type for job_type in self.job_types]))
 
     if self.fuzzer_name != self.fuzzer_or_engine_name:
-      result.append('fuzzer = \'%s\'' % self.fuzzer_name)
+      result.append("fuzzer = '%s'" % self.fuzzer_name)
 
     return result
 
   def _partition_selector(self):
     """Return the partition filter condition."""
-    result = ('(_PARTITIONTIME BETWEEN TIMESTAMP_SECONDS(%d) '
-              'AND TIMESTAMP_SECONDS(%d))')
+    result = ("(_PARTITIONTIME BETWEEN TIMESTAMP_SECONDS(%d) "
+              "AND TIMESTAMP_SECONDS(%d))")
 
     return [
-        result % (int(utils.utc_date_to_timestamp(self.date_start)),
-                  int(utils.utc_date_to_timestamp(self.date_end)))
+        result % (
+            int(utils.utc_date_to_timestamp(self.date_start)),
+            int(utils.utc_date_to_timestamp(self.date_end)),
+        )
     ]
 
   def build(self):
     """Return query."""
     query_parts = [
-        'SELECT',
+        "SELECT",
         self._select_fields(),
-        'FROM',
+        "FROM",
         self._table_name(),
         self._where(),
     ]
 
     if self._group_by():
-      query_parts += ['GROUP BY', self._group_by()]
+      query_parts += ["GROUP BY", self._group_by()]
 
-    return ' '.join(query_parts)
+    return " ".join(query_parts)
 
 
 class TestcaseQuery(Query):
   """The query class for TestcaseRun Query."""
 
-  ALIAS = 't'
+  ALIAS = "t"
 
   def __init__(self, fuzzer_name, job_types, query_fields, group_by, date_start,
                date_end):
@@ -813,8 +868,9 @@ class TestcaseQuery(Query):
         group_by=group_by,
         date_start=date_start,
         date_end=date_end,
-        base_table='TestcaseRun',
-        alias=TestcaseQuery.ALIAS)
+        base_table="TestcaseRun",
+        alias=TestcaseQuery.ALIAS,
+    )
 
 
 class JobQuery(Query):
@@ -881,7 +937,7 @@ class JobQuery(Query):
     FROM
       JobRunWithSummary
   """
-  ALIAS = 'j'
+  ALIAS = "j"
 
   def __init__(self, fuzzer_name, job_types, query_fields, group_by, date_start,
                date_end):
@@ -893,8 +949,9 @@ class JobQuery(Query):
         group_by=group_by,
         date_start=date_start,
         date_end=date_end,
-        base_table='JobRun',
-        alias=JobQuery.ALIAS)
+        base_table="JobRun",
+        alias=JobQuery.ALIAS,
+    )
 
   def build(self):
     """Return query."""
@@ -902,7 +959,8 @@ class JobQuery(Query):
         table_name=self._table_name(),
         select_fields=self._select_fields(),
         group_by=self._group_by(),
-        where=self._where())
+        where=self._where(),
+    )
 
     return sql
 
@@ -948,38 +1006,44 @@ class TableQuery(object):
                                     group_by, date_start, date_end)
 
     if testcase_run_fields:
-      self.testcase_run_query = TestcaseQuery(fuzzer_name, job_types,
-                                              testcase_run_fields, group_by,
-                                              date_start, date_end)
+      self.testcase_run_query = TestcaseQuery(
+          fuzzer_name,
+          job_types,
+          testcase_run_fields,
+          group_by,
+          date_start,
+          date_end,
+      )
 
-    assert self.job_run_query or self.testcase_run_query, (
-        'Unable to create query.')
+    assert self.job_run_query or self.testcase_run_query, "Unable to create query."
 
   def _join_subqueries(self):
     """Create an inner join for subqueries."""
     result = [
-        '(%s) as %s' % (self.job_run_query.build(), self.job_run_query.alias),
-        'INNER JOIN',
-        '(%s) as %s' % (self.testcase_run_query.build(),
-                        self.testcase_run_query.alias), 'ON',
-        '{job_alias}.{group_by} = {testcase_alias}.{group_by}'.format(
+        "(%s) as %s" % (self.job_run_query.build(), self.job_run_query.alias),
+        "INNER JOIN",
+        "(%s) as %s" %
+        (self.testcase_run_query.build(), self.testcase_run_query.alias),
+        "ON",
+        "{job_alias}.{group_by} = {testcase_alias}.{group_by}".format(
             job_alias=self.job_run_query.alias,
             testcase_alias=self.testcase_run_query.alias,
-            group_by=group_by_to_field_name(self.group_by))
+            group_by=group_by_to_field_name(self.group_by),
+        ),
     ]
-    return ' '.join(result)
+    return " ".join(result)
 
   def _single_subquery(self):
     """Create a single subquery."""
     query = self.job_run_query or self.testcase_run_query
-    return '(%s) as %s' % (query.build(), query.alias)
+    return "(%s) as %s" % (query.build(), query.alias)
 
   def build(self):
     """Build the table query."""
     valid_run_query = self.job_run_query or self.testcase_run_query
     result = [
         # We need to do the below to avoid the duplicate column name error.
-        'SELECT {0}.{1}, * EXCEPT({1}) FROM'.format(
+        "SELECT {0}.{1}, * EXCEPT({1}) FROM".format(
             valid_run_query.alias,
             group_by_to_field_name(valid_run_query.group_by))
     ]
@@ -989,12 +1053,12 @@ class TableQuery(object):
     else:
       result.append(self._single_subquery())
 
-    return ' '.join(result)
+    return " ".join(result)
 
 
 def get_coverage_info(fuzzer, date=None):
   """Returns a CoverageInformation entity for a given fuzzer and date. If date
-  is not specified, returns the latest entity available."""
+    is not specified, returns the latest entity available."""
   query = data_types.CoverageInformation.query(
       data_types.CoverageInformation.fuzzer == fuzzer)
   if date:
@@ -1009,7 +1073,7 @@ def get_coverage_info(fuzzer, date=None):
 
 def get_gcs_stats_path(kind, fuzzer, timestamp):
   """Return gcs path in the format "/bucket/path/to/containing_dir/" for the
-  given fuzzer, job, and timestamp or revision."""
+    given fuzzer, job, and timestamp or revision."""
   bucket_name = big_query.get_bucket()
   if not bucket_name:
     return None
@@ -1017,23 +1081,23 @@ def get_gcs_stats_path(kind, fuzzer, timestamp):
   datetime_value = datetime.datetime.utcfromtimestamp(timestamp)
   dir_name = data_types.coverage_information_date_string(datetime_value)
 
-  path = '/%s/%s/%s/date/%s/' % (bucket_name, fuzzer, kind, dir_name)
+  path = "/%s/%s/%s/date/%s/" % (bucket_name, fuzzer, kind, dir_name)
   return path
 
 
 @environment.local_noop
 def upload_stats(stats_list, filename=None):
   """Upload the fuzzer run to the bigquery bucket. Assumes that all the stats
-  given are for the same fuzzer/job run."""
+    given are for the same fuzzer/job run."""
   if not stats_list:
-    logs.log_error('Failed to upload fuzzer stats: empty stats.')
+    logs.log_error("Failed to upload fuzzer stats: empty stats.")
     return
 
   assert isinstance(stats_list, list)
 
   bucket_name = big_query.get_bucket()
   if not bucket_name:
-    logs.log_error('Failed to upload fuzzer stats: missing bucket name.')
+    logs.log_error("Failed to upload fuzzer stats: missing bucket name.")
     return
 
   kind = stats_list[0].kind
@@ -1044,33 +1108,35 @@ def upload_stats(stats_list, filename=None):
 
   if not filename:
     # Generate a random filename.
-    filename = '%016x' % random.randint(0, (1 << 64) - 1) + '.json'
+    filename = "%016x" % random.randint(0, (1 << 64) - 1) + ".json"
 
   # Handle runs that bleed into the next day.
-  timestamp_start_of_day = lambda s: utils.utc_date_to_timestamp(
-      datetime.datetime.utcfromtimestamp(s.timestamp).date())
+  def timestamp_start_of_day(s):
+    return utils.utc_date_to_timestamp(
+        datetime.datetime.utcfromtimestamp(s.timestamp).date())
+
   stats_list.sort(key=lambda s: s.timestamp)
 
   for timestamp, stats in itertools.groupby(stats_list, timestamp_start_of_day):
-    upload_data = '\n'.join(stat.to_json() for stat in stats)
+    upload_data = "\n".join(stat.to_json() for stat in stats)
 
-    day_path = 'gs:/' + get_gcs_stats_path(
-        kind, fuzzer_or_engine_name, timestamp=timestamp) + filename
+    day_path = ("gs:/" + get_gcs_stats_path(
+        kind, fuzzer_or_engine_name, timestamp=timestamp) + filename)
 
     if not storage.write_data(upload_data, day_path):
-      logs.log_error('Failed to upload FuzzerRun.')
+      logs.log_error("Failed to upload FuzzerRun.")
 
 
 def parse_stats_column_fields(column_fields):
   """Parse the stats column fields."""
   # e.g. 'sum(t.field_name) as display_name'.
-  aggregate_regex = re.compile(r'^(\w+)\(([a-z])\.([^\)]+)\)(\s*as\s*(\w+))?$')
+  aggregate_regex = re.compile(r"^(\w+)\(([a-z])\.([^\)]+)\)(\s*as\s*(\w+))?$")
 
   # e.g. '_EDGE_COV as blah'.
-  builtin_regex = re.compile(r'^(_\w+)(\s*as\s*(\w+))?$')
+  builtin_regex = re.compile(r"^(_\w+)(\s*as\s*(\w+))?$")
 
   fields = []
-  parts = [field.strip() for field in column_fields.split(',')]
+  parts = [field.strip() for field in column_fields.split(",")]
   for part in parts:
     match = aggregate_regex.match(part)
     if match:
@@ -1108,24 +1174,24 @@ def get_fuzzer_or_engine_name(fuzzer_name):
 
 def dataset_name(fuzzer_name):
   """Get the stats dataset name for the given |fuzzer_name|."""
-  return fuzzer_name.replace('-', '_') + '_stats'
+  return fuzzer_name.replace("-", "_") + "_stats"
 
 
 BUILTIN_FIELD_CONSTRUCTORS = {
-    '_EDGE_COV':
+    "_EDGE_COV":
         functools.partial(CoverageField, CoverageField.EDGE),
-    '_FUNC_COV':
+    "_FUNC_COV":
         functools.partial(CoverageField, CoverageField.FUNCTION),
-    '_CORPUS_SIZE':
+    "_CORPUS_SIZE":
         functools.partial(CorpusSizeField, CorpusSizeField.CORPUS),
-    '_CORPUS_BACKUP':
+    "_CORPUS_BACKUP":
         CorpusBackupField,
-    '_QUARANTINE_SIZE':
+    "_QUARANTINE_SIZE":
         functools.partial(CorpusSizeField, CorpusSizeField.QUARANTINE),
-    '_COV_REPORT':
+    "_COV_REPORT":
         CoverageReportField,
-    '_FUZZER_RUN_LOGS':
+    "_FUZZER_RUN_LOGS":
         FuzzerRunLogsField,
-    '_PERFORMANCE_REPORT':
+    "_PERFORMANCE_REPORT":
         PerformanceReportField,
 }
