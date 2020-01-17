@@ -24,6 +24,7 @@ import copy
 from builtins import range
 from builtins import object
 from future import standard_library
+
 standard_library.install_aliases()
 
 
@@ -51,11 +52,13 @@ class DummyLock(object):
 class TestQueue(object):
     """Queue to store commands that should be executed to test hypotheses."""
 
-    def __init__(self,
-                 thread_count,
-                 deadline_check=None,
-                 progress_report_function=None,
-                 per_thread_cleanup_function=None):
+    def __init__(
+        self,
+        thread_count,
+        deadline_check=None,
+        progress_report_function=None,
+        per_thread_cleanup_function=None,
+    ):
         self.thread_count = thread_count
         self.deadline_check = deadline_check
         self.progress_report_function = progress_report_function
@@ -78,7 +81,9 @@ class TestQueue(object):
             if not current_item:
                 break
 
-            test, test_function, completion_callback, should_run = current_item  # pylint: disable=unpacking-non-sequence
+            test, test_function, completion_callback, should_run = (
+                current_item
+            )  # pylint: disable=unpacking-non-sequence
             if not should_run():
                 continue
 
@@ -97,21 +102,12 @@ class TestQueue(object):
         with self.lock:
             self.queue = []
 
-    def push(self,
-             test,
-             test_function,
-             completion_callback,
-             should_run=lambda: True):
+    def push(self, test, test_function, completion_callback, should_run=lambda: True):
         """Add a test to the queue and a callback to run on completion."""
         with self.lock:
-            self.queue.append(
-                (test, test_function, completion_callback, should_run))
+            self.queue.append((test, test_function, completion_callback, should_run))
 
-    def force(self,
-              test,
-              test_function,
-              completion_callback,
-              should_run=lambda: True):
+    def force(self, test, test_function, completion_callback, should_run=lambda: True):
         """Force a test to the front of the queue."""
         entry = (test, test_function, completion_callback, should_run)
         with self.lock:
@@ -163,7 +159,8 @@ class Testcase(object):
             self.test_queue = TestQueue(
                 minimizer.max_threads,
                 deadline_check=self._deadline_exceeded,
-                progress_report_function=self._report_progress)
+                progress_report_function=self._report_progress,
+            )
             self.merge_preparation_lock = threading.Lock()
             self.merge_lock = threading.Lock()
             self.cache_lock = threading.Lock()
@@ -214,14 +211,18 @@ class Testcase(object):
         if not self.minimizer.progress_report_function:
             return
 
-        if (time.time() - self.last_progress_report_time < PROGRESS_REPORT_INTERVAL
-                and not is_final_progress_report):
+        if (
+            time.time() - self.last_progress_report_time < PROGRESS_REPORT_INTERVAL
+            and not is_final_progress_report
+        ):
             return
 
         self.last_progress_report_time = time.time()
-        message = '%d/%d tokens remaining. %d runs executed so far.' % (len(
-            self.get_required_tokens()), len(
-                self.required_tokens), self.runs_executed)
+        message = "%d/%d tokens remaining. %d runs executed so far." % (
+            len(self.get_required_tokens()),
+            len(self.required_tokens),
+            self.runs_executed,
+        )
         if is_final_progress_report:
             message = "Done with this round of minimization. " + message
         self.minimizer.progress_report_function(message)
@@ -236,8 +237,7 @@ class Testcase(object):
     def _prepare_test_input(self, tokens, tested_tokens):
         """Write the tokens currently being tested to a temporary file."""
         tested_tokens = set(tested_tokens)
-        current_tokens = [t for i, t in enumerate(
-            tokens) if i in tested_tokens]
+        current_tokens = [t for i, t in enumerate(tokens) if i in tested_tokens]
         if not self.minimizer.tokenize:
             return current_tokens
 
@@ -264,17 +264,15 @@ class Testcase(object):
         """Add a test for a hypothesis to a queue for processing."""
         test_file = self._get_test_file(hypothesis)
         callback = functools.partial(
-            self._handle_completed_test,
-            hypothesis=hypothesis,
-            input_file=test_file)
-        should_run = functools.partial(self._contains_required_tokens, hypothesis,
-                                       test_file)
+            self._handle_completed_test, hypothesis=hypothesis, input_file=test_file
+        )
+        should_run = functools.partial(
+            self._contains_required_tokens, hypothesis, test_file
+        )
 
         self.test_queue.push(
-            test_file,
-            self.minimizer.test_function,
-            callback,
-            should_run=should_run)
+            test_file, self.minimizer.test_function, callback, should_run=should_run
+        )
 
         # Make sure that we do not let too many unprocessed tests build up.
         if self.test_queue.size() >= self.minimizer.batch_size:
@@ -292,15 +290,18 @@ class Testcase(object):
             # In the threaded case, we call the cleanup function before each pass
             # over the queue. It needs to be tracked here for the single-thread case.
             self.runs_since_last_cleanup += 1
-            if (self.runs_since_last_cleanup >=
-                self.minimizer.single_thread_cleanup_interval and
-                    self.minimizer.cleanup_function):
+            if (
+                self.runs_since_last_cleanup
+                >= self.minimizer.single_thread_cleanup_interval
+                and self.minimizer.cleanup_function
+            ):
                 self.minimizer.cleanup_function()
 
             test_file = self._get_test_file(hypothesis)
             if self._contains_required_tokens(hypothesis, test_file):
                 self._handle_completed_test(
-                    self.minimizer.test_function(test_file), hypothesis, test_file)
+                    self.minimizer.test_function(test_file), hypothesis, test_file
+                )
 
             # Check to see if we have exceeded the deadline and report progress.
             self._report_progress()
@@ -394,8 +395,7 @@ class Testcase(object):
 
         # If we could remove either one of two hypotheses, favor removing the first.
         front_merged_successfully = self._attempt_merge(front)
-        self._attempt_merge(
-            back, sibling_merge_succeeded=front_merged_successfully)
+        self._attempt_merge(back, sibling_merge_succeeded=front_merged_successfully)
 
     def _do_single_pass_process(self):
         """Process through a single pass of our test queue."""
@@ -441,8 +441,7 @@ class Testcase(object):
         with self.merge_preparation_lock:
             # A deep copy is not required. Hypotheses are not modified after being
             # added to the list for processing.
-            unprocessed_hypotheses = copy.copy(
-                self.unmerged_failing_hypotheses)
+            unprocessed_hypotheses = copy.copy(self.unmerged_failing_hypotheses)
 
         for unprocessed_hypothesis in unprocessed_hypotheses:
             for token in unprocessed_hypothesis:
@@ -490,31 +489,33 @@ class Testcase(object):
 
 def _default_tokenizer(s):
     """Default string tokenizer which splits on newlines."""
-    return s.split('\n')
+    return s.split("\n")
 
 
 def _default_combiner(tokens):
     """Default token combiner which assumes each token is a line."""
-    return '\n'.join(tokens)
+    return "\n".join(tokens)
 
 
 class Minimizer(object):
     """Base class for minimizers."""
 
-    def __init__(self,
-                 test_function,
-                 max_threads=1,
-                 tokenizer=_default_tokenizer,
-                 token_combiner=_default_combiner,
-                 tokenize=True,
-                 cleanup_function=None,
-                 single_thread_cleanup_interval=DEFAULT_CLEANUP_INTERVAL,
-                 deadline=None,
-                 get_temp_file=None,
-                 delete_temp_files=True,
-                 batch_size=None,
-                 progress_report_function=None,
-                 file_extension=''):
+    def __init__(
+        self,
+        test_function,
+        max_threads=1,
+        tokenizer=_default_tokenizer,
+        token_combiner=_default_combiner,
+        tokenize=True,
+        cleanup_function=None,
+        single_thread_cleanup_interval=DEFAULT_CLEANUP_INTERVAL,
+        deadline=None,
+        get_temp_file=None,
+        delete_temp_files=True,
+        batch_size=None,
+        progress_report_function=None,
+        file_extension="",
+    ):
         """Initialize a minimizer. A minimizer object can be used multiple times."""
         self.test_function = test_function
         self.max_threads = max_threads
@@ -536,10 +537,11 @@ class Minimizer(object):
         if not get_temp_file:
             self.get_temp_file = functools.partial(
                 tempfile.NamedTemporaryFile,
-                mode='wb',
+                mode="wb",
                 delete=False,
-                prefix='min_',
-                suffix=file_extension)
+                prefix="min_",
+                suffix=file_extension,
+            )
         else:
             self.get_temp_file = get_temp_file
 
@@ -572,6 +574,6 @@ class Minimizer(object):
         return testcase.get_result()
 
     @staticmethod
-    def run(data, thread_count=DEFAULT_THREAD_COUNT, file_extension=''):
+    def run(data, thread_count=DEFAULT_THREAD_COUNT, file_extension=""):
         """Minimize |data| using this minimizer's default configuration."""
         raise NotImplementedError

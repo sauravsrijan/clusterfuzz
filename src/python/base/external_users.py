@@ -73,12 +73,13 @@ def _get_permissions_query_for_user(user_email, entity_kind=None):
       A ndb.Query giving the permissions for the given parameters.
     """
     permissions_for_user = data_types.ExternalUserPermission.query(
-        data_types.ExternalUserPermission.email == utils.normalize_email(
-            user_email))
+        data_types.ExternalUserPermission.email == utils.normalize_email(user_email)
+    )
 
     if entity_kind is not None:
         permissions_for_user = permissions_for_user.filter(
-            data_types.ExternalUserPermission.entity_kind == entity_kind)
+            data_types.ExternalUserPermission.entity_kind == entity_kind
+        )
 
     return permissions_for_user
 
@@ -158,13 +159,14 @@ def _allowed_users_for_entity(name, entity_kind, auto_cc=None):
         data_types.ExternalUserPermission.entity_kind == entity_kind,
         data_types.ExternalUserPermission.entity_name == name,
         ndb_utils.is_false(data_types.ExternalUserPermission.is_prefix),
-        projection=[data_types.ExternalUserPermission.email])
+        projection=[data_types.ExternalUserPermission.email],
+    )
     if auto_cc is not None:
         direct_match_permissions = direct_match_permissions.filter(
-            data_types.ExternalUserPermission.auto_cc == auto_cc)
+            data_types.ExternalUserPermission.auto_cc == auto_cc
+        )
 
-    allowed_users = [
-        permission.email for permission in direct_match_permissions]
+    allowed_users = [permission.email for permission in direct_match_permissions]
 
     # Find all permissions where the prefix matches the fuzzer_name.
     # Unfortunately, Datastore doesn't give us an easy way of doing so. To iterate
@@ -178,11 +180,13 @@ def _allowed_users_for_entity(name, entity_kind, auto_cc=None):
         ndb_utils.is_true(data_types.ExternalUserPermission.is_prefix),
         projection=[
             data_types.ExternalUserPermission.email,
-            data_types.ExternalUserPermission.entity_name
-        ])
+            data_types.ExternalUserPermission.entity_name,
+        ],
+    )
     if auto_cc is not None:
         prefix_match_permissions = prefix_match_permissions.filter(
-            data_types.ExternalUserPermission.auto_cc == auto_cc)
+            data_types.ExternalUserPermission.auto_cc == auto_cc
+        )
 
     for permission in prefix_match_permissions:
         if not permission.entity_name:
@@ -198,21 +202,20 @@ def _allowed_users_for_entity(name, entity_kind, auto_cc=None):
 
 def _cc_users_for_entity(name, entity_type, security_flag):
     """Return CC users for entity."""
-    users = _allowed_users_for_entity(name, entity_type,
-                                      data_types.AutoCCType.ALL)
+    users = _allowed_users_for_entity(name, entity_type, data_types.AutoCCType.ALL)
 
     if security_flag:
         users.extend(
-            _allowed_users_for_entity(name, entity_type,
-                                      data_types.AutoCCType.SECURITY))
+            _allowed_users_for_entity(name, entity_type, data_types.AutoCCType.SECURITY)
+        )
 
     return sorted(users)
 
 
 @memoize.wrap(memoize.Memcache(MEMCACHE_TTL_IN_SECONDS))
-def allowed_fuzzers_for_user(user_email,
-                             include_from_jobs=False,
-                             include_parents=False):
+def allowed_fuzzers_for_user(
+    user_email, include_from_jobs=False, include_parents=False
+):
     """Return allowed fuzzers for the given user.
 
     Args:
@@ -228,13 +231,13 @@ def allowed_fuzzers_for_user(user_email,
       about.
     """
     allowed_fuzzers = _allowed_entities_for_user(
-        user_email, data_types.PermissionEntityKind.FUZZER)
+        user_email, data_types.PermissionEntityKind.FUZZER
+    )
 
     if include_from_jobs:
         allowed_jobs = allowed_jobs_for_user(user_email)
         for allowed_job in allowed_jobs:
-            allowed_fuzzers.extend(_fuzzers_for_job(
-                allowed_job, include_parents))
+            allowed_fuzzers.extend(_fuzzers_for_job(allowed_job, include_parents))
 
         allowed_fuzzers = list(set(allowed_fuzzers))
 
@@ -252,8 +255,7 @@ def allowed_jobs_for_user(user_email):
       A list of job names for which this user is allowed to view information
       about.
     """
-    return _allowed_entities_for_user(user_email,
-                                      data_types.PermissionEntityKind.JOB)
+    return _allowed_entities_for_user(user_email, data_types.PermissionEntityKind.JOB)
 
 
 def allowed_users_for_fuzzer(fuzzer_name):
@@ -267,8 +269,9 @@ def allowed_users_for_fuzzer(fuzzer_name):
       fuzzer.
     """
     # TODO(ochang): Once we support jobs, take that into account.
-    return _allowed_users_for_entity(fuzzer_name,
-                                     data_types.PermissionEntityKind.FUZZER)
+    return _allowed_users_for_entity(
+        fuzzer_name, data_types.PermissionEntityKind.FUZZER
+    )
 
 
 def cc_users_for_fuzzer(fuzzer_name, security_flag):
@@ -282,11 +285,11 @@ def cc_users_for_fuzzer(fuzzer_name, security_flag):
       A list of user emails that should be CC'ed.
     """
     return _cc_users_for_entity(
-        fuzzer_name, data_types.PermissionEntityKind.FUZZER, security_flag)
+        fuzzer_name, data_types.PermissionEntityKind.FUZZER, security_flag
+    )
 
 
-def is_fuzzer_allowed_for_user(user_email, fuzzer_name,
-                               include_from_jobs=False):
+def is_fuzzer_allowed_for_user(user_email, fuzzer_name, include_from_jobs=False):
     """Return whether if the given user has access to the fuzzer.
 
     Args:
@@ -298,11 +301,13 @@ def is_fuzzer_allowed_for_user(user_email, fuzzer_name,
       A bool indicating whether the given user has access to the fuzzer.
     """
     is_allowed = _is_entity_allowed_for_user(
-        user_email, fuzzer_name, data_types.PermissionEntityKind.FUZZER)
+        user_email, fuzzer_name, data_types.PermissionEntityKind.FUZZER
+    )
 
     if not is_allowed and include_from_jobs:
         is_allowed = fuzzer_name in allowed_fuzzers_for_user(
-            user_email, include_from_jobs=True)
+            user_email, include_from_jobs=True
+        )
 
     return is_allowed
 
@@ -317,8 +322,9 @@ def is_job_allowed_for_user(user_email, job_type):
     Returns:
       A bool indicating whether the given user has access to the job.
     """
-    return _is_entity_allowed_for_user(user_email, job_type,
-                                       data_types.PermissionEntityKind.JOB)
+    return _is_entity_allowed_for_user(
+        user_email, job_type, data_types.PermissionEntityKind.JOB
+    )
 
 
 def is_upload_allowed_for_user(user_email):
@@ -331,7 +337,8 @@ def is_upload_allowed_for_user(user_email):
       A bool indicating whether the given user has upload permissions.
     """
     permissions = _get_permissions_query_for_user(
-        user_email, data_types.PermissionEntityKind.UPLOADER)
+        user_email, data_types.PermissionEntityKind.UPLOADER
+    )
     return bool(permissions.get())
 
 
@@ -345,5 +352,6 @@ def cc_users_for_job(job_type, security_flag):
     Returns:
       A list of user emails that should be CC'ed.
     """
-    return _cc_users_for_entity(job_type, data_types.PermissionEntityKind.JOB,
-                                security_flag)
+    return _cc_users_for_entity(
+        job_type, data_types.PermissionEntityKind.JOB, security_flag
+    )

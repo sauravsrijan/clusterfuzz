@@ -27,22 +27,22 @@ _CLEAN_EXIT_SECS = 10
 _RSS_LIMIT = 2560
 _TIMEOUT = 25
 _DEFAULT_ARGUMENTS = [
-    '-n',
-    '1',  # single threaded
-    '--exit_upon_crash',
-    '-v',  # output to stderr
-    '-z',  # use clang instrumentation
-    '-P',  # persistent mode
-    '-S',  # enable sanitizers
-    '--rlimit_rss',
+    "-n",
+    "1",  # single threaded
+    "--exit_upon_crash",
+    "-v",  # output to stderr
+    "-z",  # use clang instrumentation
+    "-P",  # persistent mode
+    "-S",  # enable sanitizers
+    "--rlimit_rss",
     str(_RSS_LIMIT),
-    '--timeout',
+    "--timeout",
     str(_TIMEOUT),
 ]
 
-_CRASH_REGEX = re.compile('Crash: saved as \'(.*)\'')
-_HF_SANITIZER_LOG_PREFIX = 'HF.sanitizer.log'
-_STATS_PREFIX = 'Summary '
+_CRASH_REGEX = re.compile("Crash: saved as '(.*)'")
+_HF_SANITIZER_LOG_PREFIX = "HF.sanitizer.log"
+_STATS_PREFIX = "Summary "
 
 
 class HonggfuzzError(Exception):
@@ -51,10 +51,9 @@ class HonggfuzzError(Exception):
 
 def _get_runner():
     """Get the honggfuzz runner."""
-    honggfuzz_path = os.path.join(
-        environment.get_value('BUILD_DIR'), 'honggfuzz')
+    honggfuzz_path = os.path.join(environment.get_value("BUILD_DIR"), "honggfuzz")
     if not os.path.exists(honggfuzz_path):
-        raise HonggfuzzError('honggfuzz not found in build')
+        raise HonggfuzzError("honggfuzz not found in build")
 
     os.chmod(honggfuzz_path, 0o755)
     return new_process.ProcessRunner(honggfuzz_path)
@@ -63,8 +62,9 @@ def _get_runner():
 def _find_sanitizer_stacktrace(reproducers_dir):
     """Find the sanitizer stacktrace from the reproducers dir."""
     for stacktrace_path in glob.glob(
-            os.path.join(reproducers_dir, _HF_SANITIZER_LOG_PREFIX + '*')):
-        with open(stacktrace_path, 'rb') as f:
+        os.path.join(reproducers_dir, _HF_SANITIZER_LOG_PREFIX + "*")
+    ):
+        with open(stacktrace_path, "rb") as f:
             return f.read()
 
     return None
@@ -84,18 +84,18 @@ def _get_stats(line):
     if not line.startswith(_STATS_PREFIX):
         return None
 
-    parts = line[len(_STATS_PREFIX):].split()
+    parts = line[len(_STATS_PREFIX) :].split()
     stats = {}
 
     for part in parts:
-        if ':' not in part:
-            logs.log_error('Invalid stat part.', value=part)
+        if ":" not in part:
+            logs.log_error("Invalid stat part.", value=part)
 
-        key, value = part.split(':', 2)
+        key, value = part.split(":", 2)
         try:
             stats[key] = int(value)
         except (ValueError, TypeError):
-            logs.log_error('Invalid stat value.', key=key, value=value)
+            logs.log_error("Invalid stat value.", key=key, value=value)
 
     return stats
 
@@ -105,7 +105,7 @@ class HonggfuzzEngine(engine.Engine):
 
     @property
     def name(self):
-        return 'honggfuzz'
+        return "honggfuzz"
 
     def prepare(self, corpus_dir, target_path, build_dir):
         """Prepare for a fuzzing session, by generating options. Returns a
@@ -123,7 +123,7 @@ class HonggfuzzEngine(engine.Engine):
         arguments = []
         dict_path = dictionary_manager.get_default_dictionary_path(target_path)
         if os.path.exists(dict_path):
-            arguments.extend(['--dict', dict_path])
+            arguments.extend(["--dict", dict_path])
 
         return engine.FuzzOptions(corpus_dir, arguments, {})
 
@@ -143,19 +143,22 @@ class HonggfuzzEngine(engine.Engine):
         runner = _get_runner()
         arguments = _DEFAULT_ARGUMENTS[:]
         arguments.extend(options.arguments)
-        arguments.extend([
-            '--input',
-            options.corpus_dir,
-            '--workspace',
-            reproducers_dir,
-            '--run_time',
-            str(max_time),
-            '--',
-            target_path,
-        ])
+        arguments.extend(
+            [
+                "--input",
+                options.corpus_dir,
+                "--workspace",
+                reproducers_dir,
+                "--run_time",
+                str(max_time),
+                "--",
+                target_path,
+            ]
+        )
 
         fuzz_result = runner.run_and_wait(
-            additional_args=arguments, timeout=max_time + _CLEAN_EXIT_SECS)
+            additional_args=arguments, timeout=max_time + _CLEAN_EXIT_SECS
+        )
         log_lines = fuzz_result.output.splitlines()
         sanitizer_stacktrace = _find_sanitizer_stacktrace(reproducers_dir)
 
@@ -165,8 +168,13 @@ class HonggfuzzEngine(engine.Engine):
             reproducer_path = _get_reproducer_path(line)
             if reproducer_path:
                 crashes.append(
-                    engine.Crash(reproducer_path, sanitizer_stacktrace, [],
-                                 int(fuzz_result.time_executed)))
+                    engine.Crash(
+                        reproducer_path,
+                        sanitizer_stacktrace,
+                        [],
+                        int(fuzz_result.time_executed),
+                    )
+                )
                 continue
 
             stats = _get_stats(line)
@@ -174,8 +182,13 @@ class HonggfuzzEngine(engine.Engine):
         if stats is None:
             stats = {}
 
-        return engine.FuzzResult(fuzz_result.output, fuzz_result.command, crashes,
-                                 stats, fuzz_result.time_executed)
+        return engine.FuzzResult(
+            fuzz_result.output,
+            fuzz_result.command,
+            crashes,
+            stats,
+            fuzz_result.time_executed,
+        )
 
     def reproduce(self, target_path, input_path, arguments, max_time):
         """Reproduce a crash given an input.
@@ -194,11 +207,13 @@ class HonggfuzzEngine(engine.Engine):
         with open(input_path) as f:
             result = runner.run_and_wait(timeout=max_time, stdin=f)
 
-        return engine.ReproduceResult(result.command, result.return_code,
-                                      result.time_executed, result.output)
+        return engine.ReproduceResult(
+            result.command, result.return_code, result.time_executed, result.output
+        )
 
-    def minimize_corpus(self, target_path, arguments, input_dirs, output_dir,
-                        reproducers_dir, max_time):
+    def minimize_corpus(
+        self, target_path, arguments, input_dirs, output_dir, reproducers_dir, max_time
+    ):
         """Optional (but recommended): run corpus minimization.
 
         Args:

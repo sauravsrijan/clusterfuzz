@@ -30,28 +30,28 @@ from metrics import logs
 from system import environment
 
 # Prefix used when a large testcase is stored in the blobstore.
-BLOBSTORE_STACK_PREFIX = 'BLOB_KEY='
+BLOBSTORE_STACK_PREFIX = "BLOB_KEY="
 
 # List of builtin fuzzers.
-BUILTIN_FUZZERS = ['afl', 'libFuzzer']
+BUILTIN_FUZZERS = ["afl", "libFuzzer"]
 
 # Time to look back to find a corpus backup that is marked public.
 CORPUS_BACKUP_PUBLIC_LOOKBACK_DAYS = 90
 
 # Marker to indicate end of crash stacktrace. Anything after that is excluded
 # from being stored as part of crash stacktrace (e.g. merge content, etc).
-CRASH_STACKTRACE_END_MARKER = 'CRASH OUTPUT ENDS HERE'
+CRASH_STACKTRACE_END_MARKER = "CRASH OUTPUT ENDS HERE"
 
 # Skips using crash state similarity for these types.
 CRASH_TYPES_WITH_UNIQUE_STATE = [
-    'Missing-library',
-    'Out-of-memory',
-    'Overwrites-const-input',
-    'Timeout',
+    "Missing-library",
+    "Out-of-memory",
+    "Overwrites-const-input",
+    "Timeout",
     # V8 correctness failures use metadata from the fuzz test cases as crash
     # state. This is not suitable for using levenshtein distance for
     # similarity.
-    'V8 correctness failure',
+    "V8 correctness failure",
 ]
 
 # Maximum size allowed for an appengine entity type.
@@ -68,8 +68,11 @@ HEARTBEAT_WAIT_INTERVAL = 10 * 60
 # List of internal sandboxed data types. This gives a warning on testcase
 # uploads on unsandboxed job types.
 INTERNAL_SANDBOXED_JOB_TYPES = [
-    'linux_asan_chrome_media', 'linux_asan_chrome_mp',
-    'linux_asan_chrome_v8_arm', 'mac_asan_chrome', 'windows_asan_chrome'
+    "linux_asan_chrome_media",
+    "linux_asan_chrome_mp",
+    "linux_asan_chrome_v8_arm",
+    "mac_asan_chrome",
+    "windows_asan_chrome",
 ]
 
 # Time to wait after a report is marked fixed and before filing another similar
@@ -80,20 +83,13 @@ MIN_ELAPSED_TIME_SINCE_FIXED = 2 * 24
 MIN_ELAPSED_TIME_SINCE_REPORT = 3
 
 # Valid name check for fuzzer, job, etc.
-NAME_CHECK_REGEX = re.compile(r'^[a-zA-Z0-9_-]+$')
+NAME_CHECK_REGEX = re.compile(r"^[a-zA-Z0-9_-]+$")
 
 # Regex to match special chars in project name.
-SPECIAL_CHARS_REGEX = re.compile('[^a-zA-Z0-9_-]')
+SPECIAL_CHARS_REGEX = re.compile("[^a-zA-Z0-9_-]")
 
 # List of supported platforms.
-PLATFORMS = [
-    'LINUX',
-    'ANDROID',
-    'CHROMEOS',
-    'MAC',
-    'WINDOWS',
-    'FUCHSIA',
-]
+PLATFORMS = ["LINUX", "ANDROID", "CHROMEOS", "MAC", "WINDOWS", "FUCHSIA"]
 
 # Maximum size allowed for an appengine pubsub request.
 # Explicily kept slightly lower than 1 MB.
@@ -120,25 +116,26 @@ UNREPRODUCIBLE_TESTCASE_NO_BUG_DEADLINE = 7
 UNREPRODUCIBLE_TESTCASE_WITH_BUG_DEADLINE = 14
 
 # Chromium specific issue state tracking labels.
-CHROMIUM_ISSUE_RELEASEBLOCK_BETA_LABEL = 'ReleaseBlock-Beta'
+CHROMIUM_ISSUE_RELEASEBLOCK_BETA_LABEL = "ReleaseBlock-Beta"
 # TODO(ochang): Find some way to remove these.
-CHROMIUM_ISSUE_PREDATOR_AUTO_CC_LABEL = 'Test-Predator-Auto-CC'
-CHROMIUM_ISSUE_PREDATOR_AUTO_COMPONENTS_LABEL = 'Test-Predator-Auto-Components'
-CHROMIUM_ISSUE_PREDATOR_AUTO_OWNER_LABEL = 'Test-Predator-Auto-Owner'
-CHROMIUM_ISSUE_PREDATOR_WRONG_COMPONENTS_LABEL = (
-    'Test-Predator-Wrong-Components')
-CHROMIUM_ISSUE_PREDATOR_WRONG_CL_LABEL = 'Test-Predator-Wrong-CLs'
+CHROMIUM_ISSUE_PREDATOR_AUTO_CC_LABEL = "Test-Predator-Auto-CC"
+CHROMIUM_ISSUE_PREDATOR_AUTO_COMPONENTS_LABEL = "Test-Predator-Auto-Components"
+CHROMIUM_ISSUE_PREDATOR_AUTO_OWNER_LABEL = "Test-Predator-Auto-Owner"
+CHROMIUM_ISSUE_PREDATOR_WRONG_COMPONENTS_LABEL = "Test-Predator-Wrong-Components"
+CHROMIUM_ISSUE_PREDATOR_WRONG_CL_LABEL = "Test-Predator-Wrong-CLs"
 
-MISSING_VALUE_STRING = '---'
+MISSING_VALUE_STRING = "---"
 
 
 def clone_entity(e, **extra_args):
     """Clones a DataStore entity and returns the clone."""
     ent_class = e.__class__
     # pylint: disable=protected-access
-    props = dict((v._code_name, v.__get__(e, ent_class))
-                 for v in six.itervalues(ent_class._properties)
-                 if not isinstance(v, ndb.ComputedProperty))
+    props = dict(
+        (v._code_name, v.__get__(e, ent_class))
+        for v in six.itervalues(ent_class._properties)
+        if not isinstance(v, ndb.ComputedProperty)
+    )
     props.update(extra_args)
     return ent_class(**props)
 
@@ -149,27 +146,26 @@ def clone_entity(e, **extra_args):
 # Text properties to coerce them to native types.
 def _to_native_str(_, text):
     """Convert from future's newstr to a native str."""
-    return future_utils.text_to_native_str(text, encoding='utf-8')
+    return future_utils.text_to_native_str(text, encoding="utf-8")
 
 
 class TextProperty(ndb.TextProperty):
     """Overridden text property."""
 
     def __init__(self, *args, **kwargs):
-        super(TextProperty, self).__init__(
-            *args, validator=_to_native_str, **kwargs)
+        super(TextProperty, self).__init__(*args, validator=_to_native_str, **kwargs)
 
 
 class StringProperty(ndb.StringProperty):
     """Overridden string property."""
 
     def __init__(self, *args, **kwargs):
-        super(StringProperty, self).__init__(
-            *args, validator=_to_native_str, **kwargs)
+        super(StringProperty, self).__init__(*args, validator=_to_native_str, **kwargs)
 
 
 class SecuritySeverity(object):
     """Enum for Security Severity."""
+
     CRITICAL = 0
     HIGH = 1
     MEDIUM = 2
@@ -179,33 +175,17 @@ class SecuritySeverity(object):
     @classmethod
     def is_valid(cls, security_severity):
         """Return bool on whether a severity is valid."""
-        return (security_severity in [cls.CRITICAL, cls.HIGH, cls.MEDIUM, cls.LOW])
+        return security_severity in [cls.CRITICAL, cls.HIGH, cls.MEDIUM, cls.LOW]
 
     @classmethod
     def list(cls):
         """Return the list of severities for a dropdown menu."""
         return [
-            {
-                'value': cls.CRITICAL,
-                'name': 'Critical'
-            },
-            {
-                'value': cls.HIGH,
-                'name': 'High',
-                'default': True
-            },
-            {
-                'value': cls.MEDIUM,
-                'name': 'Medium'
-            },
-            {
-                'value': cls.LOW,
-                'name': 'Low'
-            },
-            {
-                'value': cls.MISSING,
-                'name': 'Missing'
-            },
+            {"value": cls.CRITICAL, "name": "Critical"},
+            {"value": cls.HIGH, "name": "High", "default": True},
+            {"value": cls.MEDIUM, "name": "Medium"},
+            {"value": cls.LOW, "name": "Low"},
+            {"value": cls.MISSING, "name": "Missing"},
         ]
 
 
@@ -245,11 +225,11 @@ class PermissionEntityKind(object):
 
 # Task state string mappings.
 class TaskState(object):
-    STARTED = 'started'
-    WIP = 'in-progress'
-    FINISHED = 'finished'
-    ERROR = 'errored out'
-    NA = ''
+    STARTED = "started"
+    WIP = "in-progress"
+    FINISHED = "finished"
+    ERROR = "errored out"
+    NA = ""
 
 
 # Build state.
@@ -268,12 +248,14 @@ class TestcaseVariantStatus(object):
 
 class Model(ndb.Model):
     """Cache-less NDB model."""
+
     _use_cache = False
     _use_memcache = False
 
 
 class Blacklist(Model):
     """Represents global blacklist to track entries for suppressions files."""
+
     # Function name.
     function_name = StringProperty()
 
@@ -351,7 +333,7 @@ class Fuzzer(Model):
     untrusted_content = ndb.BooleanProperty(default=False)
 
     # Data bundle name.
-    data_bundle_name = StringProperty(default='')
+    data_bundle_name = StringProperty(default="")
 
     # Additional environment variables that need to be set for this fuzzer.
     additional_environment_string = TextProperty()
@@ -371,12 +353,14 @@ class Fuzzer(Model):
 
 class BuildCrashStatsJobHistory(Model):
     """Represents the record of build_crash_stats run."""
+
     # End time in hours from epoch, inclusively.
     end_time_in_hours = ndb.IntegerProperty()
 
 
 class Testcase(Model):
     """Represents a single testcase."""
+
     # Crash on an invalid read/write.
     crash_type = StringProperty()
 
@@ -402,10 +386,10 @@ class Testcase(Model):
     bug_information = StringProperty()
 
     # Regression range.
-    regression = StringProperty(default='')
+    regression = StringProperty(default="")
 
     # Revisions where this issue has been fixed.
-    fixed = StringProperty(default='')
+    fixed = StringProperty(default="")
 
     # Is it a security bug ?
     security_flag = ndb.BooleanProperty(default=False)
@@ -417,20 +401,20 @@ class Testcase(Model):
     one_time_crasher_flag = ndb.BooleanProperty(default=False)
 
     # Any additional comments.
-    comments = TextProperty(default='', indexed=False)
+    comments = TextProperty(default="", indexed=False)
 
     # Revision that we discovered the crash in.
     crash_revision = ndb.IntegerProperty()
 
     # The file on the bot that generated the testcase.
-    original_absolute_path = StringProperty(indexed=False, default='')
+    original_absolute_path = StringProperty(indexed=False, default="")
     absolute_path = StringProperty(indexed=False)
 
     # Minimized argument list.
-    minimized_arguments = TextProperty(default='', indexed=False)
+    minimized_arguments = TextProperty(default="", indexed=False)
 
     # Window argument (usually width, height, top, left, etc).
-    window_argument = TextProperty(default='', indexed=False)
+    window_argument = TextProperty(default="", indexed=False)
 
     # Type of job associated with this testcase.
     job_type = StringProperty()
@@ -460,7 +444,7 @@ class Testcase(Model):
     fuzzer_name = StringProperty()
 
     # Status of this testcase (pending, processed, unreproducible, etc).
-    status = StringProperty(default='Processed')
+    status = StringProperty(default="Processed")
 
     # Id of the testcase that this is marked as a duplicate of.
     duplicate_of = ndb.IntegerProperty(indexed=False)
@@ -569,16 +553,16 @@ class Testcase(Model):
     uploader_email = StringProperty()
 
     def has_blame(self):
-        return self.project_name == 'chromium'
+        return self.project_name == "chromium"
 
     def has_impacts(self):
-        return self.project_name == 'chromium' and not self.one_time_crasher_flag
+        return self.project_name == "chromium" and not self.one_time_crasher_flag
 
     def impacts_production(self):
         return bool(self.impact_stable_version) or bool(self.impact_beta_version)
 
     def is_status_unreproducible(self):
-        return self.status and self.status.startswith('Unreproducible')
+        return self.status and self.status.startswith("Unreproducible")
 
     def is_crash(self):
         return bool(self.crash_state)
@@ -591,33 +575,38 @@ class Testcase(Model):
             | search_tokenizer.tokenize(self.fuzzer_name)
             | search_tokenizer.tokenize(self.overridden_fuzzer_name)
             | search_tokenizer.tokenize(self.job_type)
-            | search_tokenizer.tokenize(self.platform_id))
+            | search_tokenizer.tokenize(self.platform_id)
+        )
 
         self.bug_indices = search_tokenizer.tokenize_bug_information(self)
         self.has_bug_flag = bool(self.bug_indices)
         self.is_a_duplicate_flag = bool(self.duplicate_of)
-        fuzzer_name_indices = list(
-            set([self.fuzzer_name, self.overridden_fuzzer_name]))
+        fuzzer_name_indices = list(set([self.fuzzer_name, self.overridden_fuzzer_name]))
         self.fuzzer_name_indices = [f for f in fuzzer_name_indices if f]
 
         # If the impact task hasn't been run (aka is_impact_set_flag=False) OR
         # if impact isn't applicable (aka has_impacts() is False), we wipe all
         # the impact fields' indices.
         if self.has_impacts() and self.is_impact_set_flag:
-            self.impact_stable_version_indices = (
-                search_tokenizer.tokenize_impact_version(self.impact_stable_version))
-            self.impact_beta_version_indices = (
-                search_tokenizer.tokenize_impact_version(self.impact_beta_version))
+            self.impact_stable_version_indices = search_tokenizer.tokenize_impact_version(
+                self.impact_stable_version
+            )
+            self.impact_beta_version_indices = search_tokenizer.tokenize_impact_version(
+                self.impact_beta_version
+            )
             self.impact_version_indices = list(
-                set(self.impact_stable_version_indices +
-                    self.impact_beta_version_indices))
+                set(
+                    self.impact_stable_version_indices
+                    + self.impact_beta_version_indices
+                )
+            )
 
             if self.impact_beta_version:
-                self.impact_version_indices.append('beta')
+                self.impact_version_indices.append("beta")
             if self.impact_stable_version:
-                self.impact_version_indices.append('stable')
+                self.impact_version_indices.append("stable")
             if not self.impacts_production():
-                self.impact_version_indices.append('head')
+                self.impact_version_indices.append("head")
         else:
             self.impact_version_indices = []
             self.impact_stable_version_indices = []
@@ -627,8 +616,10 @@ class Testcase(Model):
         self.populate_indices()
 
     def _post_put_hook(self, _):
-        logs.log('Updated testcase %d (bug %s).' % (self.key.id(),
-                                                    self.bug_information or '-'))
+        logs.log(
+            "Updated testcase %d (bug %s)."
+            % (self.key.id(), self.bug_information or "-")
+        )
 
     def set_impacts_as_na(self):
         self.impact_stable_version = self.impact_beta_version = None
@@ -637,7 +628,7 @@ class Testcase(Model):
 
     def _ensure_metadata_is_cached(self):
         """Ensure that the metadata for this has been cached."""
-        if hasattr(self, 'metadata_cache'):
+        if hasattr(self, "metadata_cache"):
             return
 
         try:
@@ -645,7 +636,7 @@ class Testcase(Model):
         except (TypeError, ValueError):
             cache = {}
 
-        setattr(self, 'metadata_cache', cache)
+        setattr(self, "metadata_cache", cache)
 
     def get_metadata(self, key=None, default=None):
         """Get metadata for a test case. Slow on first access."""
@@ -697,6 +688,7 @@ class Testcase(Model):
 
 class TestcaseGroup(Model):
     """Group for a set of testcases."""
+
     pass
 
 
@@ -730,42 +722,43 @@ class DataBundle(Model):
 
 class Config(Model):
     """Configuration."""
-    previous_hash = StringProperty(default='')
+
+    previous_hash = StringProperty(default="")
 
     # Project's url.
-    url = StringProperty(default='')
+    url = StringProperty(default="")
 
     # Issue tracker client authentication parameters.
-    client_credentials = TextProperty(default='')
+    client_credentials = TextProperty(default="")
 
     # Build apiary authentication parameters.
-    build_apiary_service_account_email = StringProperty(default='')
-    build_apiary_service_account_private_key = TextProperty(default='')
+    build_apiary_service_account_email = StringProperty(default="")
+    build_apiary_service_account_private_key = TextProperty(default="")
 
     # Google test account for login, gms testing, etc.
-    test_account_email = StringProperty(default='')
-    test_account_password = StringProperty(default='')
+    test_account_email = StringProperty(default="")
+    test_account_password = StringProperty(default="")
 
     # Privileged users.
-    privileged_users = TextProperty(default='')
+    privileged_users = TextProperty(default="")
 
     # Admin contact string.
-    contact_string = StringProperty(default='')
+    contact_string = StringProperty(default="")
 
     # Component to repository mappings.
-    component_repository_mappings = TextProperty(default='')
+    component_repository_mappings = TextProperty(default="")
 
     # URL for help page for reproducing issues.
-    reproduction_help_url = StringProperty(default='')
+    reproduction_help_url = StringProperty(default="")
 
     # Documentation url.
-    documentation_url = StringProperty(default='')
+    documentation_url = StringProperty(default="")
 
     # Bug report url.
-    bug_report_url = StringProperty(default='')
+    bug_report_url = StringProperty(default="")
 
     # Platforms that coverage is supported for.
-    platform_group_mappings = TextProperty(default='')
+    platform_group_mappings = TextProperty(default="")
 
     # More relaxed restrictions: allow CC'ed users and reporters of issues to view
     # testcase details.
@@ -776,32 +769,33 @@ class Config(Model):
     relax_security_bug_restrictions = ndb.BooleanProperty(default=False)
 
     # Coverage reports bucket.
-    coverage_reports_bucket = StringProperty(default='')
+    coverage_reports_bucket = StringProperty(default="")
 
     # For GitHub API.
-    github_credentials = StringProperty(default='')
+    github_credentials = StringProperty(default="")
 
     # OAuth2 client id for the reproduce tool.
-    reproduce_tool_client_id = StringProperty(default='')
+    reproduce_tool_client_id = StringProperty(default="")
 
     # OAuth2 client secret for the reproduce tool.
-    reproduce_tool_client_secret = StringProperty(default='')
+    reproduce_tool_client_secret = StringProperty(default="")
 
     # Pub/Sub topics for the Predator service.
-    predator_crash_topic = StringProperty(default='')
-    predator_result_topic = StringProperty(default='')
+    predator_crash_topic = StringProperty(default="")
+    predator_result_topic = StringProperty(default="")
 
     # Wifi connection information.
-    wifi_ssid = StringProperty(default='')
-    wifi_password = StringProperty(default='')
+    wifi_ssid = StringProperty(default="")
+    wifi_password = StringProperty(default="")
 
     # SendGrid config.
-    sendgrid_api_key = StringProperty(default='')
-    sendgrid_sender = StringProperty(default='')
+    sendgrid_api_key = StringProperty(default="")
+    sendgrid_sender = StringProperty(default="")
 
 
 class TestcaseUploadMetadata(Model):
     """Metadata associated with a user uploaded test case."""
+
     # Timestamp.
     timestamp = ndb.DateTimeProperty()
 
@@ -902,18 +896,19 @@ class Job(Model):
 
         job_environment = {}
         for template_name in self.templates:
-            template = JobTemplate.query(
-                JobTemplate.name == template_name).get()
+            template = JobTemplate.query(JobTemplate.name == template_name).get()
             if not template:
                 continue
 
             template_environment = environment.parse_environment_definition(
-                template.environment_string)
+                template.environment_string
+            )
 
             job_environment.update(template_environment)
 
         environment_overrides = environment.parse_environment_definition(
-            self.environment_string)
+            self.environment_string
+        )
 
         job_environment.update(environment_overrides)
         return job_environment
@@ -921,21 +916,23 @@ class Job(Model):
     def get_environment_string(self):
         """Get the environment string for this job, including any environment
         variables in its template. Avoid using this if possible."""
-        environment_string = ''
+        environment_string = ""
         job_environment = self.get_environment()
         for key, value in six.iteritems(job_environment):
-            environment_string += '%s = %s\n' % (key, value)
+            environment_string += "%s = %s\n" % (key, value)
 
         return environment_string
 
     def _pre_put_hook(self):
         """Pre-put hook."""
-        self.project = self.get_environment().get('PROJECT_NAME',
-                                                  utils.default_project_name())
+        self.project = self.get_environment().get(
+            "PROJECT_NAME", utils.default_project_name()
+        )
 
 
 class CSRFToken(Model):
     """Token used to prevent CSRF attacks."""
+
     # Value of this token.
     value = StringProperty()
 
@@ -948,6 +945,7 @@ class CSRFToken(Model):
 
 class Heartbeat(Model):
     """Bot health metadata."""
+
     # Name of the bot.
     bot_name = StringProperty()
 
@@ -966,6 +964,7 @@ class Heartbeat(Model):
 
 class Notification(Model):
     """Tracks whether or not an email has been sent to a user for a test case."""
+
     # Testcase id associated with this notification.
     testcase_id = ndb.IntegerProperty()
 
@@ -975,6 +974,7 @@ class Notification(Model):
 
 class BundledArchiveMetadata(Model):
     """Metadata needed for multiple test cases uploaded in an archive."""
+
     # Blobstore key of the archive.
     blobstore_key = StringProperty()
 
@@ -1027,6 +1027,7 @@ class BundledArchiveMetadata(Model):
 
 class TaskStatus(Model):
     """Information about task status."""
+
     # Bot name.
     bot_name = StringProperty()
 
@@ -1039,6 +1040,7 @@ class TaskStatus(Model):
 
 class BuildMetadata(Model):
     """Metadata associated with a particular archived build."""
+
     # Job type that this build belongs to.
     job_type = StringProperty()
 
@@ -1063,6 +1065,7 @@ class BuildMetadata(Model):
 
 class ReportMetadata(Model):
     """Metadata associated with a crash report."""
+
     # Job type from testcase.
     job_type = StringProperty()
 
@@ -1073,22 +1076,22 @@ class ReportMetadata(Model):
     is_uploaded = ndb.BooleanProperty(default=False)
 
     # Product.
-    product = StringProperty(default='')
+    product = StringProperty(default="")
 
     # Version.
-    version = StringProperty(default='', indexed=False)
+    version = StringProperty(default="", indexed=False)
 
     # Key to minidump previously written to blobstore.
-    minidump_key = StringProperty(default='', indexed=False)
+    minidump_key = StringProperty(default="", indexed=False)
 
     # Processed crash bytes.
-    serialized_crash_stack_frames = ndb.BlobProperty(default='', indexed=False)
+    serialized_crash_stack_frames = ndb.BlobProperty(default="", indexed=False)
 
     # Id of the associated testcase.
-    testcase_id = StringProperty(default='')
+    testcase_id = StringProperty(default="")
 
     # Id of the associated bot.
-    bot_id = StringProperty(default='', indexed=False)
+    bot_id = StringProperty(default="", indexed=False)
 
     # Optional upload params, stored as a JSON object.
     optional_params = TextProperty(indexed=False)
@@ -1099,6 +1102,7 @@ class ReportMetadata(Model):
 
 class Lock(Model):
     """Lock entity."""
+
     # Expiration time for the lock.
     expiration_time = ndb.DateTimeProperty()
 
@@ -1108,6 +1112,7 @@ class Lock(Model):
 
 class FuzzTarget(Model):
     """Fuzz target."""
+
     # The engine this target is a child of.
     engine = StringProperty()
 
@@ -1123,8 +1128,7 @@ class FuzzTarget(Model):
 
     def fully_qualified_name(self):
         """Get the fully qualified name for this fuzz target."""
-        return fuzz_target_fully_qualified_name(self.engine, self.project,
-                                                self.binary)
+        return fuzz_target_fully_qualified_name(self.engine, self.project, self.binary)
 
     def project_qualified_name(self):
         """Get the name qualified by project."""
@@ -1133,14 +1137,14 @@ class FuzzTarget(Model):
 
 def fuzz_target_fully_qualified_name(engine, project, binary):
     """Get a fuzz target's fully qualified name."""
-    return engine + '_' + fuzz_target_project_qualified_name(project, binary)
+    return engine + "_" + fuzz_target_project_qualified_name(project, binary)
 
 
 def normalized_name(name):
     """Return normalized name with special chars like slash, colon, etc normalized
     to hyphen(-). This is important as otherwise these chars break local and cloud
     storage paths."""
-    return SPECIAL_CHARS_REGEX.sub('-', name).strip('-')
+    return SPECIAL_CHARS_REGEX.sub("-", name).strip("-")
 
 
 def fuzz_target_project_qualified_name(project, binary):
@@ -1154,7 +1158,7 @@ def fuzz_target_project_qualified_name(project, binary):
         # Don't prefix with project name if it's the default project.
         return binary
 
-    normalized_project_prefix = normalized_name(project) + '_'
+    normalized_project_prefix = normalized_name(project) + "_"
     if binary.startswith(normalized_project_prefix):
         return binary
 
@@ -1163,12 +1167,14 @@ def fuzz_target_project_qualified_name(project, binary):
 
 class FuzzTargetsCount(Model):
     """Fuzz targets count for every job. Key IDs are the job name."""
+
     count = ndb.IntegerProperty(indexed=False)
 
 
 class FuzzTargetJob(Model):
     """Mapping between fuzz target and jobs with additional metadata for
     selection."""
+
     # Fully qualified fuzz target name.
     fuzz_target_name = StringProperty()
 
@@ -1186,8 +1192,9 @@ class FuzzTargetJob(Model):
 
     def _pre_put_hook(self):
         """Pre-put hook."""
-        self.key = ndb.Key(FuzzTargetJob,
-                           fuzz_target_job_key(self.fuzz_target_name, self.job))
+        self.key = ndb.Key(
+            FuzzTargetJob, fuzz_target_job_key(self.fuzz_target_name, self.job)
+        )
 
 
 class FuzzStrategyProbability(Model):
@@ -1201,11 +1208,12 @@ class FuzzStrategyProbability(Model):
 
 def fuzz_target_job_key(fuzz_target_name, job):
     """Return the key for FuzzTargetJob."""
-    return '{}/{}'.format(fuzz_target_name, job)
+    return "{}/{}".format(fuzz_target_name, job)
 
 
 class ExternalUserPermission(Model):
     """Permissions for external users."""
+
     # Email user is authenticated as.
     email = StringProperty()
 
@@ -1224,6 +1232,7 @@ class ExternalUserPermission(Model):
 
 class FiledBug(Model):
     """Metadata information for issues that were filed automatically."""
+
     # Timestamp when the issue was filed.
     timestamp = ndb.DateTimeProperty()
 
@@ -1251,6 +1260,7 @@ class FiledBug(Model):
 
 class CoverageInformation(Model):
     """Coverage info."""
+
     date = ndb.DateProperty(auto_now_add=True)
     fuzzer = StringProperty()
 
@@ -1280,23 +1290,25 @@ class CoverageInformation(Model):
 
     def _pre_put_hook(self):
         """Pre-put hook."""
-        self.key = ndb.Key(CoverageInformation,
-                           coverage_information_key(self.fuzzer, self.date))
+        self.key = ndb.Key(
+            CoverageInformation, coverage_information_key(self.fuzzer, self.date)
+        )
 
 
 def coverage_information_date_string(date):
     """Returns string representation of the date in a format used for coverage."""
-    return date.strftime('%Y%m%d')
+    return date.strftime("%Y%m%d")
 
 
 def coverage_information_key(project_qualified_fuzzer_name, date):
     """Constructs an ndb key for CoverageInformation entity."""
     date_string = coverage_information_date_string(date)
-    return project_qualified_fuzzer_name + '-' + date_string
+    return project_qualified_fuzzer_name + "-" + date_string
 
 
 class Trial(Model):
     """Trials for specific binaries."""
+
     # App name that this trial is applied to. E.g. "d8" or "chrome".
     app_name = StringProperty()
 
@@ -1310,6 +1322,7 @@ class Trial(Model):
 # TODO(ochang): Make this generic.
 class OssFuzzProject(Model):
     """Represents a project that has been set up for OSS-Fuzz."""
+
     # Name of the project.
     name = StringProperty()
 
@@ -1335,6 +1348,7 @@ class OssFuzzProjectInfo(Model):
 
     class ClusterInfo(Model):
         """Cpu allocation information for a project in a zone."""
+
         # The cluster for the CPU allocation.
         cluster = StringProperty()
 
@@ -1356,6 +1370,7 @@ class OssFuzzProjectInfo(Model):
 
 class HostWorkerAssignment(Model):
     """Host worker assignment information."""
+
     # The host instance name.
     host_name = StringProperty()
 
@@ -1371,6 +1386,7 @@ class HostWorkerAssignment(Model):
 
 class WorkerTlsCert(Model):
     """TLS certs for untrusted workers."""
+
     # The name of the project.
     project_name = StringProperty()
 
@@ -1383,6 +1399,7 @@ class WorkerTlsCert(Model):
 
 class FuzzerJob(Model):
     """Mapping between a fuzzer and job with additional metadata for selection."""
+
     fuzzer = StringProperty()
     job = StringProperty()
     platform = StringProperty()
@@ -1397,6 +1414,7 @@ class FuzzerJob(Model):
 
 class OssFuzzBuildFailure(Model):
     """Represents build failure."""
+
     # Project name.
     project_name = StringProperty()
 
@@ -1415,12 +1433,14 @@ class OssFuzzBuildFailure(Model):
 
 class Admin(Model):
     """Records an admin user."""
+
     email = StringProperty()
 
 
 class TestcaseVariant(Model):
     """Represent a testcase variant on another job (another platform / sanitizer
     / config)."""
+
     # Testcase ID of the testcase for which the variant is being evaluated.
     testcase_id = ndb.IntegerProperty()
 

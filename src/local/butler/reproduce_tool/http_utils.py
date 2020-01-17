@@ -24,15 +24,13 @@ from base import utils
 from local.butler.reproduce_tool import prompts
 from system import shell
 
-GET_METHOD = 'GET'
-POST_METHOD = 'POST'
+GET_METHOD = "GET"
+POST_METHOD = "POST"
 
-CONFIG_DIRECTORY = os.path.join(
-    os.path.expanduser('~'), '.config', 'clusterfuzz')
+CONFIG_DIRECTORY = os.path.join(os.path.expanduser("~"), ".config", "clusterfuzz")
 
-AUTHORIZATION_CACHE_FILE = os.path.join(
-    CONFIG_DIRECTORY, 'authorization-cache')
-AUTHORIZATION_HEADER = 'x-clusterfuzz-authorization'
+AUTHORIZATION_CACHE_FILE = os.path.join(CONFIG_DIRECTORY, "authorization-cache")
+AUTHORIZATION_HEADER = "x-clusterfuzz-authorization"
 
 
 class SuppressOutput(object):
@@ -58,42 +56,44 @@ def _get_authorization(force_reauthorization, configuration):
     # Try to read from cache unless we need to reauthorize.
     if not force_reauthorization:
         cached_authorization = utils.read_data_from_file(
-            AUTHORIZATION_CACHE_FILE, eval_data=False)
+            AUTHORIZATION_CACHE_FILE, eval_data=False
+        )
         if cached_authorization:
             return cached_authorization
 
     # Prompt the user for a code if we don't have one or need a new one.
-    oauth_url = configuration.get('oauth_url')
-    print('Please login at the following URL to authenticate: {oauth_url}'.format(
-        oauth_url=oauth_url))
+    oauth_url = configuration.get("oauth_url")
+    print(
+        "Please login at the following URL to authenticate: {oauth_url}".format(
+            oauth_url=oauth_url
+        )
+    )
 
     with SuppressOutput():
         webbrowser.open(oauth_url, new=1, autoraise=True)
 
-    verification_code = prompts.get_string('Enter verification code')
-    return 'VerificationCode {code}'.format(code=verification_code)
+    verification_code = prompts.get_string("Enter verification code")
+    return "VerificationCode {code}".format(code=verification_code)
 
 
-def request(url,
-            body=None,
-            method=POST_METHOD,
-            force_reauthorization=False,
-            configuration=None):
+def request(
+    url, body=None, method=POST_METHOD, force_reauthorization=False, configuration=None
+):
     """Make an HTTP request to the specified URL."""
     if configuration:
-        authorization = _get_authorization(
-            force_reauthorization, configuration)
+        authorization = _get_authorization(force_reauthorization, configuration)
         headers = {
-            'User-Agent': 'clusterfuzz-reproduce',
-            'Authorization': authorization
+            "User-Agent": "clusterfuzz-reproduce",
+            "Authorization": authorization,
         }
     else:
         headers = {}
 
     http = httplib2.Http()
-    request_body = json_utils.dumps(body) if body is not None else ''
+    request_body = json_utils.dumps(body) if body is not None else ""
     response, content = http.request(
-        url, method=method, headers=headers, body=request_body)
+        url, method=method, headers=headers, body=request_body
+    )
 
     # If the server returns 401 we may need to reauthenticate. Try the request
     # a second time if this happens.
@@ -103,12 +103,15 @@ def request(url,
             body,
             method=method,
             force_reauthorization=True,
-            configuration=configuration)
+            configuration=configuration,
+        )
 
     if AUTHORIZATION_HEADER in response:
         shell.create_directory(
-            os.path.dirname(AUTHORIZATION_CACHE_FILE), create_intermediates=True)
-        utils.write_data_to_file(response[AUTHORIZATION_HEADER],
-                                 AUTHORIZATION_CACHE_FILE)
+            os.path.dirname(AUTHORIZATION_CACHE_FILE), create_intermediates=True
+        )
+        utils.write_data_to_file(
+            response[AUTHORIZATION_HEADER], AUTHORIZATION_CACHE_FILE
+        )
 
     return response, content

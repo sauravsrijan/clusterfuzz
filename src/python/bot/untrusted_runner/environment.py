@@ -27,48 +27,48 @@ except ImportError:
     pass
 
 FORWARDED_ENVIRONMENT_VARIABLES = [
-    re.compile(pattern) for pattern in (
-        r'^AFL_.*',
-        r'^APPLICATION_ID$',
-        r'^ASAN_OPTIONS$',
-        r'^BACKUP_BUCKET$',
-        r'^CORPUS_BUCKET$',
-        r'^MUTATOR_PLUGINS_BUCKET$',
-        r'^FUZZ_CORPUS_DIR$',
-        r'^FUZZER_DIR$',
-        r'^FUZZER_NAME_REGEX$',
-        r'^FUZZING_STRATEGIES$',
-        r'^FUZZ_TARGET$',
-        r'^FUZZ_TEST_TIMEOUT$',
-        r'^GSUTIL_PATH$',
-        r'^JOB_NAME$',
-        r'^MSAN_OPTIONS$',
-        r'^PATH$',
-        r'^QUARANTINE_BUCKET$',
-        r'^SHARED_CORPUS_BUCKET$',
-        r'^STRATEGY_SELECTION_DISTRIBUTION$',
-        r'^STRATEGY_SELECTION_METHOD$',
-        r'^TASK_NAME$',
-        r'^TASK_PAYLOAD$',
-        r'^TEST_TIMEOUT$',
-        r'^TSAN_OPTIONS$',
-        r'^UBSAN_OPTIONS$',
-        r'^UNPACK_ALL_FUZZ_TARGETS_AND_FILES$',
-        r'^USE_MINIJAIL$',
-        r'^USER$',
+    re.compile(pattern)
+    for pattern in (
+        r"^AFL_.*",
+        r"^APPLICATION_ID$",
+        r"^ASAN_OPTIONS$",
+        r"^BACKUP_BUCKET$",
+        r"^CORPUS_BUCKET$",
+        r"^MUTATOR_PLUGINS_BUCKET$",
+        r"^FUZZ_CORPUS_DIR$",
+        r"^FUZZER_DIR$",
+        r"^FUZZER_NAME_REGEX$",
+        r"^FUZZING_STRATEGIES$",
+        r"^FUZZ_TARGET$",
+        r"^FUZZ_TEST_TIMEOUT$",
+        r"^GSUTIL_PATH$",
+        r"^JOB_NAME$",
+        r"^MSAN_OPTIONS$",
+        r"^PATH$",
+        r"^QUARANTINE_BUCKET$",
+        r"^SHARED_CORPUS_BUCKET$",
+        r"^STRATEGY_SELECTION_DISTRIBUTION$",
+        r"^STRATEGY_SELECTION_METHOD$",
+        r"^TASK_NAME$",
+        r"^TASK_PAYLOAD$",
+        r"^TEST_TIMEOUT$",
+        r"^TSAN_OPTIONS$",
+        r"^UBSAN_OPTIONS$",
+        r"^UNPACK_ALL_FUZZ_TARGETS_AND_FILES$",
+        r"^USE_MINIJAIL$",
+        r"^USER$",
     )
 ]
 
-REBASED_ENVIRONMENT_VARIABLES = set([
-    'FUZZER_DIR',
-])
+REBASED_ENVIRONMENT_VARIABLES = set(["FUZZER_DIR"])
 
 
 def is_forwarded_environment_variable(environment_variable):
     """Return whether or not |environment_variable| should be forwarded."""
     return any(
         pattern.match(environment_variable)
-        for pattern in FORWARDED_ENVIRONMENT_VARIABLES)
+        for pattern in FORWARDED_ENVIRONMENT_VARIABLES
+    )
 
 
 def should_rebase_environment_value(environment_variable):
@@ -98,7 +98,7 @@ def set_environment_vars(env, source_env):
         if is_forwarded_environment_variable(name):
             # Avoid creating circular dependencies from importing environment by
             # using os.getenv.
-            if os.getenv('TRUSTED_HOST') and should_rebase_environment_value(name):
+            if os.getenv("TRUSTED_HOST") and should_rebase_environment_value(name):
                 value = file_host.rebase_to_worker_root(value)
 
             env[name] = value

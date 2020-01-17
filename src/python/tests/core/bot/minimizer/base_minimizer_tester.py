@@ -31,7 +31,7 @@ class BaseMinimizerTester(unittest.TestCase):
 
     def test_minimizer_still_contains_error(self):
         """Tests a simple minimization. Should remove the first and last lines."""
-        testcase = 'x = 2 \n error \n return x'
+        testcase = "x = 2 \n error \n return x"
         minimized = self.line_minimizer.minimize(testcase)
         self.assertEqual(minimized, " error ")
 

@@ -26,11 +26,18 @@ class HTMLMinimizerTest(unittest.TestCase):
         helpers.patch_environ(self)
         helpers.patch(
             self,
-            [('js_minimizer', 'bot.minimizer.js_minimizer.JSMinimizer.minimize'),
-             ('html_minimizer',
-              'bot.minimizer.chunk_minimizer.ChunkMinimizer.minimize'),
-             ('line_minimizer',
-              'bot.minimizer.delta_minimizer.DeltaMinimizer.minimize')])
+            [
+                ("js_minimizer", "bot.minimizer.js_minimizer.JSMinimizer.minimize"),
+                (
+                    "html_minimizer",
+                    "bot.minimizer.chunk_minimizer.ChunkMinimizer.minimize",
+                ),
+                (
+                    "line_minimizer",
+                    "bot.minimizer.delta_minimizer.DeltaMinimizer.minimize",
+                ),
+            ],
+        )
 
         # HTML Minimizer passes data to a series of sub-minimizers. These take a
         # long time to run. We just want to test that the results are being handled
@@ -66,10 +73,10 @@ class HTMLMinimizerTest(unittest.TestCase):
     </html>"""
 
         self._simple_test = (
-            self._html_data_begin + self._script_data + self._html_data_end)
+            self._html_data_begin + self._script_data + self._html_data_end
+        )
 
-        self._minimizer = html_minimizer.HTMLMinimizer(
-            self._mock_test_function())
+        self._minimizer = html_minimizer.HTMLMinimizer(self._mock_test_function())
 
     def _mock_test_function(self):
         return True
@@ -77,17 +84,16 @@ class HTMLMinimizerTest(unittest.TestCase):
     def _mock_js_minimization(self, minimizer, data):
         """Mock js_minimization. Returns simple js_minimized code."""
         # pylint: disable=unused-argument
-        return minimizer.token_combiner(
-            ['var b = document.createTextNode("PASS")\n'])
+        return minimizer.token_combiner(['var b = document.createTextNode("PASS")\n'])
 
     def _mock_html_minimization(self, minimizer, data):
         """Mock html minimization. Returns minimized top tags when its called for
         the first section, otherwise returns minimized bottom section"""
         # The first 3 times the html_minimizer is called will be for the begining.
         if "<html>" in data:
-            return minimizer.token_combiner(['<html>\n<script>\n'])
+            return minimizer.token_combiner(["<html>\n<script>\n"])
 
-        return minimizer.token_combiner(['</script>\n</html>'])
+        return minimizer.token_combiner(["</script>\n</html>"])
 
     def _mock_line_minimization(self, minimizer, data):
         """Mock line minimization. Assume data is already line-minimized."""
@@ -107,8 +113,7 @@ class HTMLMinimizerTest(unittest.TestCase):
         tokens = self._minimizer.get_tokens_and_metadata(self._simple_test)
 
         self.assertEqual(tokens[0].token_type, self._minimizer.Token.TYPE_HTML)
-        self.assertEqual(tokens[1].token_type,
-                         self._minimizer.Token.TYPE_SCRIPT)
+        self.assertEqual(tokens[1].token_type, self._minimizer.Token.TYPE_SCRIPT)
         self.assertEqual(tokens[2].token_type, self._minimizer.Token.TYPE_HTML)
 
     def test_get_tokens_and_metadata_splits_correct_data(self):
@@ -123,8 +128,10 @@ class HTMLMinimizerTest(unittest.TestCase):
     def test_minimization_returns_correct_result(self):
         """Test that the minimizer goes through all of the correct sub-minimizers
         gives the correct tokenizers, and returns the minimized product."""
-        minimized = '<html>\n<script>\nvar b = document.createTextNode("PASS")' \
-                    '\n</script>\n</html>'
+        minimized = (
+            '<html>\n<script>\nvar b = document.createTextNode("PASS")'
+            "\n</script>\n</html>"
+        )
         res = self._minimizer.minimize(self._simple_test)
         self.assertEqual(res, minimized)
 

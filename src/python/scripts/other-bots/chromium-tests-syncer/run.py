@@ -30,6 +30,7 @@ import subprocess
 import re
 import os
 from python.base import modules
+
 modules.fix_module_search_paths()
 
 
@@ -48,7 +49,7 @@ def unpack_crash_testcases(crash_testcases_directory):
 
         # 2. Make sure that it is a unique crash testcase. Ignore duplicates,
         # uploaded repros.
-        if testcase.status != 'Processed':
+        if testcase.status != "Processed":
             continue
 
         # 3. Check if the testcase is fixed. If not, skip.
@@ -56,7 +57,7 @@ def unpack_crash_testcases(crash_testcases_directory):
             continue
 
         # 4. Check if the testcase has a minimized repro. If not, skip.
-        if not testcase.minimized_keys or testcase.minimized_keys == 'NA':
+        if not testcase.minimized_keys or testcase.minimized_keys == "NA":
             continue
 
         # 5. Only use testcases that have bugs associated with them.
@@ -74,19 +75,20 @@ def unpack_crash_testcases(crash_testcases_directory):
 
         # 8. Skip in-process fuzzer testcases, since these are only applicable to
         # fuzz targets and don't run with blackbox binaries.
-        if testcase.fuzzer_name and testcase.fuzzer_name in ['afl', 'libFuzzer']:
+        if testcase.fuzzer_name and testcase.fuzzer_name in ["afl", "libFuzzer"]:
             continue
 
         # Un-pack testcase.
         try:
             _, input_directory, _ = setup.unpack_testcase(testcase)
         except Exception:
-            logs.log_error('Failed to unpack testcase %d.' % testcase.key.id())
+            logs.log_error("Failed to unpack testcase %d." % testcase.key.id())
             continue
 
         # Move this to our crash testcases directory.
-        crash_testcase_directory = os.path.join(crash_testcases_directory,
-                                                str(testcase_id))
+        crash_testcase_directory = os.path.join(
+            crash_testcases_directory, str(testcase_id)
+        )
         shell.move(input_directory, crash_testcase_directory)
 
         # Re-create input directory for unpacking testcase in next iteration.
@@ -96,8 +98,7 @@ def unpack_crash_testcases(crash_testcases_directory):
 
     # Remove testcase directories that exceed the max size limit.
     for directory_name in os.listdir(crash_testcases_directory):
-        directory_path = os.path.join(
-            crash_testcases_directory, directory_name)
+        directory_path = os.path.join(crash_testcases_directory, directory_name)
         if not os.path.isdir(directory_path):
             continue
 
@@ -113,14 +114,16 @@ def unpack_crash_testcases(crash_testcases_directory):
                 continue
 
             file_path = os.path.join(root, filename)
-            stripped_file_name = os.path.basename(file_path)[len(
-                testcase_manager.FUZZ_PREFIX):]
+            stripped_file_name = os.path.basename(file_path)[
+                len(testcase_manager.FUZZ_PREFIX) :
+            ]
             stripped_file_path = os.path.join(
-                os.path.dirname(file_path), stripped_file_name)
+                os.path.dirname(file_path), stripped_file_name
+            )
             try:
                 os.rename(file_path, stripped_file_path)
             except:
-                raise Exception('Failed to rename testcase %s.' % file_path)
+                raise Exception("Failed to rename testcase %s." % file_path)
 
     # Remove empty files and dirs to avoid the case where a fuzzer randomly
     # chooses an empty dir/file and generates zero testcases.
@@ -130,43 +133,44 @@ def unpack_crash_testcases(crash_testcases_directory):
 
 def clone_git_repository(tests_directory, name, repo_url):
     """Clone a git repo."""
-    logs.log('Syncing %s tests.' % name)
+    logs.log("Syncing %s tests." % name)
 
     directory = os.path.join(tests_directory, name)
     if not os.path.exists(directory):
         subprocess.check_call(
-            ['git', 'clone', '--depth=1', repo_url, name], cwd=tests_directory)
+            ["git", "clone", "--depth=1", repo_url, name], cwd=tests_directory
+        )
 
     if os.path.exists(directory):
-        subprocess.check_call(['git', 'pull'], cwd=directory)
+        subprocess.check_call(["git", "pull"], cwd=directory)
     else:
-        raise Exception('Unable to checkout %s tests.' % name)
+        raise Exception("Unable to checkout %s tests." % name)
 
 
 def checkout_svn_repository(tests_directory, name, repo_url):
     """Checkout a SVN repo."""
-    logs.log('Syncing %s tests.' % name)
+    logs.log("Syncing %s tests." % name)
 
     directory = os.path.join(tests_directory, name)
     if not os.path.exists(directory):
         subprocess.check_call(
-            ['svn', 'checkout', repo_url, directory], cwd=tests_directory)
+            ["svn", "checkout", repo_url, directory], cwd=tests_directory
+        )
 
     if os.path.exists(directory):
-        subprocess.check_call(
-            ['svn', 'update', directory], cwd=tests_directory)
+        subprocess.check_call(["svn", "update", directory], cwd=tests_directory)
     else:
-        raise Exception('Unable to checkout %s tests.' % name)
+        raise Exception("Unable to checkout %s tests." % name)
 
 
-def create_symbolic_link(tests_directory, source_subdirectory,
-                         target_subdirectory):
+def create_symbolic_link(tests_directory, source_subdirectory, target_subdirectory):
     """Create symbolic link."""
     source_directory = os.path.join(tests_directory, source_subdirectory)
     target_directory = os.path.join(tests_directory, target_subdirectory)
     if not os.path.exists(source_directory):
-        raise Exception('Unable to find source directory %s for symbolic link.' %
-                        source_directory)
+        raise Exception(
+            "Unable to find source directory %s for symbolic link." % source_directory
+        )
 
     if os.path.exists(target_directory):
         # Symbolic link already exists, bail out.
@@ -177,27 +181,31 @@ def create_symbolic_link(tests_directory, source_subdirectory,
         # Create parent dirs if needed, otherwise symbolic link creation will fail.
         os.makedirs(target_parent_directory)
 
-    subprocess.check_call(['ln', '-s', source_directory, target_directory])
+    subprocess.check_call(["ln", "-s", source_directory, target_directory])
 
 
-def create_gecko_tests_directory(tests_directory, gecko_checkout_subdirectory,
-                                 gecko_tests_subdirectory):
+def create_gecko_tests_directory(
+    tests_directory, gecko_checkout_subdirectory, gecko_tests_subdirectory
+):
     """Create Gecko tests directory from a Gecko source checkout using links."""
-    gecko_checkout_directory = os.path.join(tests_directory,
-                                            gecko_checkout_subdirectory)
+    gecko_checkout_directory = os.path.join(
+        tests_directory, gecko_checkout_subdirectory
+    )
     if not os.path.exists(gecko_checkout_directory):
         raise Exception(
-            'Unable to find Gecko source directory %s.' % gecko_checkout_directory)
+            "Unable to find Gecko source directory %s." % gecko_checkout_directory
+        )
 
-    web_platform_sub_directory = 'testing%sweb-platform%s' % (os.sep, os.sep)
+    web_platform_sub_directory = "testing%sweb-platform%s" % (os.sep, os.sep)
     for root, directories, _ in os.walk(gecko_checkout_directory):
         for directory in directories:
-            if not re.match('.*tests?$', directory):
+            if not re.match(".*tests?$", directory):
                 continue
 
             directory_absolute_path = os.path.join(root, directory)
-            sub_directory = utils.strip_from_left(directory_absolute_path,
-                                                  gecko_checkout_directory + os.sep)
+            sub_directory = utils.strip_from_left(
+                directory_absolute_path, gecko_checkout_directory + os.sep
+            )
             source_subdirectory = gecko_checkout_subdirectory + os.sep + sub_directory
             target_subdirectory = gecko_tests_subdirectory + os.sep + sub_directory
 
@@ -205,128 +213,142 @@ def create_gecko_tests_directory(tests_directory, gecko_checkout_subdirectory,
                 # Exclude web-platform tests already included in blink layout tests.
                 continue
 
-            create_symbolic_link(tests_directory, source_subdirectory,
-                                 target_subdirectory)
+            create_symbolic_link(
+                tests_directory, source_subdirectory, target_subdirectory
+            )
 
 
 def main():
     """Main sync routine."""
-    tests_archive_bucket = environment.get_value('TESTS_ARCHIVE_BUCKET')
-    tests_archive_name = environment.get_value('TESTS_ARCHIVE_NAME')
-    tests_directory = environment.get_value('TESTS_DIR')
-    sync_interval = environment.get_value('SYNC_INTERVAL')  # in seconds.
+    tests_archive_bucket = environment.get_value("TESTS_ARCHIVE_BUCKET")
+    tests_archive_name = environment.get_value("TESTS_ARCHIVE_NAME")
+    tests_directory = environment.get_value("TESTS_DIR")
+    sync_interval = environment.get_value("SYNC_INTERVAL")  # in seconds.
 
     shell.create_directory(tests_directory)
 
     # Sync old crash tests.
-    logs.log('Syncing old crash tests.')
-    crash_testcases_directory = os.path.join(tests_directory, 'CrashTests')
+    logs.log("Syncing old crash tests.")
+    crash_testcases_directory = os.path.join(tests_directory, "CrashTests")
     shell.create_directory(crash_testcases_directory)
     unpack_crash_testcases(crash_testcases_directory)
 
     # Sync web tests.
-    logs.log('Syncing web tests.')
-    src_directory = os.path.join(tests_directory, 'src')
-    gclient_file_path = os.path.join(tests_directory, '.gclient')
+    logs.log("Syncing web tests.")
+    src_directory = os.path.join(tests_directory, "src")
+    gclient_file_path = os.path.join(tests_directory, ".gclient")
     if not os.path.exists(gclient_file_path):
         subprocess.check_call(
-            ['fetch', '--no-history', 'chromium', '--nosvn=True'],
-            cwd=tests_directory)
+            ["fetch", "--no-history", "chromium", "--nosvn=True"], cwd=tests_directory
+        )
     if os.path.exists(src_directory):
-        subprocess.check_call(['gclient', 'revert'], cwd=src_directory)
-        subprocess.check_call(['git', 'pull'], cwd=src_directory)
-        subprocess.check_call(['gclient', 'sync'], cwd=src_directory)
+        subprocess.check_call(["gclient", "revert"], cwd=src_directory)
+        subprocess.check_call(["git", "pull"], cwd=src_directory)
+        subprocess.check_call(["gclient", "sync"], cwd=src_directory)
     else:
-        raise Exception('Unable to checkout web tests.')
+        raise Exception("Unable to checkout web tests.")
 
-    clone_git_repository(tests_directory, 'v8',
-                         'https://chromium.googlesource.com/v8/v8')
+    clone_git_repository(
+        tests_directory, "v8", "https://chromium.googlesource.com/v8/v8"
+    )
 
-    clone_git_repository(tests_directory, 'ChakraCore',
-                         'https://github.com/Microsoft/ChakraCore.git')
+    clone_git_repository(
+        tests_directory, "ChakraCore", "https://github.com/Microsoft/ChakraCore.git"
+    )
 
-    clone_git_repository(tests_directory, 'gecko-dev',
-                         'https://github.com/mozilla/gecko-dev.git')
+    clone_git_repository(
+        tests_directory, "gecko-dev", "https://github.com/mozilla/gecko-dev.git"
+    )
 
-    clone_git_repository(tests_directory, 'webgl-conformance-tests',
-                         'https://github.com/KhronosGroup/WebGL.git')
-
-    checkout_svn_repository(
-        tests_directory, 'WebKit/LayoutTests',
-        'http://svn.webkit.org/repository/webkit/trunk/LayoutTests')
-
-    checkout_svn_repository(
-        tests_directory, 'WebKit/JSTests/stress',
-        'http://svn.webkit.org/repository/webkit/trunk/JSTests/stress')
+    clone_git_repository(
+        tests_directory,
+        "webgl-conformance-tests",
+        "https://github.com/KhronosGroup/WebGL.git",
+    )
 
     checkout_svn_repository(
-        tests_directory, 'WebKit/JSTests/es6',
-        'http://svn.webkit.org/repository/webkit/trunk/JSTests/es6')
+        tests_directory,
+        "WebKit/LayoutTests",
+        "http://svn.webkit.org/repository/webkit/trunk/LayoutTests",
+    )
 
-    create_gecko_tests_directory(tests_directory, 'gecko-dev', 'gecko-tests')
+    checkout_svn_repository(
+        tests_directory,
+        "WebKit/JSTests/stress",
+        "http://svn.webkit.org/repository/webkit/trunk/JSTests/stress",
+    )
+
+    checkout_svn_repository(
+        tests_directory,
+        "WebKit/JSTests/es6",
+        "http://svn.webkit.org/repository/webkit/trunk/JSTests/es6",
+    )
+
+    create_gecko_tests_directory(tests_directory, "gecko-dev", "gecko-tests")
 
     # Upload tests archive to google cloud storage.
-    logs.log('Uploading tests archive to cloud.')
+    logs.log("Uploading tests archive to cloud.")
     tests_archive_local = os.path.join(tests_directory, tests_archive_name)
-    tests_archive_remote = 'gs://{bucket_name}/{archive_name}'.format(
-        bucket_name=tests_archive_bucket, archive_name=tests_archive_name)
+    tests_archive_remote = "gs://{bucket_name}/{archive_name}".format(
+        bucket_name=tests_archive_bucket, archive_name=tests_archive_name
+    )
     shell.remove_file(tests_archive_local)
-    create_symbolic_link(tests_directory, 'gecko-dev/js/src/tests',
-                         'spidermonkey')
-    create_symbolic_link(tests_directory, 'ChakraCore/test', 'chakra')
+    create_symbolic_link(tests_directory, "gecko-dev/js/src/tests", "spidermonkey")
+    create_symbolic_link(tests_directory, "ChakraCore/test", "chakra")
 
     # FIXME: Find a way to rename LayoutTests to web_tests without breaking
     # compatability with older testcases.
-    create_symbolic_link(tests_directory, 'src/third_party/blink/web_tests',
-                         'LayoutTests')
+    create_symbolic_link(
+        tests_directory, "src/third_party/blink/web_tests", "LayoutTests"
+    )
 
     subprocess.check_call(
         [
-            'zip',
-            '-r',
+            "zip",
+            "-r",
             tests_archive_local,
-            'CrashTests',
-            'LayoutTests',
-            'WebKit',
-            'gecko-tests',
-            'v8/test/mjsunit',
-            'spidermonkey',
-            'chakra',
-            'webgl-conformance-tests',
-            '-x',
-            '*.cc',
-            '-x',
-            '*.cpp',
-            '-x',
-            '*.py',
-            '-x',
-            '*.txt',
-            '-x',
-            '*-expected.*',
-            '-x',
-            '*.git*',
-            '-x',
-            '*.svn*',
+            "CrashTests",
+            "LayoutTests",
+            "WebKit",
+            "gecko-tests",
+            "v8/test/mjsunit",
+            "spidermonkey",
+            "chakra",
+            "webgl-conformance-tests",
+            "-x",
+            "*.cc",
+            "-x",
+            "*.cpp",
+            "-x",
+            "*.py",
+            "-x",
+            "*.txt",
+            "-x",
+            "*-expected.*",
+            "-x",
+            "*.git*",
+            "-x",
+            "*.svn*",
         ],
-        cwd=tests_directory)
-    subprocess.check_call(
-        ['gsutil', 'cp', tests_archive_local, tests_archive_remote])
+        cwd=tests_directory,
+    )
+    subprocess.check_call(["gsutil", "cp", tests_archive_local, tests_archive_remote])
 
-    logs.log('Completed cycle, sleeping for %s seconds.' % sync_interval)
+    logs.log("Completed cycle, sleeping for %s seconds." % sync_interval)
     time.sleep(sync_interval)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Make sure environment is correctly configured.
-    logs.configure('run_bot')
+    logs.configure("run_bot")
     environment.set_bot_environment()
 
-    fail_wait = environment.get_value('FAIL_WAIT')
+    fail_wait = environment.get_value("FAIL_WAIT")
 
     # Continue this forever.
     while True:
         try:
             main()
         except Exception:
-            logs.log_error('Failed to sync tests.')
+            logs.log_error("Failed to sync tests.")
             time.sleep(fail_wait)

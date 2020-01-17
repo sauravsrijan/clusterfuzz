@@ -28,9 +28,7 @@ class JSMinimizerTest(unittest.TestCase):
         self._hypotheses_tested = []
 
         helpers.patch_environ(self)
-        helpers.patch(self, [
-            'bot.minimizer.minimizer.Testcase.prepare_test',
-        ])
+        helpers.patch(self, ["bot.minimizer.minimizer.Testcase.prepare_test"])
 
         self.mock.prepare_test.side_effect = self._mock_prepare_test
 
@@ -38,13 +36,14 @@ class JSMinimizerTest(unittest.TestCase):
         self._minimizer = js_minimizer.JSMinimizer(
             self._mock_test_function(),
             tokenizer=self._tokenizer.tokenize,
-            token_combiner=self._tokenizer.combine)
+            token_combiner=self._tokenizer.combine,
+        )
 
     def _mock_prepare_test(self, testcase, hypothesis):
         """No need to prepare anything, because tests wont be run. Just save what
           tests would have been run to validate that the correct tokens will be
           removed."""
-        text = ''
+        text = ""
         for index in hypothesis:
             text += testcase.tokens[index]
 
@@ -55,7 +54,7 @@ class JSMinimizerTest(unittest.TestCase):
 
     def test_minimize_empty_string(self):
         """Minimizer does not break on empty data."""
-        data = ''
+        data = ""
 
         self._minimizer.minimize(data)
 
@@ -88,8 +87,9 @@ class JSMinimizerTest(unittest.TestCase):
         self._minimizer.minimize(data)
 
         self.assertIn("if(boolean) {}", self._hypotheses_tested)
-        self.assertIn("if(boolean) {} else { do_something_else }",
-                      self._hypotheses_tested)
+        self.assertIn(
+            "if(boolean) {} else { do_something_else }", self._hypotheses_tested
+        )
         self.assertIn("if(boolean) {crash} else {}", self._hypotheses_tested)
 
     def test_remove_function_call(self):
@@ -98,8 +98,7 @@ class JSMinimizerTest(unittest.TestCase):
 
         self._minimizer.minimize(data)
 
-        self.assertIn("function name(param1, param2){}",
-                      self._hypotheses_tested)
+        self.assertIn("function name(param1, param2){}", self._hypotheses_tested)
 
     def test_handle_bracket_with_new_line(self):
         """Test for try/catch with extra whitespace."""
@@ -116,8 +115,7 @@ class JSMinimizerTest(unittest.TestCase):
 
         self._minimizer.minimize(data)
 
-        self.assertIn("function name(param1,\n\t\tparam2){}",
-                      self._hypotheses_tested)
+        self.assertIn("function name(param1,\n\t\tparam2){}", self._hypotheses_tested)
 
     def test_remove_outer_paren(self):
         """Test that the minimizer successfully removes all of the outer parens
@@ -147,8 +145,7 @@ class JSMinimizerTest(unittest.TestCase):
 
         self._minimizer.minimize(data)
 
-        self.assertIn(
-            "leftover_junk = (function(){\n})", self._hypotheses_tested)
+        self.assertIn("leftover_junk = (function(){\n})", self._hypotheses_tested)
 
     def test_remove_paren_with_attached_brackets(self):
         """Test that the minimizer removes the whole line and following brackets

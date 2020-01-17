@@ -19,91 +19,91 @@ from config import local_config
 from system import environment
 
 ASSERT_CRASH_ADDRESSES = [
-    0x0000bbadbeef,
-    0x0000fbadbeef,
-    0x00001f75b7dd,
-    0x0000977537dd,
-    0x00009f7537dd,
+    0x0000BBADBEEF,
+    0x0000FBADBEEF,
+    0x00001F75B7DD,
+    0x0000977537DD,
+    0x00009F7537DD,
 ]
 GENERIC_CRASH_TYPES = [
-    'Null-dereference',
-    'Null-dereference READ',
-    'Null-dereference WRITE',
-    'READ',
-    'UNKNOWN',
-    'UNKNOWN READ',
-    'UNKNOWN WRITE',
-    'WRITE',
+    "Null-dereference",
+    "Null-dereference READ",
+    "Null-dereference WRITE",
+    "READ",
+    "UNKNOWN",
+    "UNKNOWN READ",
+    "UNKNOWN WRITE",
+    "WRITE",
 ]
 SIGNAL_SIGNATURES_NOT_SECURITY = [
-    'Sanitizer: ABRT',
-    'Sanitizer: BUS',
-    'Sanitizer: FPE',
-    'Sanitizer: ILL',
-    'Sanitizer: breakpoint',
+    "Sanitizer: ABRT",
+    "Sanitizer: BUS",
+    "Sanitizer: FPE",
+    "Sanitizer: ILL",
+    "Sanitizer: breakpoint",
 ]
 STACKTRACE_TOOL_MARKERS = [
-    'AddressSanitizer',
-    'ASAN:',
-    'CFI: Most likely a control flow integrity violation;',
-    'ERROR: libFuzzer',
-    'KASAN:',
-    'LeakSanitizer',
-    'MemorySanitizer',
-    'ThreadSanitizer',
-    'UndefinedBehaviorSanitizer',
-    'UndefinedSanitizer',
+    "AddressSanitizer",
+    "ASAN:",
+    "CFI: Most likely a control flow integrity violation;",
+    "ERROR: libFuzzer",
+    "KASAN:",
+    "LeakSanitizer",
+    "MemorySanitizer",
+    "ThreadSanitizer",
+    "UndefinedBehaviorSanitizer",
+    "UndefinedSanitizer",
 ]
 STACKTRACE_END_MARKERS = [
-    'ABORTING',
-    'END MEMORY TOOL REPORT',
-    'End of process memory map.',
-    'END_KASAN_OUTPUT',
-    'SUMMARY:',
-    'Shadow byte and word',
-    '[end of stack trace]',
-    '\nExiting',
-    'minidump has been written',
+    "ABORTING",
+    "END MEMORY TOOL REPORT",
+    "End of process memory map.",
+    "END_KASAN_OUTPUT",
+    "SUMMARY:",
+    "Shadow byte and word",
+    "[end of stack trace]",
+    "\nExiting",
+    "minidump has been written",
 ]
-UBSAN_RUNTIME_ERROR = ' runtime error: '
+UBSAN_RUNTIME_ERROR = " runtime error: "
 UBSAN_CRASH_TYPES_NON_SECURITY = [
-    'Divide-by-zero',
-    'Float-cast-overflow',
+    "Divide-by-zero",
+    "Float-cast-overflow",
     # We do not name this "Signed-integer-overflow", for the sake of syntax
     # being used in LLVM and C++, as there is no "signed int" type.
-    'Integer-overflow',
-    'Invalid-bool-value',
-    'Invalid-builtin-use',
-    'Incorrect-function-pointer-type',
-    'Invalid-enum-value',
-    'Invalid-null-argument',
-    'Invalid-null-return',
-    'Misaligned-address',
-    'No-return-value',
-    'Non-positive-vla-bound-value',
-    'Pointer-overflow',
-    'Potential-null-reference',
-    'Undefined-shift',
+    "Integer-overflow",
+    "Invalid-bool-value",
+    "Invalid-builtin-use",
+    "Incorrect-function-pointer-type",
+    "Invalid-enum-value",
+    "Invalid-null-argument",
+    "Invalid-null-return",
+    "Misaligned-address",
+    "No-return-value",
+    "Non-positive-vla-bound-value",
+    "Pointer-overflow",
+    "Potential-null-reference",
+    "Undefined-shift",
     # Unsigned integer overflow actually is not UB, but there is an additional
     # flag in UBSan that enables this type of check. Unsigned integer overflow
     # issues may cause some bugs, unless it's not an intended overflow, e.g. in
     # math of crpto libraries.
-    'Unsigned-integer-overflow',
-    'Unreachable code',
+    "Unsigned-integer-overflow",
+    "Unreachable code",
 ]
 UBSAN_CRASH_TYPES_SECURITY = [
-    'Bad-cast',
-    'Index-out-of-bounds',
-    'Incorrect-function-pointer-type',
-    'Non-positive-vla-bound-value',
-    'Object-size',
+    "Bad-cast",
+    "Index-out-of-bounds",
+    "Incorrect-function-pointer-type",
+    "Non-positive-vla-bound-value",
+    "Object-size",
 ]
 GOLANG_CRASH_TYPES_NON_SECURITY = [
-    'Index out of range',
-    'Integer divide by zero',
-    'Makeslice: len out of range',
-    'Slice bounds out of range',
-    'Stack overflow',
+    "Index out of range",
+    "Integer divide by zero",
+    "Makeslice: len out of range",
+    "Slice bounds out of range",
+    "Stack overflow",
 ]
 
 # Default page size of 4KB.
@@ -130,18 +130,18 @@ def has_marker(stacktrace, marker_list):
 def ignore_stacktrace(crash_stacktrace):
     """Return whether the stacktrace needs to be ignored."""
     # Filter crash based on search exclude pattern specified in job definition.
-    search_excludes = environment.get_value('SEARCH_EXCLUDES')
+    search_excludes = environment.get_value("SEARCH_EXCLUDES")
     if search_excludes and re.search(search_excludes, crash_stacktrace):
         return True
 
     # Match stacktrace against custom defined blacklist regexes in project config.
-    stack_blacklist_regexes = (
-        local_config.ProjectConfig().get('stacktrace.stack_blacklist_regexes'))
+    stack_blacklist_regexes = local_config.ProjectConfig().get(
+        "stacktrace.stack_blacklist_regexes"
+    )
     if not stack_blacklist_regexes:
         return False
 
-    stack_blacklist_regex = re.compile(
-        r'(%s)' % '|'.join(stack_blacklist_regexes))
+    stack_blacklist_regex = re.compile(r"(%s)" % "|".join(stack_blacklist_regexes))
     for line in crash_stacktrace.splitlines():
         if stack_blacklist_regex.match(line):
             return True
@@ -153,7 +153,7 @@ def is_crash(return_code, console_output):
     if not return_code:
         return False
 
-    crash_signature = environment.get_value('CRASH_SIGNATURE')
+    crash_signature = environment.get_value("CRASH_SIGNATURE")
     if crash_signature:
         return re.search(crash_signature, console_output)
 
@@ -163,12 +163,12 @@ def is_crash(return_code, console_output):
 def is_check_failure_crash(stacktrace):
     """Return true if it a CHECK failure crash."""
     # Android-specific exception patterns.
-    if environment.platform() == 'ANDROID':
-        if 'Device rebooted' in stacktrace:
+    if environment.platform() == "ANDROID":
+        if "Device rebooted" in stacktrace:
             return True
-        if 'JNI DETECTED ERROR IN APPLICATION:' in stacktrace:
+        if "JNI DETECTED ERROR IN APPLICATION:" in stacktrace:
             return True
-        if re.match(r'.*FATAL EXCEPTION.*:', stacktrace, re.DOTALL):
+        if re.match(r".*FATAL EXCEPTION.*:", stacktrace, re.DOTALL):
             return True
 
         # FIXME: Analyze why this is not working with chrome.
@@ -180,13 +180,13 @@ def is_check_failure_crash(stacktrace):
         #   return True
 
         # Application CHECK failure known patterns.
-    if re.match(r'.*#\s*Fatal error in', stacktrace, re.DOTALL):
+    if re.match(r".*#\s*Fatal error in", stacktrace, re.DOTALL):
         return True
-    if 'Check failed:' in stacktrace:
+    if "Check failed:" in stacktrace:
         return True
 
     # Memory debugging tool CHECK failure.
-    if 'Sanitizer CHECK failed:' in stacktrace:
+    if "Sanitizer CHECK failed:" in stacktrace:
         return True
 
     return False
@@ -195,14 +195,15 @@ def is_check_failure_crash(stacktrace):
 def is_memory_tool_crash(stacktrace):
     """Return true if it is a memory debugging tool crash."""
     # Job-specific generic checks.
-    crash_signature = environment.get_value('CRASH_SIGNATURE')
+    crash_signature = environment.get_value("CRASH_SIGNATURE")
     if crash_signature and re.search(crash_signature, stacktrace):
         return True
 
     # Android specific check.
     # FIXME: Share this regex with stack_analyzer.
-    if (environment.platform() == 'ANDROID' and
-            re.match(r'.*signal.*\(SIG.*fault addr ([^ ]*)', stacktrace, re.DOTALL)):
+    if environment.platform() == "ANDROID" and re.match(
+        r".*signal.*\(SIG.*fault addr ([^ ]*)", stacktrace, re.DOTALL
+    ):
         return True
 
     # Check if we have a complete stacktrace by location stacktrace end marker.
@@ -233,8 +234,9 @@ def is_assert_crash_address(int_address):
 
 def has_signal_for_non_security_bug_type(stacktrace):
     """Checks if any signal which means not security bug presented."""
-    if re.search(r'^[ \t]+#0[ \t]+0x[0-9a-f]+[ \t]+in gsignal ', stacktrace,
-                 re.MULTILINE):
+    if re.search(
+        r"^[ \t]+#0[ \t]+0x[0-9a-f]+[ \t]+in gsignal ", stacktrace, re.MULTILINE
+    ):
         return True
 
     for signature in SIGNAL_SIGNATURES_NOT_SECURITY:
@@ -248,66 +250,72 @@ def is_security_issue(crash_stacktrace, crash_type, crash_address):
     """Based on unsymbolized crash parameters, determine whether it has security
     consequences or not."""
     # eip == 0.
-    if 'pc (nil) ' in crash_stacktrace:
+    if "pc (nil) " in crash_stacktrace:
         return True
-    if 'pc 0x00000000 ' in crash_stacktrace:
+    if "pc 0x00000000 " in crash_stacktrace:
         return True
-    if 'pc 0x000000000000 ' in crash_stacktrace:
+    if "pc 0x000000000000 " in crash_stacktrace:
         return True
 
     # JNI security crashes.
     if re.match(
-        '.*JNI DETECTED ERROR[^\n]+(deleted|invalid|unexpected|unknown|wrong)',
-            crash_stacktrace, re.DOTALL):
+        ".*JNI DETECTED ERROR[^\n]+(deleted|invalid|unexpected|unknown|wrong)",
+        crash_stacktrace,
+        re.DOTALL,
+    ):
         return True
 
-    if crash_type == 'CHECK failure':
+    if crash_type == "CHECK failure":
         # TODO(ochang): Remove this once we pick up newer builds that distinguish
         # DCHECKs from CHECKs.
         checks_have_security_implication = environment.get_value(
-            'CHECKS_HAVE_SECURITY_IMPLICATION', False)
+            "CHECKS_HAVE_SECURITY_IMPLICATION", False
+        )
         return checks_have_security_implication
 
     # Release SECURITY_CHECK in Blink shouldn't be marked as a security bug.
-    if crash_type == 'Security CHECK failure':
+    if crash_type == "Security CHECK failure":
         return False
 
     # Debug CHECK failure should be marked with security implications.
-    if (crash_type == 'Security DCHECK failure' or
-            crash_type == 'DCHECK failure'):
+    if crash_type == "Security DCHECK failure" or crash_type == "DCHECK failure":
         return True
 
     # Hard crash, explicitly enforced in code.
-    if (crash_type == 'Fatal error' or crash_type == 'Unreachable code' or
-            crash_type.endswith('Exception') or crash_type.endswith('CHECK failure')):
+    if (
+        crash_type == "Fatal error"
+        or crash_type == "Unreachable code"
+        or crash_type.endswith("Exception")
+        or crash_type.endswith("CHECK failure")
+    ):
         return False
 
-    if crash_type == 'Stack-overflow':
+    if crash_type == "Stack-overflow":
         return False
 
-    if crash_type == 'Fatal-signal':
+    if crash_type == "Fatal-signal":
         return False
 
-    if crash_type == 'Missing-library':
+    if crash_type == "Missing-library":
         return False
 
-    if crash_type == 'Overwrites-const-input':
+    if crash_type == "Overwrites-const-input":
         return False
 
     # LeakSanitizer, finds memory leaks.
-    if '-leak' in crash_type:
+    if "-leak" in crash_type:
         return False
 
     # ThreadSanitizer, finds data races.
-    if 'Data race' in crash_type:
+    if "Data race" in crash_type:
         return False
 
     # ThreadSanitizer, finds lock order issues.
-    if 'Lock-order-inversion' in crash_type:
+    if "Lock-order-inversion" in crash_type:
         return False
 
     # Unexpected conditions reached in the program.
-    if crash_type == 'ASSERT_NOT_REACHED':
+    if crash_type == "ASSERT_NOT_REACHED":
         return False
 
     if crash_type in UBSAN_CRASH_TYPES_SECURITY:
@@ -320,31 +328,32 @@ def is_security_issue(crash_stacktrace, crash_type, crash_address):
         return False
 
     # Floating point exceptions.
-    if crash_type == 'Floating-point-exception':
+    if crash_type == "Floating-point-exception":
         return False
 
     # RUNTIME_ASSERT in V8 (not a crash, but is a sign of an error).
-    if crash_type == 'RUNTIME_ASSERT':
+    if crash_type == "RUNTIME_ASSERT":
         return False
 
     # Correctness failure in V8.
-    if crash_type == 'V8 correctness failure':
+    if crash_type == "V8 correctness failure":
         return False
 
     # By default, any assert crash is a security crash.
     # This behavior can be changed by defining
     # |ASSERTS_HAVE_SECURITY_IMPLICATION| in job definition.
-    if crash_type == 'ASSERT' or 'ASSERTION FAILED' in crash_stacktrace:
+    if crash_type == "ASSERT" or "ASSERTION FAILED" in crash_stacktrace:
         asserts_have_security_implication = environment.get_value(
-            'ASSERTS_HAVE_SECURITY_IMPLICATION', True)
+            "ASSERTS_HAVE_SECURITY_IMPLICATION", True
+        )
         return asserts_have_security_implication
 
     # Timeouts/OOMs.
-    if crash_type == 'Timeout' or crash_type == 'Out-of-memory':
+    if crash_type == "Timeout" or crash_type == "Out-of-memory":
         return False
 
     # Unexpected exit call in fuzz target.
-    if crash_type == 'Unexpected-exit':
+    if crash_type == "Unexpected-exit":
         return False
 
     # No crash type, can't process.
@@ -387,7 +396,8 @@ def has_ubsan_error(stacktrace):
 
     # FIXME: Avoid opening this file on every single call.
     ubsan_ignores_file_path = environment.get_suppressions_file(
-        'ubsan', suffix='ignores')
+        "ubsan", suffix="ignores"
+    )
     if not ubsan_ignores_file_path:
         # No ignore file exists or is empty, everything is allowed.
         return True

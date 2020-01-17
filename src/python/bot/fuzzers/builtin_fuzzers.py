@@ -16,10 +16,7 @@
 from bot.fuzzers.afl import fuzzer as afl
 from bot.fuzzers.libFuzzer import fuzzer as libFuzzer
 
-BUILTIN_FUZZERS = {
-    'afl': afl.Afl(),
-    'libFuzzer': libFuzzer.LibFuzzer(),
-}
+BUILTIN_FUZZERS = {"afl": afl.Afl(), "libFuzzer": libFuzzer.LibFuzzer()}
 
 
 def get(fuzzer_name):

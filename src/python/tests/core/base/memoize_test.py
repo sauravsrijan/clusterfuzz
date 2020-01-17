@@ -147,21 +147,21 @@ class FifoInMemoryTest(unittest.TestCase):
         def fn():
             pass
 
-        key = self.cache.get_key(fn, ('a', 'b'), {'c': 'd'})
+        key = self.cache.get_key(fn, ("a", "b"), {"c": "d"})
 
         self.assertIsNone(self.cache.get(key))
-        self.cache.put(key, 'b')
-        self.assertEqual('b', self.cache.get(key))
+        self.cache.put(key, "b")
+        self.assertEqual("b", self.cache.get(key))
 
     def test_hit_limit(self):
         """Test hitting the limit."""
         for i in range(6):
-            self.cache.put(i, 'a')
+            self.cache.put(i, "a")
 
         self.assertIsNone(self.cache.get(0))
 
         for i in range(1, 6):
-            self.assertEqual('a', self.cache.get(i))
+            self.assertEqual("a", self.cache.get(i))
 
 
 class FifoOnDiskTest(fake_filesystem_unittest.TestCase):
@@ -170,7 +170,7 @@ class FifoOnDiskTest(fake_filesystem_unittest.TestCase):
     def setUp(self):
         test_helpers.patch_environ(self)
         test_utils.set_up_pyfakefs(self)
-        environment.set_value('CACHE_DIR', '/tmp/test-cache')
+        environment.set_value("CACHE_DIR", "/tmp/test-cache")
         persistent_cache.initialize()
 
         self.cache = memoize.FifoOnDisk(5)
@@ -181,21 +181,21 @@ class FifoOnDiskTest(fake_filesystem_unittest.TestCase):
         def fn():
             pass
 
-        key = self.cache.get_key(fn, ('a', 'b'), {'c': 'd'})
+        key = self.cache.get_key(fn, ("a", "b"), {"c": "d"})
 
         self.assertIsNone(self.cache.get(key))
-        self.cache.put(key, 'b')
-        self.assertEqual('b', self.cache.get(key))
+        self.cache.put(key, "b")
+        self.assertEqual("b", self.cache.get(key))
 
     def test_hit_limit(self):
         """Test hitting the limit."""
         for i in range(6):
-            self.cache.put(i, 'a')
+            self.cache.put(i, "a")
 
         self.assertIsNone(self.cache.get(0))
 
         for i in range(1, 6):
-            self.assertEqual('a', self.cache.get(i))
+            self.assertEqual("a", self.cache.get(i))
 
 
 class _MockRedis(object):
@@ -220,10 +220,9 @@ class MemcacheTest(unittest.TestCase):
     """Test Memcache."""
 
     def setUp(self):
-        test_helpers.patch(self, [
-            'redis.Redis',
-            'system.environment.is_running_on_app_engine',
-        ])
+        test_helpers.patch(
+            self, ["redis.Redis", "system.environment.is_running_on_app_engine"]
+        )
         self.mock.Redis.return_value = _MockRedis()
         self.mock.is_running_on_app_engine.return_value = True
 
@@ -232,8 +231,8 @@ class MemcacheTest(unittest.TestCase):
         def fn():
             pass
 
-        self.key = self.cache.get_key(fn, ('a', 'b'), {'c': 'd'})
-        self.value = 'b'
+        self.key = self.cache.get_key(fn, ("a", "b"), {"c": "d"})
+        self.value = "b"
 
     def test_get(self):
         """Test store and get."""

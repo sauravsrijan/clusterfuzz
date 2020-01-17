@@ -22,5 +22,4 @@ class ChunkMinimizerTest(base_minimizer_tester.BaseMinimizerTester):
     runs all of the tests in BaseMinimizerTester."""
 
     def setUp(self):
-        self.line_minimizer = chunk_minimizer.ChunkMinimizer(
-            self._mock_test_function)
+        self.line_minimizer = chunk_minimizer.ChunkMinimizer(self._mock_test_function)

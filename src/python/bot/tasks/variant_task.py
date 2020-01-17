@@ -36,9 +36,10 @@ def _get_variant_testcase_for_job(testcase, job_type):
 
     engine_name = environment.get_engine_for_job(job_type)
     project = data_handler.get_project_name(job_type)
-    binary_name = testcase.get_metadata('fuzzer_binary_name')
+    binary_name = testcase.get_metadata("fuzzer_binary_name")
     fully_qualified_fuzzer_name = data_types.fuzz_target_fully_qualified_name(
-        engine_name, project, binary_name)
+        engine_name, project, binary_name
+    )
 
     variant_testcase = data_types.clone_entity(testcase)
     variant_testcase.key = testcase.key
@@ -58,8 +59,9 @@ def execute_task(testcase_id, job_type):
     if not testcase:
         return
 
-    if (environment.is_engine_fuzzer_job(testcase.job_type) !=
-            environment.is_engine_fuzzer_job(job_type)):
+    if environment.is_engine_fuzzer_job(
+        testcase.job_type
+    ) != environment.is_engine_fuzzer_job(job_type):
         # We should never reach here. But in case we do, we should bail out as
         # otherwise we will run into exceptions.
         return
@@ -83,8 +85,10 @@ def execute_task(testcase_id, job_type):
     if not build_manager.check_app_path():
         testcase = data_handler.get_testcase_by_id(testcase_id)
         data_handler.update_testcase_comment(
-            testcase, data_types.TaskState.ERROR,
-            'Build setup failed with job: ' + job_type)
+            testcase,
+            data_types.TaskState.ERROR,
+            "Build setup failed with job: " + job_type,
+        )
         return
 
     # Disable gestures if we're running on a different platform from that of
@@ -92,18 +96,20 @@ def execute_task(testcase_id, job_type):
     use_gestures = testcase.platform == environment.platform().lower()
 
     # Reproduce the crash.
-    app_path = environment.get_value('APP_PATH')
+    app_path = environment.get_value("APP_PATH")
     command = testcase_manager.get_command_line_for_application(
-        testcase_file_path, app_path=app_path, needs_http=testcase.http_flag)
-    test_timeout = environment.get_value('TEST_TIMEOUT', 10)
-    revision = environment.get_value('APP_REVISION')
+        testcase_file_path, app_path=app_path, needs_http=testcase.http_flag
+    )
+    test_timeout = environment.get_value("TEST_TIMEOUT", 10)
+    revision = environment.get_value("APP_REVISION")
     result = testcase_manager.test_for_crash_with_retries(
         testcase,
         testcase_file_path,
         test_timeout,
         http_flag=testcase.http_flag,
         use_gestures=use_gestures,
-        compare_crash=False)
+        compare_crash=False,
+    )
 
     if result.is_crash() and not result.should_ignore():
         crash_state = result.get_state()
@@ -112,8 +118,15 @@ def execute_task(testcase_id, job_type):
 
         gestures = testcase.gestures if use_gestures else None
         one_time_crasher_flag = not testcase_manager.test_for_reproducibility(
-            testcase.fuzzer_name, testcase.actual_fuzzer_name(), testcase_file_path,
-            crash_state, security_flag, test_timeout, testcase.http_flag, gestures)
+            testcase.fuzzer_name,
+            testcase.actual_fuzzer_name(),
+            testcase_file_path,
+            crash_state,
+            security_flag,
+            test_timeout,
+            testcase.http_flag,
+            gestures,
+        )
         if one_time_crasher_flag:
             status = data_types.TestcaseVariantStatus.FLAKY
         else:
@@ -121,28 +134,32 @@ def execute_task(testcase_id, job_type):
 
         crash_comparer = CrashComparer(crash_state, testcase.crash_state)
         is_similar = (
-            crash_comparer.is_similar() and security_flag == testcase.security_flag)
+            crash_comparer.is_similar() and security_flag == testcase.security_flag
+        )
 
         unsymbolized_crash_stacktrace = result.get_stacktrace(symbolized=False)
         symbolized_crash_stacktrace = result.get_stacktrace(symbolized=True)
         crash_stacktrace_output = utils.get_crash_stacktrace_output(
-            command, symbolized_crash_stacktrace, unsymbolized_crash_stacktrace)
+            command, symbolized_crash_stacktrace, unsymbolized_crash_stacktrace
+        )
     else:
         status = data_types.TestcaseVariantStatus.UNREPRODUCIBLE
         is_similar = False
         crash_type = None
         crash_state = None
         security_flag = False
-        crash_stacktrace_output = 'No crash occurred.'
+        crash_stacktrace_output = "No crash occurred."
 
     if original_job_type == job_type:
         # This case happens when someone clicks 'Update last tested stacktrace using
         # trunk build' button.
         testcase = data_handler.get_testcase_by_id(testcase_id)
-        testcase.last_tested_crash_stacktrace = (
-            data_handler.filter_stacktrace(crash_stacktrace_output))
+        testcase.last_tested_crash_stacktrace = data_handler.filter_stacktrace(
+            crash_stacktrace_output
+        )
         testcase.set_metadata(
-            'last_tested_crash_revision', revision, update_testcase=True)
+            "last_tested_crash_revision", revision, update_testcase=True
+        )
     else:
         # Regular case of variant analysis.
         variant = data_handler.get_testcase_variant(testcase_id, job_type)

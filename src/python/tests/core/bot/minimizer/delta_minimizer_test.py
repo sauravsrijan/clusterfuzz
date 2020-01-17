@@ -22,5 +22,4 @@ class DeltaMinimizerTest(base_minimizer_tester.BaseMinimizerTester):
     runs all of the tests in BaseMinimizerTester."""
 
     def setUp(self):
-        self.line_minimizer = delta_minimizer.DeltaMinimizer(
-            self._mock_test_function)
+        self.line_minimizer = delta_minimizer.DeltaMinimizer(self._mock_test_function)

@@ -18,7 +18,6 @@ import antlr4
 
 
 class JavaScriptBaseLexer(antlr4.Lexer):
-
     def __init__(self, input, output):
         super(JavaScriptBaseLexer, self).__init__(input, output)
         self._scopeStrictModes = []
@@ -41,7 +40,7 @@ class JavaScriptBaseLexer(antlr4.Lexer):
 
     def nextToken(self):
         next = super(JavaScriptBaseLexer, self).nextToken()
-        if (next.channel == antlr4.Token.DEFAULT_CHANNEL):
+        if next.channel == antlr4.Token.DEFAULT_CHANNEL:
             self._lastToken = next
 
         return next
@@ -63,7 +62,7 @@ class JavaScriptBaseLexer(antlr4.Lexer):
     def ProcessStringLiteral(self):
         if self._lastToken == None or self._lastToken.type == self.OpenBrace:
             text = super(JavaScriptBaseLexer, self).text
-            if text == '"use strict"' or text == '\'use strict\'':
+            if text == '"use strict"' or text == "'use strict'":
                 if len(self._scopeStrictModes) > 0:
                     self._scopeStrictModes.pop()
                 self._useStrictCurrent = True
@@ -74,9 +73,16 @@ class JavaScriptBaseLexer(antlr4.Lexer):
             return True
 
         if self._lastToken in [
-            self.Identifier, self.NullLiteral, self.BooleanLiteral, self.This,
-            self.CloseBracket, self.CloseParen, self.OctalIntegerLiteral,
-            self.StringLiteral, self.PlusPlus, self.MinusMinus
+            self.Identifier,
+            self.NullLiteral,
+            self.BooleanLiteral,
+            self.This,
+            self.CloseBracket,
+            self.CloseParen,
+            self.OctalIntegerLiteral,
+            self.StringLiteral,
+            self.PlusPlus,
+            self.MinusMinus,
         ]:
             return False
         return True

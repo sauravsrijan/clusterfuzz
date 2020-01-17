@@ -23,13 +23,13 @@ import sys
 from local.butler import common
 from local.butler import constants
 
-SRC_DIR_PY = os.path.join('src', 'appengine')
-SRC_DIR_GO = os.path.join('src', 'go', 'server')
+SRC_DIR_PY = os.path.join("src", "appengine")
+SRC_DIR_GO = os.path.join("src", "go", "server")
 
 
 def _is_go_yaml(file_path):
     """Whether or not this is a go yaml path."""
-    return os.path.basename(file_path).startswith('go-')
+    return os.path.basename(file_path).startswith("go-")
 
 
 def _get_target_directory(yaml_path):
@@ -43,7 +43,7 @@ def _add_env_vars_if_needed(yaml_path, additional_env_vars):
     import yaml
     from src.python.config import local_config
 
-    env_values = local_config.ProjectConfig().get('env')
+    env_values = local_config.ProjectConfig().get("env")
     if additional_env_vars:
         env_values.update(additional_env_vars)
 
@@ -53,17 +53,17 @@ def _add_env_vars_if_needed(yaml_path, additional_env_vars):
     with open(yaml_path) as f:
         data = yaml.safe_load(f)
 
-    if not isinstance(data, dict) or 'service' not in data:
+    if not isinstance(data, dict) or "service" not in data:
         # Not a service.
         return
 
-    if 'runtime' in data and data['runtime'].startswith('go'):
+    if "runtime" in data and data["runtime"].startswith("go"):
         # Remove HELP_FORMAT as multi-line environment variable values are not
         # allowed in Go flex deployment.
-        env_values.pop('HELP_FORMAT', None)
+        env_values.pop("HELP_FORMAT", None)
 
-    data.setdefault('env_variables', {}).update(env_values)
-    with open(yaml_path, 'w') as f:
+    data.setdefault("env_variables", {}).update(env_values)
+    with open(yaml_path, "w") as f:
         yaml.safe_dump(data, f)
 
 
@@ -90,21 +90,19 @@ def copy_yamls_and_preprocess(paths, additional_env_vars=None):
 
 def find_sdk_path():
     """Find the App Engine SDK path."""
-    if common.get_platform() == 'windows':
-        _, gcloud_path = common.execute('where gcloud.cmd', print_output=False)
+    if common.get_platform() == "windows":
+        _, gcloud_path = common.execute("where gcloud.cmd", print_output=False)
     else:
-        gcloud_path = spawn.find_executable('gcloud')
+        gcloud_path = spawn.find_executable("gcloud")
 
     if not gcloud_path:
-        print('Please install the Google Cloud SDK and set up PATH to point to it.')
+        print("Please install the Google Cloud SDK and set up PATH to point to it.")
         sys.exit(1)
 
-    cloud_sdk_path = os.path.dirname(
-        os.path.dirname(os.path.realpath(gcloud_path)))
-    appengine_sdk_path = os.path.join(cloud_sdk_path, 'platform',
-                                      'google_appengine')
+    cloud_sdk_path = os.path.dirname(os.path.dirname(os.path.realpath(gcloud_path)))
+    appengine_sdk_path = os.path.join(cloud_sdk_path, "platform", "google_appengine")
     if not os.path.exists(appengine_sdk_path):
-        print('App Engine SDK not found. Please run local/install_deps.bash')
+        print("App Engine SDK not found. Please run local/install_deps.bash")
         sys.exit(1)
 
     return appengine_sdk_path
@@ -123,46 +121,47 @@ def symlink_dirs():
     symlink_config_dir()
 
     common.symlink(
-        src=os.path.join('src', 'protos'),
-        target=os.path.join(SRC_DIR_PY, 'protos'))
+        src=os.path.join("src", "protos"), target=os.path.join(SRC_DIR_PY, "protos")
+    )
     common.symlink(
-        src=os.path.join('src', 'python'),
-        target=os.path.join(SRC_DIR_PY, 'python'))
+        src=os.path.join("src", "python"), target=os.path.join(SRC_DIR_PY, "python")
+    )
     # While importing third party modules, we may call pkg_resources.
     # pkg_resources normalizes paths by calling os.path.realpath on them, which is
     # incompatible with the App Engine sandbox since the resulting path will no
     # longer be under appengine/.
     common.copy_dir(
-        src=os.path.join('src', 'third_party'),
-        target=os.path.join(SRC_DIR_PY, 'third_party'))
+        src=os.path.join("src", "third_party"),
+        target=os.path.join(SRC_DIR_PY, "third_party"),
+    )
 
     # Remove existing local_gcs symlink (if any). This is important, as otherwise
     # we will try deploying the directory in production. This is only needed for
     # local development in run_server.
-    local_gcs_symlink_path = os.path.join(SRC_DIR_PY, 'local_gcs')
+    local_gcs_symlink_path = os.path.join(SRC_DIR_PY, "local_gcs")
     common.remove_symlink(local_gcs_symlink_path)
 
-    _, output = common.execute('bazel run //local:create_gopath', cwd='src')
-    os.environ['GOPATH'] = output.splitlines()[-1]
+    _, output = common.execute("bazel run //local:create_gopath", cwd="src")
+    os.environ["GOPATH"] = output.splitlines()[-1]
 
 
 def build_templates():
     """Build template files used in appengine."""
-    common.execute('python polymer_bundler.py', cwd='local')
+    common.execute("python polymer_bundler.py", cwd="local")
 
 
 def symlink_config_dir():
     """Symlink config directory in appengine directory."""
-    config_dir = os.getenv('CONFIG_DIR_OVERRIDE', constants.TEST_CONFIG_DIR)
-    common.symlink(src=config_dir, target=os.path.join(SRC_DIR_PY, 'config'))
-    common.symlink(src=config_dir, target=os.path.join(SRC_DIR_GO, 'config'))
+    config_dir = os.getenv("CONFIG_DIR_OVERRIDE", constants.TEST_CONFIG_DIR)
+    common.symlink(src=config_dir, target=os.path.join(SRC_DIR_PY, "config"))
+    common.symlink(src=config_dir, target=os.path.join(SRC_DIR_GO, "config"))
 
 
 def region_from_location(location):
     """Convert an app engine location ID to a region."""
     if not location[-1].isdigit():
         # e.g. us-central -> us-central1
-        location += '1'
+        location += "1"
 
     return location
 
@@ -170,9 +169,10 @@ def region_from_location(location):
 def region(project):
     """Get the App Engine region."""
     return_code, location = common.execute(
-        'gcloud app describe --project={project} '
-        '--format="value(locationId)"'.format(project=project))
+        "gcloud app describe --project={project} "
+        '--format="value(locationId)"'.format(project=project)
+    )
     if return_code:
-        raise RuntimeError('Could not get App Engine region')
+        raise RuntimeError("Could not get App Engine region")
 
     return region_from_location(location.strip())

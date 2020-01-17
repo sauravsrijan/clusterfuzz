@@ -28,7 +28,7 @@ def serializedATN():
         buf.write(u"\21\t\21\4\22\t\22\4\23\t\23\4\24\t\24\4\25\t\25\4\26")
         buf.write(u"\t\26\4\27\t\27\4\30\t\30\4\31\t\31\4\32\t\32\4\33\t")
         buf.write(u"\33\4\34\t\34\4\35\t\35\4\36\t\36\4\37\t\37\4 \t \4!")
-        buf.write(u"\t!\4\"\t\"\3\2\3\2\3\2\3\2\3\2\3\2\7\2P\n\2\f\2\16\2")
+        buf.write(u'\t!\4"\t"\3\2\3\2\3\2\3\2\3\2\3\2\7\2P\n\2\f\2\16\2')
         buf.write(u"S\13\2\3\2\3\2\3\2\3\2\3\3\3\3\3\3\3\3\3\3\7\3^\n\3\f")
         buf.write(u"\3\16\3a\13\3\3\3\3\3\3\3\3\4\3\4\3\4\3\4\3\4\3\4\3\4")
         buf.write(u"\7\4m\n\4\f\4\16\4p\13\4\3\4\3\4\3\5\3\5\3\5\3\5\3\5")
@@ -58,27 +58,27 @@ def serializedATN():
         buf.write(u"\35\u0154\n\35\3\36\6\36\u0157\n\36\r\36\16\36\u0158")
         buf.write(u"\3\36\5\36\u015c\n\36\3\37\3\37\6\37\u0160\n\37\r\37")
         buf.write(u"\16\37\u0161\3 \6 \u0165\n \r \16 \u0166\3 \5 \u016a")
-        buf.write(u"\n \3!\3!\7!\u016e\n!\f!\16!\u0171\13!\3!\3!\3\"\3\"")
-        buf.write(u"\7\"\u0177\n\"\f\"\16\"\u017a\13\"\3\"\3\"\17Q_n\u0080")
+        buf.write(u'\n \3!\3!\7!\u016e\n!\f!\16!\u0171\13!\3!\3!\3"\3"')
+        buf.write(u'\7"\u0177\n"\f"\16"\u017a\13"\3"\3"\17Q_n\u0080')
         buf.write(u"\u008d\u0098\u00a3\u00be\u00cf\u0109\u011b\u0127\u0138")
         buf.write(u"\2#\7\3\t\4\13\5\r\6\17\7\21\b\23\t\25\n\27\13\31\f\33")
-        buf.write(u"\r\35\16\37\17!\20#\21%\22\'\23)\2+\2-\2/\2\61\24\63")
+        buf.write(u"\r\35\16\37\17!\20#\21%\22'\23)\2+\2-\2/\2\61\24\63")
         buf.write(u"\25\65\26\67\279\30;\31=\2?\2A\2C\2E\2G\2\7\2\3\4\5\6")
-        buf.write(u"\16\4\2\13\13\"\"\3\2>>\5\2\13\f\17\17\"\"\5\2\62;CH")
+        buf.write(u'\16\4\2\13\13""\3\2>>\5\2\13\f\17\17""\5\2\62;CH')
         buf.write(u"ch\3\2\62;\4\2/\60aa\5\2\u00b9\u00b9\u0302\u0371\u2041")
         buf.write(u"\u2042\n\2<<C\\c|\u2072\u2191\u2c02\u2ff1\u3003\ud801")
-        buf.write(u"\uf902\ufdd1\ufdf2\uffff\3\2\"\"\t\2%%-=??AAC\\aac|\4")
+        buf.write(u'\uf902\ufdd1\ufdf2\uffff\3\2""\t\2%%-=??AAC\\aac|\4')
         buf.write(u"\2$$>>\4\2))>>\2\u0190\2\7\3\2\2\2\2\t\3\2\2\2\2\13\3")
         buf.write(u"\2\2\2\2\r\3\2\2\2\2\17\3\2\2\2\2\21\3\2\2\2\2\23\3\2")
         buf.write(u"\2\2\2\25\3\2\2\2\2\27\3\2\2\2\2\31\3\2\2\2\2\33\3\2")
         buf.write(u"\2\2\3\35\3\2\2\2\3\37\3\2\2\2\3!\3\2\2\2\3#\3\2\2\2")
-        buf.write(u"\3%\3\2\2\2\3\'\3\2\2\2\4\61\3\2\2\2\4\63\3\2\2\2\5\65")
+        buf.write(u"\3%\3\2\2\2\3'\3\2\2\2\4\61\3\2\2\2\4\63\3\2\2\2\5\65")
         buf.write(u"\3\2\2\2\5\67\3\2\2\2\69\3\2\2\2\6;\3\2\2\2\7I\3\2\2")
         buf.write(u"\2\tX\3\2\2\2\13e\3\2\2\2\rs\3\2\2\2\17\u0087\3\2\2\2")
         buf.write(u"\21\u00a8\3\2\2\2\23\u00af\3\2\2\2\25\u00b3\3\2\2\2\27")
         buf.write(u"\u00c5\3\2\2\2\31\u00d6\3\2\2\2\33\u00db\3\2\2\2\35\u00df")
         buf.write(u"\3\2\2\2\37\u00e3\3\2\2\2!\u00e8\3\2\2\2#\u00ea\3\2\2")
-        buf.write(u"\2%\u00ee\3\2\2\2\'\u00f5\3\2\2\2)\u00f9\3\2\2\2+\u00fb")
+        buf.write(u"\2%\u00ee\3\2\2\2'\u00f5\3\2\2\2)\u00f9\3\2\2\2+\u00fb")
         buf.write(u"\3\2\2\2-\u0101\3\2\2\2/\u0104\3\2\2\2\61\u0109\3\2\2")
         buf.write(u"\2\63\u011b\3\2\2\2\65\u0127\3\2\2\2\67\u0138\3\2\2\2")
         buf.write(u"9\u0144\3\2\2\2;\u0150\3\2\2\2=\u0153\3\2\2\2?\u0156")
@@ -106,11 +106,11 @@ def serializedATN():
         buf.write(u"\2\u0096\u0095\3\2\2\2\u0097\u009a\3\2\2\2\u0098\u0099")
         buf.write(u"\3\2\2\2\u0098\u0096\3\2\2\2\u0099\u009b\3\2\2\2\u009a")
         buf.write(u"\u0098\3\2\2\2\u009b\u009c\7A\2\2\u009c\u00a9\7@\2\2")
-        buf.write(u"\u009d\u009e\7>\2\2\u009e\u009f\7\'\2\2\u009f\u00a3\3")
+        buf.write(u"\u009d\u009e\7>\2\2\u009e\u009f\7'\2\2\u009f\u00a3\3")
         buf.write(u"\2\2\2\u00a0\u00a2\13\2\2\2\u00a1\u00a0\3\2\2\2\u00a2")
         buf.write(u"\u00a5\3\2\2\2\u00a3\u00a4\3\2\2\2\u00a3\u00a1\3\2\2")
         buf.write(u"\2\u00a4\u00a6\3\2\2\2\u00a5\u00a3\3\2\2\2\u00a6\u00a7")
-        buf.write(u"\7\'\2\2\u00a7\u00a9\7@\2\2\u00a8\u0092\3\2\2\2\u00a8")
+        buf.write(u"\7'\2\2\u00a7\u00a9\7@\2\2\u00a8\u0092\3\2\2\2\u00a8")
         buf.write(u"\u009d\3\2\2\2\u00a9\22\3\2\2\2\u00aa\u00b0\t\2\2\2\u00ab")
         buf.write(u"\u00ad\7\17\2\2\u00ac\u00ab\3\2\2\2\u00ac\u00ad\3\2\2")
         buf.write(u"\2\u00ad\u00ae\3\2\2\2\u00ae\u00b0\7\f\2\2\u00af\u00aa")
@@ -136,7 +136,7 @@ def serializedATN():
         buf.write(u"\7@\2\2\u00e0\u00e1\3\2\2\2\u00e1\u00e2\b\r\5\2\u00e2")
         buf.write(u"\36\3\2\2\2\u00e3\u00e4\7\61\2\2\u00e4\u00e5\7@\2\2\u00e5")
         buf.write(u"\u00e6\3\2\2\2\u00e6\u00e7\b\16\5\2\u00e7 \3\2\2\2\u00e8")
-        buf.write(u"\u00e9\7\61\2\2\u00e9\"\3\2\2\2\u00ea\u00eb\7?\2\2\u00eb")
+        buf.write(u'\u00e9\7\61\2\2\u00e9"\3\2\2\2\u00ea\u00eb\7?\2\2\u00eb')
         buf.write(u"\u00ec\3\2\2\2\u00ec\u00ed\b\20\6\2\u00ed$\3\2\2\2\u00ee")
         buf.write(u"\u00f2\5/\26\2\u00ef\u00f1\5-\25\2\u00f0\u00ef\3\2\2")
         buf.write(u"\2\u00f1\u00f4\3\2\2\2\u00f2\u00f0\3\2\2\2\u00f2\u00f3")
@@ -175,20 +175,20 @@ def serializedATN():
         buf.write(u"\3\2\2\2\u0144\u0142\3\2\2\2\u0144\u0145\3\2\2\2\u0145")
         buf.write(u"\u0147\3\2\2\2\u0146\u0144\3\2\2\2\u0147\u0148\5;\34")
         buf.write(u"\2\u0148\u0149\3\2\2\2\u0149\u014a\b\33\5\2\u014a:\3")
-        buf.write(u"\2\2\2\u014b\u0151\5E!\2\u014c\u0151\5G\"\2\u014d\u0151")
+        buf.write(u'\2\2\2\u014b\u0151\5E!\2\u014c\u0151\5G"\2\u014d\u0151')
         buf.write(u"\5?\36\2\u014e\u0151\5A\37\2\u014f\u0151\5C \2\u0150")
         buf.write(u"\u014b\3\2\2\2\u0150\u014c\3\2\2\2\u0150\u014d\3\2\2")
         buf.write(u"\2\u0150\u014e\3\2\2\2\u0150\u014f\3\2\2\2\u0151<\3\2")
         buf.write(u"\2\2\u0152\u0154\t\13\2\2\u0153\u0152\3\2\2\2\u0154>")
         buf.write(u"\3\2\2\2\u0155\u0157\5=\35\2\u0156\u0155\3\2\2\2\u0157")
         buf.write(u"\u0158\3\2\2\2\u0158\u0156\3\2\2\2\u0158\u0159\3\2\2")
-        buf.write(u"\2\u0159\u015b\3\2\2\2\u015a\u015c\7\"\2\2\u015b\u015a")
+        buf.write(u'\2\u0159\u015b\3\2\2\2\u015a\u015c\7"\2\2\u015b\u015a')
         buf.write(u"\3\2\2\2\u015b\u015c\3\2\2\2\u015c@\3\2\2\2\u015d\u015f")
         buf.write(u"\7%\2\2\u015e\u0160\t\5\2\2\u015f\u015e\3\2\2\2\u0160")
         buf.write(u"\u0161\3\2\2\2\u0161\u015f\3\2\2\2\u0161\u0162\3\2\2")
         buf.write(u"\2\u0162B\3\2\2\2\u0163\u0165\t\6\2\2\u0164\u0163\3\2")
         buf.write(u"\2\2\u0165\u0166\3\2\2\2\u0166\u0164\3\2\2\2\u0166\u0167")
-        buf.write(u"\3\2\2\2\u0167\u0169\3\2\2\2\u0168\u016a\7\'\2\2\u0169")
+        buf.write(u"\3\2\2\2\u0167\u0169\3\2\2\2\u0168\u016a\7'\2\2\u0169")
         buf.write(u"\u0168\3\2\2\2\u0169\u016a\3\2\2\2\u016aD\3\2\2\2\u016b")
         buf.write(u"\u016f\7$\2\2\u016c\u016e\n\f\2\2\u016d\u016c\3\2\2\2")
         buf.write(u"\u016e\u0171\3\2\2\2\u016f\u016d\3\2\2\2\u016f\u0170")
@@ -247,23 +247,66 @@ class HTMLLexer(Lexer):
     literalNames = [u"<INVALID>", u"'<'", u"'>'", u"'/>'", u"'/'", u"'='"]
 
     symbolicNames = [
-        u"<INVALID>", u"HTML_COMMENT", u"HTML_CONDITIONAL_COMMENT",
-        u"XML_DECLARATION", u"CDATA", u"DTD", u"SCRIPTLET", u"SEA_WS",
-        u"SCRIPT_OPEN", u"STYLE_OPEN", u"TAG_OPEN", u"HTML_TEXT", u"TAG_CLOSE",
-        u"TAG_SLASH_CLOSE", u"TAG_SLASH", u"TAG_EQUALS", u"TAG_NAME",
-        u"TAG_WHITESPACE", u"SCRIPT_BODY", u"SCRIPT_SHORT_BODY", u"STYLE_BODY",
-        u"STYLE_SHORT_BODY", u"ATTVALUE_VALUE", u"ATTRIBUTE"
+        u"<INVALID>",
+        u"HTML_COMMENT",
+        u"HTML_CONDITIONAL_COMMENT",
+        u"XML_DECLARATION",
+        u"CDATA",
+        u"DTD",
+        u"SCRIPTLET",
+        u"SEA_WS",
+        u"SCRIPT_OPEN",
+        u"STYLE_OPEN",
+        u"TAG_OPEN",
+        u"HTML_TEXT",
+        u"TAG_CLOSE",
+        u"TAG_SLASH_CLOSE",
+        u"TAG_SLASH",
+        u"TAG_EQUALS",
+        u"TAG_NAME",
+        u"TAG_WHITESPACE",
+        u"SCRIPT_BODY",
+        u"SCRIPT_SHORT_BODY",
+        u"STYLE_BODY",
+        u"STYLE_SHORT_BODY",
+        u"ATTVALUE_VALUE",
+        u"ATTRIBUTE",
     ]
 
     ruleNames = [
-        u"HTML_COMMENT", u"HTML_CONDITIONAL_COMMENT", u"XML_DECLARATION",
-        u"CDATA", u"DTD", u"SCRIPTLET", u"SEA_WS", u"SCRIPT_OPEN", u"STYLE_OPEN",
-        u"TAG_OPEN", u"HTML_TEXT", u"TAG_CLOSE", u"TAG_SLASH_CLOSE", u"TAG_SLASH",
-        u"TAG_EQUALS", u"TAG_NAME", u"TAG_WHITESPACE", u"HEXDIGIT", u"DIGIT",
-        u"TAG_NameChar", u"TAG_NameStartChar", u"SCRIPT_BODY",
-        u"SCRIPT_SHORT_BODY", u"STYLE_BODY", u"STYLE_SHORT_BODY",
-        u"ATTVALUE_VALUE", u"ATTRIBUTE", u"ATTCHAR", u"ATTCHARS", u"HEXCHARS",
-        u"DECCHARS", u"DOUBLE_QUOTE_STRING", u"SINGLE_QUOTE_STRING"
+        u"HTML_COMMENT",
+        u"HTML_CONDITIONAL_COMMENT",
+        u"XML_DECLARATION",
+        u"CDATA",
+        u"DTD",
+        u"SCRIPTLET",
+        u"SEA_WS",
+        u"SCRIPT_OPEN",
+        u"STYLE_OPEN",
+        u"TAG_OPEN",
+        u"HTML_TEXT",
+        u"TAG_CLOSE",
+        u"TAG_SLASH_CLOSE",
+        u"TAG_SLASH",
+        u"TAG_EQUALS",
+        u"TAG_NAME",
+        u"TAG_WHITESPACE",
+        u"HEXDIGIT",
+        u"DIGIT",
+        u"TAG_NameChar",
+        u"TAG_NameStartChar",
+        u"SCRIPT_BODY",
+        u"SCRIPT_SHORT_BODY",
+        u"STYLE_BODY",
+        u"STYLE_SHORT_BODY",
+        u"ATTVALUE_VALUE",
+        u"ATTRIBUTE",
+        u"ATTCHAR",
+        u"ATTCHARS",
+        u"HEXCHARS",
+        u"DECCHARS",
+        u"DOUBLE_QUOTE_STRING",
+        u"SINGLE_QUOTE_STRING",
     ]
 
     grammarFileName = u"HTMLLexer.g4"
@@ -271,7 +314,8 @@ class HTMLLexer(Lexer):
     def __init__(self, input=None, output=sys.stdout):
         super(HTMLLexer, self).__init__(input, output=output)
         self.checkVersion("4.7.1")
-        self._interp = LexerATNSimulator(self, self.atn, self.decisionsToDFA,
-                                         PredictionContextCache())
+        self._interp = LexerATNSimulator(
+            self, self.atn, self.decisionsToDFA, PredictionContextCache()
+        )
         self._actions = None
         self._predicates = None

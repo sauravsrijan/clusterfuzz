@@ -29,9 +29,9 @@ UPDATE_SOURCE_TIMEOUT_SECONDS = 15
 RPC_RETRY_ATTEMPTS = 1
 
 GRPC_OPTIONS = (
-    ('grpc.max_send_message_length', -1),
-    ('grpc.max_receive_message_length', -1),
-    ('grpc.max_metadata_size', 32 * 1024 * 1024),
+    ("grpc.max_send_message_length", -1),
+    ("grpc.max_receive_message_length", -1),
+    ("grpc.max_metadata_size", 32 * 1024 * 1024),
 )
 
 NUM_WORKER_THREADS = 4

@@ -40,13 +40,51 @@ class AntlrTokenizerTest(unittest.TestCase):
           }"""
 
         tokens = tokenizer.tokenize(txt)
-        self.assertEqual(tokens, [
-            'async', ' ', 'function', ' ', 'process', '(', 'array', ')', ' ', '{',
-            '\n', '          ', 'for', ' ', 'await', ' ', '(', 'let', ' ', 'i', ' ',
-            'of', ' ', 'array', ')', ' ', '{', '\n', '              ',
-            'doSomething', '(', 'i', ')', ';', '\n', '            ', '}', '\n',
-            '          ', '}'
-        ])
+        self.assertEqual(
+            tokens,
+            [
+                "async",
+                " ",
+                "function",
+                " ",
+                "process",
+                "(",
+                "array",
+                ")",
+                " ",
+                "{",
+                "\n",
+                "          ",
+                "for",
+                " ",
+                "await",
+                " ",
+                "(",
+                "let",
+                " ",
+                "i",
+                " ",
+                "of",
+                " ",
+                "array",
+                ")",
+                " ",
+                "{",
+                "\n",
+                "              ",
+                "doSomething",
+                "(",
+                "i",
+                ")",
+                ";",
+                "\n",
+                "            ",
+                "}",
+                "\n",
+                "          ",
+                "}",
+            ],
+        )
 
     def test_combine_same_as_orig(self):
         """Tests the token combiner"""
@@ -67,7 +105,27 @@ class AntlrTokenizerTest(unittest.TestCase):
         txt = "aasdfj1  1jhsdf9 1 3@ 1 + => adj 193"
 
         tokens = tokenizer.tokenize(txt)
-        self.assertEqual(tokens, [
-            'aasdfj1', '  ', '1', 'jhsdf9', ' ', '1', ' ', '3', '@', ' ', '1', ' ',
-            '+', ' ', '=>', ' ', 'adj', ' ', '193'
-        ])
+        self.assertEqual(
+            tokens,
+            [
+                "aasdfj1",
+                "  ",
+                "1",
+                "jhsdf9",
+                " ",
+                "1",
+                " ",
+                "3",
+                "@",
+                " ",
+                "1",
+                " ",
+                "+",
+                " ",
+                "=>",
+                " ",
+                "adj",
+                " ",
+                "193",
+            ],
+        )

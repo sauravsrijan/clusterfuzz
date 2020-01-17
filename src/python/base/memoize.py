@@ -31,17 +31,17 @@ from system.environment import local_noop
 # Thead local globals.
 _local = threading.local()
 
-_DEFAULT_REDIS_HOST = 'localhost'
+_DEFAULT_REDIS_HOST = "localhost"
 _DEFAULT_REDIS_PORT = 6379
 
 
 def _redis_client():
     """Get the redis client."""
-    if hasattr(_local, 'redis'):
+    if hasattr(_local, "redis"):
         return _local.redis
 
-    host = os.getenv('REDIS_HOST', _DEFAULT_REDIS_HOST)
-    port = os.getenv('REDIS_PORT', _DEFAULT_REDIS_PORT)
+    host = os.getenv("REDIS_HOST", _DEFAULT_REDIS_HOST)
+    port = os.getenv("REDIS_PORT", _DEFAULT_REDIS_PORT)
     _local.redis = redis.Redis(host=host, port=port)
     return _local.redis
 
@@ -133,8 +133,7 @@ class Memcache(object):
     @bot_noop
     def put(self, key, value):
         """Put (key, value) into cache."""
-        _redis_client().set(
-            json.dumps(key), json.dumps(value), ex=self.ttl_in_seconds)
+        _redis_client().set(json.dumps(key), json.dumps(value), ex=self.ttl_in_seconds)
 
     @local_noop
     @bot_noop
@@ -155,15 +154,14 @@ def _default_key(func, args, kwargs):
     """Get a key name based on function, arguments and keyword arguments."""
     # Use unicode instead of str where possible. This makes it less likely to
     # have false misses.
-    args = tuple(
-        arg if not isinstance(arg, str) else unicode(arg) for arg in args)
+    args = tuple(arg if not isinstance(arg, str) else unicode(arg) for arg in args)
 
     kwargs = {
         key: value if not isinstance(value, str) else unicode(value)
         for key, value in six.iteritems(kwargs)
     }
 
-    return 'memoize:%s' % [func.__name__, args, sorted(kwargs.items())]
+    return "memoize:%s" % [func.__name__, args, sorted(kwargs.items())]
 
 
 def wrap(engine):
@@ -177,7 +175,7 @@ def wrap(engine):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             """Wrapper function."""
-            force_update = kwargs.pop('__memoize_force__', False)
+            force_update = kwargs.pop("__memoize_force__", False)
 
             key = engine.get_key(func, args, kwargs)
             result = engine.get(key)

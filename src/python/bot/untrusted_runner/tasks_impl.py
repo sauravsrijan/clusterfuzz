@@ -32,7 +32,8 @@ from protos import untrusted_runner_pb2
 def _proto_to_fuzz_target(proto):
     """Convert protobuf to FuzzTarget."""
     return data_types.FuzzTarget(
-        engine=proto.engine, project=proto.project, binary=proto.binary)
+        engine=proto.engine, project=proto.project, binary=proto.binary
+    )
 
 
 def _proto_to_cross_pollinate_fuzzer(proto):
@@ -40,19 +41,23 @@ def _proto_to_cross_pollinate_fuzzer(proto):
     return corpus_pruning_task.CrossPollinateFuzzer(
         fuzz_target=_proto_to_fuzz_target(proto.fuzz_target),
         backup_bucket_name=proto.backup_bucket_name,
-        corpus_engine_name=proto.corpus_engine_name)
+        corpus_engine_name=proto.corpus_engine_name,
+    )
 
 
 def prune_corpus(request, _):
     """Prune corpus."""
     context = corpus_pruning_task.Context(
-        _proto_to_fuzz_target(request.fuzz_target), [
+        _proto_to_fuzz_target(request.fuzz_target),
+        [
             _proto_to_cross_pollinate_fuzzer(proto)
             for proto in request.cross_pollinate_fuzzers
-        ])
+        ],
+    )
 
     result = corpus_pruning_task.do_corpus_pruning(
-        context, request.last_execution_failed, request.revision)
+        context, request.last_execution_failed, request.revision
+    )
 
     # Intentionally skip edge and function coverage values as those would come
     # from fuzzer coverage cron task (see src/go/server/cron/coverage.go).
@@ -63,7 +68,8 @@ def prune_corpus(request, _):
         corpus_backup_location=result.coverage_info.corpus_backup_location,
         quarantine_size_units=result.coverage_info.quarantine_size_units,
         quarantine_size_bytes=result.coverage_info.quarantine_size_bytes,
-        quarantine_location=result.coverage_info.quarantine_location)
+        quarantine_location=result.coverage_info.quarantine_location,
+    )
 
     crashes = [
         untrusted_runner_pb2.CorpusCrash(
@@ -71,53 +77,67 @@ def prune_corpus(request, _):
             crash_type=crash.crash_type,
             crash_address=crash.crash_address,
             crash_stacktrace=protobuf_utils.encode_utf8_if_unicode(
-                crash.crash_stacktrace),
+                crash.crash_stacktrace
+            ),
             unit_path=crash.unit_path,
             security_flag=crash.security_flag,
-        ) for crash in result.crashes
+        )
+        for crash in result.crashes
     ]
 
     return untrusted_runner_pb2.PruneCorpusResponse(
         coverage_info=coverage_info,
         crashes=crashes,
         fuzzer_binary_name=result.fuzzer_binary_name,
-        revision=result.revision)
+        revision=result.revision,
+    )
 
 
 def process_testcase(request, _):
     """Process testcase."""
     tool_name_map = {
-        untrusted_runner_pb2.ProcessTestcaseRequest.MINIMIZE: 'minimize',
-        untrusted_runner_pb2.ProcessTestcaseRequest.CLEANSE: 'cleanse',
+        untrusted_runner_pb2.ProcessTestcaseRequest.MINIMIZE: "minimize",
+        untrusted_runner_pb2.ProcessTestcaseRequest.CLEANSE: "cleanse",
     }
 
     # TODO(ochang): Support other engines.
-    assert request.engine == 'libFuzzer'
+    assert request.engine == "libFuzzer"
     assert request.operation in tool_name_map
 
     result = minimize_task.run_libfuzzer_engine(
-        tool_name_map[request.operation], request.target_name, request.arguments,
-        request.testcase_path, request.output_path, request.timeout)
+        tool_name_map[request.operation],
+        request.target_name,
+        request.arguments,
+        request.testcase_path,
+        request.output_path,
+        request.timeout,
+    )
 
     return untrusted_runner_pb2.EngineReproduceResult(
         return_code=result.return_code,
         time_executed=result.time_executed,
-        output=result.output)
+        output=result.output,
+    )
 
 
 def engine_fuzz(request, _):
     """Run engine fuzzer."""
     engine_impl = engine.get(request.engine)
     result, fuzzer_metadata = fuzz_task.run_engine_fuzzer(
-        engine_impl, request.target_name, request.sync_corpus_directory,
-        request.testcase_directory)
+        engine_impl,
+        request.target_name,
+        request.sync_corpus_directory,
+        request.testcase_directory,
+    )
 
     crashes = [
         untrusted_runner_pb2.EngineCrash(
             input_path=crash.input_path,
             stacktrace=protobuf_utils.encode_utf8_if_unicode(crash.stacktrace),
             reproduce_args=crash.reproduce_args,
-            crash_time=crash.crash_time) for crash in result.crashes
+            crash_time=crash.crash_time,
+        )
+        for crash in result.crashes
     ]
 
     packed_stats = {}
@@ -130,7 +150,7 @@ def engine_fuzz(request, _):
         elif isinstance(value, six.string_types):
             packed_value.Pack(wrappers_pb2.StringValue(value=value))
         else:
-            raise ValueError('Unknown stat type for ' + key)
+            raise ValueError("Unknown stat type for " + key)
 
         packed_stats[key] = packed_value
 
@@ -140,17 +160,23 @@ def engine_fuzz(request, _):
         crashes=crashes,
         stats=packed_stats,
         time_executed=result.time_executed,
-        fuzzer_metadata=fuzzer_metadata)
+        fuzzer_metadata=fuzzer_metadata,
+    )
 
 
 def engine_reproduce(request, _):
     """Run engine reproduce."""
     engine_impl = engine.get(request.engine)
-    result = testcase_manager.engine_reproduce(engine_impl, request.target_name,
-                                               request.testcase_path,
-                                               request.arguments, request.timeout)
+    result = testcase_manager.engine_reproduce(
+        engine_impl,
+        request.target_name,
+        request.testcase_path,
+        request.arguments,
+        request.timeout,
+    )
     return untrusted_runner_pb2.EngineReproduceResult(
         command=result.command,
         return_code=result.return_code,
         time_executed=result.time_executed,
-        output=result.output)
+        output=result.output,
+    )

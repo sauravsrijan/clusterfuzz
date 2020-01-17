@@ -39,7 +39,7 @@ class AppFailedException(Exception):
 class Impact(object):
     """Represents impact on a build type."""
 
-    def __init__(self, version='', likely=False, extra_trace=''):
+    def __init__(self, version="", likely=False, extra_trace=""):
         self.version = str(version)
         self.likely = likely
         self.extra_trace = extra_trace
@@ -49,8 +49,11 @@ class Impact(object):
         return not self.version
 
     def __eq__(self, other):
-        return (self.version == other.version and self.likely == other.likely and
-                self.extra_trace == other.extra_trace)
+        return (
+            self.version == other.version
+            and self.likely == other.likely
+            and self.extra_trace == other.extra_trace
+        )
 
 
 class Impacts(object):
@@ -64,22 +67,25 @@ class Impacts(object):
         return self.stable.is_empty() and self.beta.is_empty()
 
     def get_extra_trace(self):
-        return (self.stable.extra_trace + '\n' + self.beta.extra_trace).strip()
+        return (self.stable.extra_trace + "\n" + self.beta.extra_trace).strip()
 
     def __eq__(self, other):
         return self.stable == other.stable and self.beta == other.beta
 
 
-def get_chromium_component_start_and_end_revision(start_revision, end_revision,
-                                                  job_type):
+def get_chromium_component_start_and_end_revision(
+    start_revision, end_revision, job_type
+):
     """Get revisions from chromium component."""
     component_rev_list = revisions.get_component_range_list(
-        start_revision, end_revision, job_type)
+        start_revision, end_revision, job_type
+    )
 
     for component_rev in component_rev_list:
-        if component_rev['component'] == 'Chromium':
-            start_revision, end_revision = (
-                revisions.get_start_and_end_revision(component_rev['link_text']))
+        if component_rev["component"] == "Chromium":
+            start_revision, end_revision = revisions.get_start_and_end_revision(
+                component_rev["link_text"]
+            )
 
     return start_revision, end_revision
 
@@ -87,25 +93,27 @@ def get_chromium_component_start_and_end_revision(start_revision, end_revision,
 def get_start_and_end_revision(regression_range, job_type):
     """Get start and end revision."""
     start_revision, end_revision = revisions.get_start_and_end_revision(
-        regression_range)
+        regression_range
+    )
 
     # FIXME: Hack to use chromium revision for android builds.
-    if 'android' in job_type.lower():
+    if "android" in job_type.lower():
         return get_chromium_component_start_and_end_revision(
-            start_revision, end_revision, job_type)
+            start_revision, end_revision, job_type
+        )
 
     return start_revision, end_revision
 
 
-def get_component_information_by_name(chromium_revision,
-                                      component_display_name):
+def get_component_information_by_name(chromium_revision, component_display_name):
     """Returns a dictionary with information about a component at a revision."""
     lower_name = component_display_name.lower()
     component_revisions = revisions.get_component_revisions_dict(
-        chromium_revision, None)
+        chromium_revision, None
+    )
     all_details = []
     for value in six.itervalues(component_revisions):
-        if value and 'name' in value and value['name'].lower() == lower_name:
+        if value and "name" in value and value["name"].lower() == lower_name:
             all_details.append(value)
     # If we found several components with the same name, return nothing useful.
     if len(all_details) == 1:
@@ -113,63 +121,66 @@ def get_component_information_by_name(chromium_revision,
     return None
 
 
-def get_component_impacts_from_url(component_name,
-                                   regression_range,
-                                   job_type,
-                                   platform=None):
+def get_component_impacts_from_url(
+    component_name, regression_range, job_type, platform=None
+):
     """Gets component impact string using the build information url."""
     start_revision, end_revision = get_start_and_end_revision(
-        regression_range, job_type)
+        regression_range, job_type
+    )
     if not end_revision:
         return Impacts()
 
     found_impacts = dict()
-    for build in ['stable', 'beta']:
-        build_revision_mappings = revisions.get_build_to_revision_mappings(
-            platform)
+    for build in ["stable", "beta"]:
+        build_revision_mappings = revisions.get_build_to_revision_mappings(platform)
         if not build_revision_mappings:
             return Impacts()
         mapping = build_revision_mappings.get(build)
         if not mapping:
             return Impacts()
-        chromium_revision = mapping['revision']
+        chromium_revision = mapping["revision"]
         component_revision = get_component_information_by_name(
-            chromium_revision, component_name)
+            chromium_revision, component_name
+        )
         if not component_revision:
             return Impacts()
         branched_from = revisions.revision_to_branched_from(
-            component_revision['url'], component_revision['rev'])
+            component_revision["url"], component_revision["rev"]
+        )
         if not branched_from:
             return Impacts()
-        impact = get_impact({
-            'revision': branched_from,
-            'version': mapping['version']
-        }, start_revision, end_revision)
+        impact = get_impact(
+            {"revision": branched_from, "version": mapping["version"]},
+            start_revision,
+            end_revision,
+        )
         found_impacts[build] = impact
-    return Impacts(found_impacts['stable'], found_impacts['beta'])
+    return Impacts(found_impacts["stable"], found_impacts["beta"])
 
 
 def get_impacts_from_url(regression_range, job_type, platform=None):
     """Gets impact string using the build information url."""
     component_name = data_handler.get_component_name(job_type)
     if component_name:
-        return get_component_impacts_from_url(component_name, regression_range,
-                                              job_type, platform)
+        return get_component_impacts_from_url(
+            component_name, regression_range, job_type, platform
+        )
 
     start_revision, end_revision = get_start_and_end_revision(
-        regression_range, job_type)
+        regression_range, job_type
+    )
     if not end_revision:
         return Impacts()
 
-    build_revision_mappings = revisions.get_build_to_revision_mappings(
-        platform)
+    build_revision_mappings = revisions.get_build_to_revision_mappings(platform)
     if not build_revision_mappings:
         return Impacts()
 
     stable = get_impact(
-        build_revision_mappings.get('stable'), start_revision, end_revision)
-    beta = get_impact(
-        build_revision_mappings.get('beta'), start_revision, end_revision)
+        build_revision_mappings.get("stable"), start_revision, end_revision
+    )
+    beta = get_impact(build_revision_mappings.get("beta"), start_revision, end_revision)
 
     return Impacts(stable, beta)
 
@@ -180,7 +191,7 @@ def get_impact(build_revision, start_revision, end_revision):
     if not build_revision:
         return Impact()
 
-    revision = build_revision['revision']
+    revision = build_revision["revision"]
     if not revision.isdigit():
         return Impact()
 
@@ -189,7 +200,7 @@ def get_impact(build_revision, start_revision, end_revision):
     if start_revision > revision:
         return Impact()
 
-    version = build_revision['version']
+    version = build_revision["version"]
     if end_revision < revision:
         return Impact(version, likely=False)
 
@@ -202,13 +213,15 @@ def get_impacts_on_prod_builds(testcase, testcase_file_path):
     impacts = Impacts()
     try:
         impacts.stable = get_impact_on_build(
-            'stable', testcase.impact_stable_version, testcase, testcase_file_path)
+            "stable", testcase.impact_stable_version, testcase, testcase_file_path
+        )
     except AppFailedException:
         return get_impacts_from_url(testcase.regression, testcase.job_type)
 
     try:
-        impacts.beta = get_impact_on_build('beta', testcase.impact_beta_version,
-                                           testcase, testcase_file_path)
+        impacts.beta = get_impact_on_build(
+            "beta", testcase.impact_beta_version, testcase, testcase_file_path
+        )
     except AppFailedException:
         # If beta fails to get the binary, we ignore. At least, we have stable.
         pass
@@ -216,13 +229,13 @@ def get_impacts_on_prod_builds(testcase, testcase_file_path):
     return impacts
 
 
-def get_impact_on_build(build_type, current_version, testcase,
-                        testcase_file_path):
+def get_impact_on_build(build_type, current_version, testcase, testcase_file_path):
     """Return impact and additional trace on a prod build given build_type."""
     build = build_manager.setup_production_build(build_type)
     if not build:
         raise BuildFailedException(
-            'Build setup failed for %s' % build_type.capitalize())
+            "Build setup failed for %s" % build_type.capitalize()
+        )
 
     if not build_manager.check_app_path():
         raise AppFailedException()
@@ -231,21 +244,26 @@ def get_impact_on_build(build_type, current_version, testcase,
     if version == current_version:
         return Impact(current_version, likely=False)
 
-    app_path = environment.get_value('APP_PATH')
+    app_path = environment.get_value("APP_PATH")
     command = testcase_manager.get_command_line_for_application(
-        testcase_file_path, app_path=app_path, needs_http=testcase.http_flag)
+        testcase_file_path, app_path=app_path, needs_http=testcase.http_flag
+    )
     result = testcase_manager.test_for_crash_with_retries(
         testcase,
         testcase_file_path,
-        environment.get_value('TEST_TIMEOUT'),
-        http_flag=testcase.http_flag)
+        environment.get_value("TEST_TIMEOUT"),
+        http_flag=testcase.http_flag,
+    )
 
     if result.is_crash():
         symbolized_crash_stacktrace = result.get_stacktrace(symbolized=True)
         unsymbolized_crash_stacktrace = result.get_stacktrace(symbolized=False)
         stacktrace = utils.get_crash_stacktrace_output(
-            command, symbolized_crash_stacktrace, unsymbolized_crash_stacktrace,
-            build_type)
+            command,
+            symbolized_crash_stacktrace,
+            unsymbolized_crash_stacktrace,
+            build_type,
+        )
         return Impact(version, likely=False, extra_trace=stacktrace)
 
     return Impact()
@@ -279,23 +297,26 @@ def execute_task(testcase_id, job_type):
         return
 
     # Update comments only after checking the above bailout conditions.
-    data_handler.update_testcase_comment(
-        testcase, data_types.TaskState.STARTED)
+    data_handler.update_testcase_comment(testcase, data_types.TaskState.STARTED)
 
     # This task is not applicable to unreproducible testcases.
     if testcase.one_time_crasher_flag:
         data_handler.update_testcase_comment(
-            testcase, data_types.TaskState.ERROR,
-            'Not applicable for unreproducible testcases')
+            testcase,
+            data_types.TaskState.ERROR,
+            "Not applicable for unreproducible testcases",
+        )
         return
 
     # This task is not applicable for custom binaries. We cannot remove the
     # creation of such tasks specifically for custom binary testcase in cron,
     # so exit gracefully.
     if build_manager.is_custom_binary():
-        data_handler.update_testcase_comment(testcase,
-                                             data_types.TaskState.FINISHED,
-                                             'Not applicable for custom binaries')
+        data_handler.update_testcase_comment(
+            testcase,
+            data_types.TaskState.FINISHED,
+            "Not applicable for custom binaries",
+        )
         return
 
     # If we don't have a stable or beta build url pattern, we try to use build
@@ -303,16 +324,17 @@ def execute_task(testcase_id, job_type):
     if not build_manager.has_production_builds():
         if not testcase.regression:
             data_handler.update_testcase_comment(
-                testcase, data_types.TaskState.FINISHED,
-                'Cannot run without regression range, will re-run once regression '
-                'task finishes')
+                testcase,
+                data_types.TaskState.FINISHED,
+                "Cannot run without regression range, will re-run once regression "
+                "task finishes",
+            )
             return
 
         impacts = get_impacts_from_url(testcase.regression, testcase.job_type)
         testcase = data_handler.get_testcase_by_id(testcase_id)
         set_testcase_with_impacts(testcase, impacts)
-        data_handler.update_testcase_comment(testcase,
-                                             data_types.TaskState.FINISHED)
+        data_handler.update_testcase_comment(testcase, data_types.TaskState.FINISHED)
         return
 
     # Setup testcase and its dependencies.
@@ -325,13 +347,15 @@ def execute_task(testcase_id, job_type):
         impacts = get_impacts_on_prod_builds(testcase, testcase_file_path)
     except BuildFailedException as error:
         testcase = data_handler.get_testcase_by_id(testcase_id)
-        data_handler.update_testcase_comment(testcase, data_types.TaskState.ERROR,
-                                             error.message)
+        data_handler.update_testcase_comment(
+            testcase, data_types.TaskState.ERROR, error.message
+        )
         tasks.add_task(
-            'impact',
+            "impact",
             testcase_id,
             job_type,
-            wait_time=environment.get_value('FAIL_WAIT'))
+            wait_time=environment.get_value("FAIL_WAIT"),
+        )
         return
 
     testcase = data_handler.get_testcase_by_id(testcase_id)
@@ -341,8 +365,8 @@ def execute_task(testcase_id, job_type):
     # but it crashes on one of the production builds.
     if testcase.is_status_unreproducible() and impacts.get_extra_trace():
         testcase.crash_stacktrace = data_handler.filter_stacktrace(
-            '%s\n\n%s' % (data_handler.get_stacktrace(testcase),
-                          impacts.get_extra_trace()))
+            "%s\n\n%s"
+            % (data_handler.get_stacktrace(testcase), impacts.get_extra_trace())
+        )
 
-    data_handler.update_testcase_comment(
-        testcase, data_types.TaskState.FINISHED)
+    data_handler.update_testcase_comment(testcase, data_types.TaskState.FINISHED)

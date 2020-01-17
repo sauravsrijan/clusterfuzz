@@ -24,18 +24,20 @@ from platforms.android import device
 from system import environment
 from system import new_process
 
-ADB_DEVICES_SEPARATOR_STRING = 'List of devices attached'
-EMULATOR_RELATIVE_PATH = os.path.join('local', 'bin', 'android-sdk', 'emulator',
-                                      'emulator')
+ADB_DEVICES_SEPARATOR_STRING = "List of devices attached"
+EMULATOR_RELATIVE_PATH = os.path.join(
+    "local", "bin", "android-sdk", "emulator", "emulator"
+)
 
 
 def start_emulator():
     """Return a ProcessRunner configured to start the Android emulator."""
-    root_dir = environment.get_value('ROOT_DIR')
+    root_dir = environment.get_value("ROOT_DIR")
 
     runner = new_process.ProcessRunner(
         os.path.join(root_dir, EMULATOR_RELATIVE_PATH),
-        ['-avd', 'TestImage', '-writable-system', '-partition-size', '2048'])
+        ["-avd", "TestImage", "-writable-system", "-partition-size", "2048"],
+    )
     emulator_process = runner.run()
 
     # If we run adb commands too soon after the emulator starts, we may see
@@ -51,10 +53,10 @@ def start_emulator():
 def get_devices():
     """Get a list of all connected Android devices."""
     adb_runner = new_process.ProcessRunner(adb.get_adb_path())
-    result = adb_runner.run_and_wait(additional_args=['devices'])
+    result = adb_runner.run_and_wait(additional_args=["devices"])
 
     if result.return_code:
-        raise errors.ReproduceToolUnrecoverableError('Unable to run adb.')
+        raise errors.ReproduceToolUnrecoverableError("Unable to run adb.")
 
     # Ignore non-device lines (those before "List of devices attached").
     store_devices = False
@@ -73,37 +75,40 @@ def get_devices():
 
 def prepare_environment(disable_android_setup):
     """Additional environment overrides needed to run on an Android device."""
-    environment.set_value('OS_OVERRIDE', 'ANDROID')
+    environment.set_value("OS_OVERRIDE", "ANDROID")
 
     # Bail out if we can't determine which Android device to use.
-    serial = environment.get_value('ANDROID_SERIAL')
+    serial = environment.get_value("ANDROID_SERIAL")
     if not serial:
         devices = get_devices()
         if len(devices) == 1:
             serial = devices[0]
-            environment.set_value('ANDROID_SERIAL', serial)
+            environment.set_value("ANDROID_SERIAL", serial)
         elif not devices:
             raise errors.ReproduceToolUnrecoverableError(
-                'No connected Android devices were detected. Run with the -e '
-                'argument to use an emulator.')
+                "No connected Android devices were detected. Run with the -e "
+                "argument to use an emulator."
+            )
         else:
             raise errors.ReproduceToolUnrecoverableError(
-                'You have multiple Android devices or emulators connected. Please '
-                'set the ANDROID_SERIAL environment variable and try again.\n\n'
-                'Attached devices: ' + ', '.join(devices))
+                "You have multiple Android devices or emulators connected. Please "
+                "set the ANDROID_SERIAL environment variable and try again.\n\n"
+                "Attached devices: " + ", ".join(devices)
+            )
 
-    print('Warning: this tool will make changes to settings on the connected '
-          'Android device with serial {serial} that could result in data '
-          'loss.'.format(serial=serial))
-    willing_to_continue = prompts.get_boolean(
-        'Are you sure you want to continue?')
+    print(
+        "Warning: this tool will make changes to settings on the connected "
+        "Android device with serial {serial} that could result in data "
+        "loss.".format(serial=serial)
+    )
+    willing_to_continue = prompts.get_boolean("Are you sure you want to continue?")
     if not willing_to_continue:
         raise errors.ReproduceToolUnrecoverableError(
-            'Bailing out to avoid changing settings on the connected device.')
+            "Bailing out to avoid changing settings on the connected device."
+        )
 
     # Push the test case and build APK to the device.
-    apk_path = environment.get_value('APP_PATH')
-    device.update_build(
-        apk_path, should_initialize_device=not disable_android_setup)
+    apk_path = environment.get_value("APP_PATH")
+    device.update_build(apk_path, should_initialize_device=not disable_android_setup)
 
     device.push_testcases_to_device()
