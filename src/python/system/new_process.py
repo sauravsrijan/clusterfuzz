@@ -12,16 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Process handling utilities."""
-
-from builtins import object
 import os
 import subprocess
 import tempfile
 import threading
 import time
+from builtins import object
 
 import psutil
-
 from base import utils
 from metrics import logs
 from system import environment

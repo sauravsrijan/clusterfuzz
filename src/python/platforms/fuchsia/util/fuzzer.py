@@ -14,16 +14,17 @@
 """Fuchsia utilities for handling fuzzers."""
 from __future__ import absolute_import
 from __future__ import print_function
-from builtins import object
-from builtins import str
 
 import datetime
 import errno
 import glob
 import os
-import six
 import subprocess
 import time
+from builtins import object
+from builtins import str
+
+import six
 
 
 class Fuzzer(object):

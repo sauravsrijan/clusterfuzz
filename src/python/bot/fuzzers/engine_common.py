@@ -14,8 +14,6 @@
 """Common functionality for engine fuzzers (ie: libFuzzer or AFL)."""
 from __future__ import print_function
 
-from builtins import object
-from builtins import range
 import contextlib
 import glob
 import os
@@ -25,13 +23,11 @@ import re
 import shutil
 import sys
 import time
+from builtins import object
+from builtins import range
 
 import six
-
 from base import utils
-from bot.fuzzers import options
-from bot.fuzzers import utils as fuzzer_utils
-from bot.fuzzers.ml.rnn import generator as ml_rnn_generator
 from fuzzing import strategy
 from metrics import fuzzer_stats
 from metrics import logs
@@ -40,6 +36,10 @@ from system import environment
 from system import minijail
 from system import new_process
 from system import shell
+
+from bot.fuzzers import options
+from bot.fuzzers import utils as fuzzer_utils
+from bot.fuzzers.ml.rnn import generator as ml_rnn_generator
 
 # Number of testcases to use for the corpus subset strategy.
 # See https://crbug.com/682311 for more information.

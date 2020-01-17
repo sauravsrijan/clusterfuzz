@@ -13,7 +13,6 @@
 # limitations under the License.
 """Translation from Java code for JavaScriptBaseLexer made to work with
 JavaScriptLexer"""
-
 import antlr4
 
 

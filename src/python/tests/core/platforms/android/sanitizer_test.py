@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for sanitizer functions."""
-
 import os
 
 from platforms.android import adb

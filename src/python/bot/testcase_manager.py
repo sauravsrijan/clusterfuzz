@@ -12,19 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Functions for testcase management."""
-
-from builtins import object
-from builtins import range
 import base64
 import collections
 import datetime
 import os
 import re
 import zlib
+from builtins import object
+from builtins import range
 
 from base import utils
-from bot.fuzzers import engine
-from bot.fuzzers import engine_common
 from build_management import revisions
 from crash_analysis import crash_analyzer
 from crash_analysis.crash_comparer import CrashComparer
@@ -39,6 +36,9 @@ from system import archive
 from system import environment
 from system import process_handler
 from system import shell
+
+from bot.fuzzers import engine
+from bot.fuzzers import engine_common
 
 # Testcase filename prefixes and suffixes.
 CRASH_PREFIX = "crash-"

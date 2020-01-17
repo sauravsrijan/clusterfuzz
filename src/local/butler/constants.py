@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Constants shared across butler commands."""
-
 import collections
 import os
 

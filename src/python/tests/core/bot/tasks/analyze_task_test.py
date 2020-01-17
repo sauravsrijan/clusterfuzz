@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for analyze task."""
-
 import unittest
 
-from bot.tasks import analyze_task
 from tests.test_libs import helpers
 from tests.test_libs import test_utils
+
+from bot.tasks import analyze_task
 
 
 @test_utils.with_cloud_emulators("datastore")

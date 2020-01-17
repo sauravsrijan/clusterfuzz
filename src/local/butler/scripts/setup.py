@@ -15,12 +15,11 @@
 from __future__ import print_function
 
 from builtins import object
+
 import six
-
-from google.cloud import monitoring_v3
-
 from base import utils
 from datastore import data_types
+from google.cloud import monitoring_v3
 from metrics import monitor
 from metrics import monitoring_metrics
 

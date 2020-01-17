@@ -12,17 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Memoize caches the result of methods."""
-
-from builtins import object
 import collections
 import functools
 import json
 import os
 import threading
+from builtins import object
 
 import redis
 import six
-
 from base import persistent_cache
 from system.environment import appengine_noop
 from system.environment import bot_noop

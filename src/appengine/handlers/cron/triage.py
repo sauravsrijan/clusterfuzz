@@ -18,8 +18,6 @@ import datetime
 import itertools
 import json
 
-from . import grouper
-
 from base import dates
 from base import errors
 from base import utils
@@ -33,6 +31,8 @@ from libs.issue_management import issue_tracker_policy
 from libs.issue_management import issue_tracker_utils
 from metrics import crash_stats
 from metrics import logs
+
+from . import grouper
 
 UNREPRODUCIBLE_CRASH_IGNORE_CRASH_TYPES = ["Out-of-memory", "Stack-overflow", "Timeout"]
 TRIAGE_MESSAGE_KEY = "triage_message"

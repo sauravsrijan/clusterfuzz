@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Helper functions for app-specific trials/experiments."""
-
 import random
 
 from base import utils

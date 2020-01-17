@@ -14,26 +14,27 @@
 """Tests for corpus_pruning_task."""
 # pylint: disable=unused-argument
 # pylint: disable=protected-access
-
-from tests.test_libs import untrusted_runner_helpers
-from tests.test_libs import test_utils
-from tests.test_libs import helpers
-from system import environment
-from google_cloud_utils import gsutil
-from fuzzing import corpus_manager
-from datastore import data_types
-from datastore import data_handler
-from bot.tasks import corpus_pruning_task
-from bot.tasks import commands
-from bot.fuzzers.libFuzzer import engine as libFuzzer_engine
-import unittest
-import tempfile
-import shutil
-import os
-import mock
 import datetime
+import os
+import shutil
+import tempfile
+import unittest
 from builtins import object
+
+import mock
+from datastore import data_handler
+from datastore import data_types
 from future import standard_library
+from fuzzing import corpus_manager
+from google_cloud_utils import gsutil
+from system import environment
+from tests.test_libs import helpers
+from tests.test_libs import test_utils
+from tests.test_libs import untrusted_runner_helpers
+
+from bot.fuzzers.libFuzzer import engine as libFuzzer_engine
+from bot.tasks import commands
+from bot.tasks import corpus_pruning_task
 
 standard_library.install_aliases()
 

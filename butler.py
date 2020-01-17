@@ -20,14 +20,13 @@
 
    Please do `python butler.py --help` to see what Butler can help you.
 """
-
-from local.butler import appengine
-from local.butler import guard
 import argparse
 import importlib
 import os
-
 import sys
+
+from local.butler import appengine
+from local.butler import guard
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 

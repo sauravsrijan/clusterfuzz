@@ -14,20 +14,16 @@
 """Handler used for setting up oss-fuzz jobs."""
 from __future__ import absolute_import
 
-from builtins import object
-from builtins import str
-from past.builtins import basestring
-
 import base64
 import copy
 import json
 import re
+from builtins import object
+from builtins import str
+
 import requests
 import six
 import yaml
-
-from . import service_accounts
-
 from base import tasks
 from base import untrusted
 from base import utils
@@ -42,7 +38,10 @@ from google_cloud_utils import storage
 from handlers import base_handler
 from libs import handler
 from metrics import logs
+from past.builtins import basestring
 from system import environment
+
+from . import service_accounts
 
 BUILD_BUCKET_PATH_TEMPLATE = (
     "gs://%BUCKET%/%PROJECT%/%PROJECT%-%SANITIZER%-([0-9]+).zip"

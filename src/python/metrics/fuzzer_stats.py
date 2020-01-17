@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Classes for dealing with FuzzerStats."""
-
-from builtins import object
 import datetime
 import functools
 import itertools
@@ -21,6 +19,7 @@ import json
 import os
 import random
 import re
+from builtins import object
 
 from base import memoize
 from base import utils

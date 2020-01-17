@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Handler for showing the testcase detail page."""
-
-from builtins import object
-from builtins import range
 import cgi
 import datetime
-import jinja2
 import re
+from builtins import object
+from builtins import range
 
+import jinja2
 from base import utils
 from build_management import revisions
 from build_management import source_mapper

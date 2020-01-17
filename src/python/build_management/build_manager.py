@@ -12,14 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Build manager."""
-
-from builtins import object
-from builtins import range
 import os
 import re
 import subprocess
 import time
-
+from builtins import object
+from builtins import range
 from collections import namedtuple
 from distutils import spawn
 

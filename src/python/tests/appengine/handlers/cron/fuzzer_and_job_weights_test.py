@@ -14,9 +14,9 @@
 """Tests for the automatic weight adjusment cron job."""
 # pylint: disable=protected-access
 import datetime
-import six
 import unittest
 
+import six
 from datastore import data_types
 from handlers.cron import fuzzer_and_job_weights
 from tests.test_libs import helpers as test_helpers

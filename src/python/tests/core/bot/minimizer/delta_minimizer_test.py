@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for the Delta minimizer."""
-
 from . import base_minimizer_tester
 from bot.minimizer import delta_minimizer
 

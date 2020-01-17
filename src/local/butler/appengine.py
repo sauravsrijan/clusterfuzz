@@ -12,13 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """App Engine helpers."""
-
 from __future__ import print_function
 
-from distutils import spawn
 import os
 import shutil
 import sys
+from distutils import spawn
 
 from local.butler import common
 from local.butler import constants

@@ -17,12 +17,13 @@ from __future__ import print_function
 import os
 import time
 
-from local.butler.reproduce_tool import errors
-from local.butler.reproduce_tool import prompts
 from platforms.android import adb
 from platforms.android import device
 from system import environment
 from system import new_process
+
+from local.butler.reproduce_tool import errors
+from local.butler.reproduce_tool import prompts
 
 ADB_DEVICES_SEPARATOR_STRING = "List of devices attached"
 EMULATOR_RELATIVE_PATH = os.path.join(

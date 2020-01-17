@@ -13,10 +13,9 @@
 # limitations under the License.
 """Tests for cleanup task."""
 # pylint: disable=protected-access
-
-from builtins import range
 import datetime
 import unittest
+from builtins import range
 
 from datastore import data_types
 from handlers.cron import cleanup

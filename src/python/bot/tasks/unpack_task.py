@@ -13,7 +13,6 @@
 # limitations under the License.
 """Unpack task for unpacking a multi-testcase archive
 from user upload."""
-
 import json
 import os
 

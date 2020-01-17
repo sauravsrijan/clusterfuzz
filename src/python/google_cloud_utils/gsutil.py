@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Functions for running gsutil."""
-
-from builtins import object
 import os
-import six
+from builtins import object
 
+import six
 from base import utils
 from google_cloud_utils import storage
 from metrics import logs

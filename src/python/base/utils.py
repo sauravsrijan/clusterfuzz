@@ -12,30 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Common utility functions."""
-
-from system import environment
-from metrics import logs
-from config import local_config
-from base import retry
-from base import memoize
-from base import errors
-import weakref
-import urllib.request
-import urllib.parse
-import time
-import sys
-import requests
-import random
-import os
-import inspect
-import hashlib
-import gc
-import functools
-import datetime
 import ast
-from past.builtins import basestring
+import datetime
+import functools
+import gc
+import hashlib
+import inspect
+import os
+import random
+import sys
+import time
+import urllib.parse
+import urllib.request
+import weakref
 from builtins import range
+
+import requests
+from base import errors
+from base import memoize
+from base import retry
+from config import local_config
 from future import standard_library
+from metrics import logs
+from past.builtins import basestring
+from system import environment
 
 standard_library.install_aliases()
 

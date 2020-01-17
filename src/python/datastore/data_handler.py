@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Data handler functions."""
-
 import collections
 import datetime
 import os
 import re
 import shlex
-import six
 import time
+
+import six
 
 try:
     from shlex import quote

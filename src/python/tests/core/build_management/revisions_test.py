@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for the revisions module."""
-
-from builtins import object
 import ast
 import hashlib
-import mock
 import os
 import unittest
+from builtins import object
 
+import mock
 from build_management import revisions
 from datastore import data_types
 from tests.test_libs import helpers

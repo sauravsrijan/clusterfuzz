@@ -12,13 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for gsutil."""
-
 import os
 
-from pyfakefs import fake_filesystem_unittest
 import mock
-
 from google_cloud_utils import gsutil
+from pyfakefs import fake_filesystem_unittest
 from tests.test_libs import helpers as test_helpers
 from tests.test_libs import test_utils
 

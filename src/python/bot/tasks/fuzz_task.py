@@ -14,56 +14,58 @@
 """Fuzz task for handling fuzzing."""
 from __future__ import division
 
-from system import shell
-from system import process_handler
-from system import environment
-from platforms import android
-from metrics import monitoring_metrics
-from metrics import logs
-from metrics import fuzzer_stats
-from metrics import fuzzer_logs
-from google_cloud_utils import storage
-from google_cloud_utils import blobs
-from google_cloud_utils import big_query
-from fuzzing import leak_blacklist
-from fuzzing import gesture_handler
-from fuzzing import fuzzer_selection
-from fuzzing import coverage_uploader
-from fuzzing import corpus_manager
-from datastore import ndb_utils
-from datastore import ndb
-from datastore import data_types
-from datastore import data_handler
-from crash_analysis.stack_parsing import stack_analyzer
-from crash_analysis.crash_result import CrashResult
-from crash_analysis import crash_analyzer
-from collections import namedtuple
-from chrome import crash_uploader
-from build_management import build_manager
-from bot.tasks import trials
-from bot.tasks import task_creation
-from bot.tasks import setup
-from bot.fuzzers.libFuzzer import stats as libfuzzer_stats
-from bot.fuzzers import engine_common
-from bot.fuzzers import engine
-from bot.fuzzers import builtin_fuzzers
-from bot.fuzzers import builtin
-from bot import testcase_manager
-from base import utils
-from base import retry
-from base import dates
-import time
-import six
-import re
-import random
-import os
-import itertools
-import datetime
 import collections
-from builtins import str
-from builtins import range
+import datetime
+import itertools
+import os
+import random
+import re
+import time
 from builtins import object
+from builtins import range
+from builtins import str
+from collections import namedtuple
+
+import six
+from base import dates
+from base import retry
+from base import utils
+from build_management import build_manager
+from chrome import crash_uploader
+from crash_analysis import crash_analyzer
+from crash_analysis.crash_result import CrashResult
+from crash_analysis.stack_parsing import stack_analyzer
+from datastore import data_handler
+from datastore import data_types
+from datastore import ndb
+from datastore import ndb_utils
 from future import standard_library
+from fuzzing import corpus_manager
+from fuzzing import coverage_uploader
+from fuzzing import fuzzer_selection
+from fuzzing import gesture_handler
+from fuzzing import leak_blacklist
+from google_cloud_utils import big_query
+from google_cloud_utils import blobs
+from google_cloud_utils import storage
+from metrics import fuzzer_logs
+from metrics import fuzzer_stats
+from metrics import logs
+from metrics import monitoring_metrics
+from platforms import android
+from system import environment
+from system import process_handler
+from system import shell
+
+from bot import testcase_manager
+from bot.fuzzers import builtin
+from bot.fuzzers import builtin_fuzzers
+from bot.fuzzers import engine
+from bot.fuzzers import engine_common
+from bot.fuzzers.libFuzzer import stats as libfuzzer_stats
+from bot.tasks import setup
+from bot.tasks import task_creation
+from bot.tasks import trials
 
 standard_library.install_aliases()
 

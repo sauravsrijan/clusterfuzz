@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Battery functions."""
-
 import datetime
 import re
 import time
 
-from . import adb
 from base import dates
 from base import persistent_cache
 from metrics import logs
 from system import environment
+
+from . import adb
 
 BATTERY_CHARGE_INTERVAL = 30 * 60  # 0.5 hour.
 BATTERY_CHECK_INTERVAL = 15 * 60  # 15 minutes.

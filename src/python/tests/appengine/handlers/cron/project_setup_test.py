@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for project_setup."""
-from builtins import object
 import ast
 import copy
-import googleapiclient
-import mock
 import os
 import unittest
+from builtins import object
+
+import googleapiclient
+import mock
 import webapp2
 import webtest
-
 from base import utils
 from datastore import data_types
 from datastore import ndb

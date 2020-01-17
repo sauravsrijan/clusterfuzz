@@ -12,12 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """libFuzzer engine interface."""
-
 import os
 import re
 import tempfile
 
 from base import utils
+from datastore import data_types
+from fuzzing import strategy
+from metrics import logs
+from metrics import profiler
+from system import environment
+from system import shell
+
 from bot.fuzzers import dictionary_manager
 from bot.fuzzers import engine
 from bot.fuzzers import engine_common
@@ -27,12 +33,6 @@ from bot.fuzzers import utils as fuzzer_utils
 from bot.fuzzers.libFuzzer import constants
 from bot.fuzzers.libFuzzer import fuzzer
 from bot.fuzzers.libFuzzer import stats
-from datastore import data_types
-from fuzzing import strategy
-from metrics import logs
-from metrics import profiler
-from system import environment
-from system import shell
 
 ENGINE_ERROR_MESSAGE = "libFuzzer: engine encountered an error"
 DICT_PARSING_FAILED_REGEX = re.compile(r"ParseDictionaryFile: error in line (\d+)")

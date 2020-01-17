@@ -15,17 +15,17 @@
 # pylint: disable=invalid-name
 # TODO(ochang): Remove V3 from names once all metrics are migrated to
 # stackdriver.
-
-from builtins import object
-from builtins import range
 import bisect
 import collections
 import functools
 import itertools
 import re
-import six
 import threading
 import time
+from builtins import object
+from builtins import range
+
+import six
 
 try:
     from google.cloud import monitoring_v3

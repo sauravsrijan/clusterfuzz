@@ -12,15 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Run command based on the current task."""
-
 import functools
-import six
 import sys
 import time
 
+import six
 from base import errors
 from base import tasks
 from base import utils
+from datastore import data_handler
+from datastore import data_types
+from metrics import logs
+from system import environment
+from system import process_handler
+from system import shell
+
 from bot.tasks import analyze_task
 from bot.tasks import blame_task
 from bot.tasks import corpus_pruning_task
@@ -35,12 +41,6 @@ from bot.tasks import unpack_task
 from bot.tasks import upload_reports_task
 from bot.tasks import variant_task
 from bot.webserver import http_server
-from datastore import data_handler
-from datastore import data_types
-from metrics import logs
-from system import environment
-from system import process_handler
-from system import shell
 
 COMMAND_MAP = {
     "analyze": analyze_task,

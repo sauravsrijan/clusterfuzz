@@ -18,7 +18,6 @@ defined in this function that end with the suffix "_FLAG" should contain
 "-flag=". Any variable that ends with the suffix "_ARGUMENT" should contain
 "-flag=value".
 """
-
 # libFuzzer flags.
 ARTIFACT_PREFIX_FLAG = "-artifact_prefix="
 

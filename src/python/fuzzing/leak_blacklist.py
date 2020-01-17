@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Highlights and generates suppressions for LSAN reports."""
-
 import os
 import re
 

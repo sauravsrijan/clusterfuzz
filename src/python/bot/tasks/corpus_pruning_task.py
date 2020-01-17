@@ -12,20 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Corpus pruning task."""
-
-from builtins import object
 import collections
 import datetime
 import os
 import random
 import shutil
+from builtins import object
 
 from base import utils
-from bot.fuzzers import engine
-from bot.fuzzers import engine_common
-from bot.fuzzers import options
-from bot.tasks import setup
-from bot.tasks import task_creation
 from build_management import build_manager
 from crash_analysis import crash_analyzer
 from crash_analysis.stack_parsing import stack_analyzer
@@ -42,6 +36,12 @@ from metrics import logs
 from system import archive
 from system import environment
 from system import shell
+
+from bot.fuzzers import engine
+from bot.fuzzers import engine_common
+from bot.fuzzers import options
+from bot.tasks import setup
+from bot.tasks import task_creation
 
 # TODO(ochang): Move common libFuzzer code from fuzzer into CF.
 

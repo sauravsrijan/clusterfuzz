@@ -13,23 +13,26 @@
 # limitations under the License.
 """py_unittest.py runs tests under src/appengine and butler/tests"""
 from __future__ import print_function
-from src.python.config import local_config
-from local.butler import common
-from local.butler import appengine
-import unittest
-import traceback
-import time
-import sys
-import signal
-import platform
-import os
-import multiprocessing
-import logging
-import itertools
+
 import io
-from builtins import range
+import itertools
+import logging
+import multiprocessing
+import os
+import platform
+import signal
+import sys
+import time
+import traceback
+import unittest
 from builtins import object
+from builtins import range
+
 from future import standard_library
+
+from local.butler import appengine
+from local.butler import common
+from src.python.config import local_config
 
 standard_library.install_aliases()
 

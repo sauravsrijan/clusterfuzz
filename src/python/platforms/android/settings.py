@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Settings change related functions."""
-
 import re
 
-from . import adb
 from system import environment
+
+from . import adb
 
 BUILD_FINGERPRINT_REGEX = re.compile(
     r"(?P<vendor>.+)\/(?P<target>.+)"

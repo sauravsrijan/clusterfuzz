@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Build server - create stable and beta builds and upload to GCS."""
-
 # Before any other imports, we must fix the path. Some libraries might expect
 # to be able to import dependencies directly, but we must store these in
 # subdirectories of common so that they are shared with App Engine.
-from system import environment
-from metrics import logs
-from chrome import build_info
-import time
 import os
+import time
+
+from chrome import build_info
+from metrics import logs
 from python.base import modules
+from system import environment
 
 modules.fix_module_search_paths()
 

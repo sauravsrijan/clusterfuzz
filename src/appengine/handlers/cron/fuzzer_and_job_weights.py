@@ -12,11 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Manage automatic weight adjustments."""
-
 import collections
 import datetime
-import six
 
+import six
 from base import utils
 from datastore import data_handler
 from datastore import data_types

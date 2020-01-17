@@ -12,12 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Cleanup task for cleaning up unneeded testcases."""
-
 import datetime
 import json
 import random
-
-from googleapiclient.errors import HttpError
 
 from base import dates
 from base import errors
@@ -31,6 +28,7 @@ from datastore import data_types
 from datastore import ndb
 from datastore import ndb_utils
 from fuzzing import leak_blacklist
+from googleapiclient.errors import HttpError
 from handlers import base_handler
 from libs import handler
 from libs import mail

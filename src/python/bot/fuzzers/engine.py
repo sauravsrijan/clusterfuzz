@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Fuzzing engine interface."""
-
 from builtins import object
 
 _ENGINES = {}

@@ -14,7 +14,6 @@
 """libFuzzer runners."""
 from __future__ import print_function
 
-from builtins import object
 import collections
 import contextlib
 import copy
@@ -24,14 +23,10 @@ import re
 import shutil
 import string
 import tempfile
+from builtins import object
 
 from base import retry
 from base import utils
-from bot.fuzzers import dictionary_manager
-from bot.fuzzers import engine_common
-from bot.fuzzers import mutator_plugin
-from bot.fuzzers import utils as fuzzer_utils
-from bot.fuzzers.libFuzzer import constants
 from datastore import data_types
 from fuzzing import strategy
 from metrics import logs
@@ -47,6 +42,12 @@ from system import environment
 from system import minijail
 from system import new_process
 from system import shell
+
+from bot.fuzzers import dictionary_manager
+from bot.fuzzers import engine_common
+from bot.fuzzers import mutator_plugin
+from bot.fuzzers import utils as fuzzer_utils
+from bot.fuzzers.libFuzzer import constants
 
 # Maximum length of a random chosen length for `-max_len`.
 MAX_VALUE_FOR_MAX_LENGTH = 10000

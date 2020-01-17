@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """External user permission utilities."""
-
 from base import memoize
 from base import utils
 from datastore import data_handler

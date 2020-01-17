@@ -13,23 +13,25 @@
 # limitations under the License.
 """common.py contains common methods and variables that are used by multiple
    commands."""
-
 from __future__ import print_function
-from local.butler import constants
-from distutils import dir_util
-import zipfile
-import urllib.request
-import tempfile
-import sys
-import subprocess
-import shutil
-import platform
-import os
-import io
+
 import datetime
-from past.builtins import basestring
+import io
+import os
+import platform
+import shutil
+import subprocess
+import sys
+import tempfile
+import urllib.request
+import zipfile
 from builtins import object
+from distutils import dir_util
+
 from future import standard_library
+from past.builtins import basestring
+
+from local.butler import constants
 
 standard_library.install_aliases()
 

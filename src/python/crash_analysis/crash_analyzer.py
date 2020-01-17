@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Functions for helping in crash analysis."""
-
 import re
 
 from config import local_config

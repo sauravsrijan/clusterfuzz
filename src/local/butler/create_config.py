@@ -12,21 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Script for creating a new deployment config."""
-
 from __future__ import print_function
 
-from builtins import object
-from builtins import range
 import json
 import os
 import shutil
 import subprocess
 import sys
+from builtins import object
+from builtins import range
 
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient import discovery
 import google_auth_httplib2
 import httplib2
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient import discovery
 
 from local.butler import appengine
 from local.butler import common

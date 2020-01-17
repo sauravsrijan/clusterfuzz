@@ -13,10 +13,9 @@
 # limitations under the License.
 # pylint: disable=protected-access
 """Tests for triage task."""
-
-from builtins import range
 import datetime
 import unittest
+from builtins import range
 
 from datastore import data_handler
 from datastore import data_types

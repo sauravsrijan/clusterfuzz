@@ -12,24 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Sync server - sync testcases from various repositories onto our GCS."""
-
 # Before any other imports, we must fix the path. Some libraries might expect
 # to be able to import dependencies directly, but we must store these in
 # subdirectories of common so that they are shared with App Engine.
-from system import shell
-from system import environment
-from system import archive
-from metrics import logs
-from datastore import ndb_utils
-from datastore import data_types
-from bot.tasks import setup
-from bot import testcase_manager
-from base import utils
-import time
-import subprocess
-import re
 import os
+import re
+import subprocess
+import time
+
+from base import utils
+from datastore import data_types
+from datastore import ndb_utils
+from metrics import logs
 from python.base import modules
+from system import archive
+from system import environment
+from system import shell
+
+from bot import testcase_manager
+from bot.tasks import setup
 
 modules.fix_module_search_paths()
 

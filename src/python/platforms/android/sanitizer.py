@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Sanitizer related functions."""
-
 import os
+
+from metrics import logs
+from system import environment
 
 from . import adb
 from . import constants
 from . import settings
-from metrics import logs
-from system import environment
 
 try:
     from system import new_process

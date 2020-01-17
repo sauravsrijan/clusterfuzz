@@ -12,17 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Test to see if test cases are fixed."""
-
-import six
 import time
 
+import six
 from base import errors
 from base import tasks
 from base import utils
-from bot import testcase_manager
-from bot.fuzzers import engine_common
-from bot.tasks import setup
-from bot.tasks import task_creation
 from build_management import build_manager
 from build_management import revisions
 from chrome import crash_uploader
@@ -31,6 +26,11 @@ from datastore import data_types
 from google_cloud_utils import big_query
 from metrics import logs
 from system import environment
+
+from bot import testcase_manager
+from bot.fuzzers import engine_common
+from bot.tasks import setup
+from bot.tasks import task_creation
 
 
 def _write_to_bigquery(testcase, progression_range_start, progression_range_end):

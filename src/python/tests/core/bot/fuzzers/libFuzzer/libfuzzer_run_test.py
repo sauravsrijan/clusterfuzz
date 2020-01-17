@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for fuzzer.py."""
-
 import os
 import unittest
 
-from bot.fuzzers.libFuzzer import fuzzer
 from system import environment
 from tests.core.bot.fuzzers import builtin_test
 from tests.test_libs import helpers as test_helpers
+
+from bot.fuzzers.libFuzzer import fuzzer
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 

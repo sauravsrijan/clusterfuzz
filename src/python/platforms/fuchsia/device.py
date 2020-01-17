@@ -12,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Helper functions for running commands on Fuchsia devices."""
-
 # TODO(flowerhack): Re-enable this check once functions below are implemented.
 # pylint: disable=unused-argument
 from __future__ import print_function
 
-from builtins import object
 import os
 import socket
 import subprocess
 import tempfile
 import time
+from builtins import object
 
 from metrics import logs
 from platforms.fuchsia import errors

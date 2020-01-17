@@ -15,17 +15,15 @@
 # IMPORTANT: If you modify this file, please run
 # `python butler.py generate_datastore_models`
 # to generate Go structs for the models defined here.
-
-from builtins import object
 import re
+from builtins import object
+
 import six
-
-from future import utils as future_utils
-
 from base import json_utils
 from base import utils
 from datastore import ndb
 from datastore import search_tokenizer
+from future import utils as future_utils
 from metrics import logs
 from system import environment
 

@@ -12,20 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Minimize task for handling testcase minimization."""
-
-from builtins import object
-from builtins import range
 import binascii
 import functools
 import os
-import six
 import threading
 import time
 import zipfile
+from builtins import object
+from builtins import range
 
+import six
 from base import errors
 from base import tasks
 from base import utils
+from build_management import build_manager
+from crash_analysis import severity_analyzer
+from crash_analysis.crash_comparer import CrashComparer
+from crash_analysis.crash_result import CrashResult
+from datastore import data_handler
+from datastore import data_types
+from google_cloud_utils import blobs
+from metrics import logs
+from platforms import android
+from system import environment
+from system import process_handler
+from system import shell
+
 from bot import testcase_manager
 from bot.fuzzers import engine
 from bot.fuzzers import engine_common
@@ -39,18 +51,6 @@ from bot.tasks import setup
 from bot.tasks import task_creation
 from bot.tokenizer.antlr_tokenizer import AntlrTokenizer
 from bot.tokenizer.grammars.JavaScriptLexer import JavaScriptLexer
-from build_management import build_manager
-from crash_analysis import severity_analyzer
-from crash_analysis.crash_comparer import CrashComparer
-from crash_analysis.crash_result import CrashResult
-from datastore import data_handler
-from datastore import data_types
-from google_cloud_utils import blobs
-from metrics import logs
-from platforms import android
-from system import environment
-from system import process_handler
-from system import shell
 
 IPCDUMP_TIMEOUT = 60
 COMBINED_IPCDUMP_TIMEOUT = 60 * 3

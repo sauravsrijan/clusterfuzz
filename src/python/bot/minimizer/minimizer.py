@@ -14,16 +14,18 @@
 """Base classes for other minimizers."""
 from __future__ import absolute_import
 
-from . import errors
-import time
-import threading
-import tempfile
-import os
-import functools
 import copy
-from builtins import range
+import functools
+import os
+import tempfile
+import threading
+import time
 from builtins import object
+from builtins import range
+
 from future import standard_library
+
+from . import errors
 
 standard_library.install_aliases()
 

@@ -15,10 +15,10 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-from builtins import range
 import os
 import shlex
 import subprocess
+from builtins import range
 
 from . import errors
 from bot.tokenizer.antlr_tokenizer import AntlrTokenizer

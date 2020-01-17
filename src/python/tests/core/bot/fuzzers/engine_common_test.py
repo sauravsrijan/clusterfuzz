@@ -12,19 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests fuzzers.engine_common."""
-
-from builtins import range
 import os
+import unittest
+from builtins import range
+
 import parameterized
 import six
-import unittest
-
 from pyfakefs import fake_filesystem_unittest
-
-from bot.fuzzers import engine_common
 from system import environment
 from tests.test_libs import helpers as test_helpers
 from tests.test_libs import test_utils
+
+from bot.fuzzers import engine_common
 
 
 class GetIssueOwnersTest(fake_filesystem_unittest.TestCase):

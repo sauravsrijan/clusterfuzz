@@ -13,19 +13,19 @@
 # limitations under the License.
 """Impact task.
    Determine whether or not a test case affects production branches."""
+from builtins import object
 
 import six
-
 from base import tasks
 from base import utils
-from bot import testcase_manager
-from bot.tasks import setup
 from build_management import build_manager
 from build_management import revisions
-from builtins import object
 from datastore import data_handler
 from datastore import data_types
 from system import environment
+
+from bot import testcase_manager
+from bot.tasks import setup
 
 
 class BuildFailedException(Exception):

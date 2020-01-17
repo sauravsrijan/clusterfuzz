@@ -14,17 +14,15 @@
 """Trusted host."""
 from __future__ import absolute_import
 
-from builtins import object
-from builtins import range
 import sys
 import threading
 import time
+from builtins import object
+from builtins import range
 
 import grpc
-
 from base import untrusted
 from base import utils
-from bot.fuzzers import engine
 from datastore import data_types
 from datastore import ndb
 from metrics import logs
@@ -36,6 +34,7 @@ from protos import untrusted_runner_pb2_grpc
 from system import environment
 
 from . import config
+from bot.fuzzers import engine
 
 WAIT_TLS_CERT_SECONDS = 60
 RPC_FAIL_WAIT_TIME = 10

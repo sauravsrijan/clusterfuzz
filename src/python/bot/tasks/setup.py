@@ -12,21 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Common helper functions for setup at the start of tasks."""
-
-from builtins import range
 import datetime
 import os
 import shlex
-import six
 import time
 import zipfile
+from builtins import range
 
+import six
 from base import dates
 from base import errors
 from base import tasks
 from base import utils
-from bot import testcase_manager
-from bot.fuzzers import builtin_fuzzers
 from build_management import revisions
 from datastore import data_handler
 from datastore import data_types
@@ -41,6 +38,9 @@ from platforms import android
 from system import archive
 from system import environment
 from system import shell
+
+from bot import testcase_manager
+from bot.fuzzers import builtin_fuzzers
 
 _BOT_DIR = "bot"
 _DATA_BUNDLE_SYNC_INTERVAL_IN_SECONDS = 6 * 60 * 60

@@ -14,19 +14,17 @@
 """BigQuery client. We cannot use gcloud's BigQuery client
   because it requires oauth2client 4.0.0. But our appengine requires
   oauth2client 1.4.2. Therefore, we implement our own BigQuery client."""
-
-from builtins import object
-from builtins import range
 import collections
 import datetime
 import time
-
-from googleapiclient import discovery
+from builtins import object
+from builtins import range
 
 from base import retry
 from base import utils
 from config import local_config
 from google_cloud_utils import credentials
+from googleapiclient import discovery
 from metrics import logs
 from system import environment
 

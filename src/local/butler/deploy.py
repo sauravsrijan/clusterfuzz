@@ -14,14 +14,14 @@
 """deploy.py handles the deploy command"""
 from __future__ import print_function
 
-from builtins import range
-from collections import namedtuple
 import datetime
 import json
 import os
 import re
 import sys
 import time
+from builtins import range
+from collections import namedtuple
 
 from local.butler import appengine
 from local.butler import common

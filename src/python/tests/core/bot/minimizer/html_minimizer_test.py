@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for the HTML minimizer."""
-
 import unittest
 
-from bot.minimizer import html_minimizer
 from tests.test_libs import helpers
+
+from bot.minimizer import html_minimizer
 
 
 class HTMLMinimizerTest(unittest.TestCase):

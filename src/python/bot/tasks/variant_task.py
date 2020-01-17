@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Variant task for analyzing testcase variants with a different job."""
-
 from base import utils
-from bot import testcase_manager
-from bot.tasks import setup
 from build_management import build_manager
 from crash_analysis.crash_comparer import CrashComparer
 from datastore import data_handler
 from datastore import data_types
 from system import environment
+
+from bot import testcase_manager
+from bot.tasks import setup
 
 
 def _get_variant_testcase_for_job(testcase, job_type):

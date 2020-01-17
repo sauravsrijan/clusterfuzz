@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Environment functions."""
-
-from builtins import range
 import ast
 import functools
 import os
 import re
-import six
 import socket
 import sys
+from builtins import range
+
+import six
 import yaml
 
 try:

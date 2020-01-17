@@ -14,13 +14,14 @@
 """Performance stats constants and helpers for libFuzzer."""
 import re
 
-from bot.fuzzers import dictionary_manager
-from bot.fuzzers import utils as fuzzer_utils
-from bot.fuzzers.libFuzzer import constants
 from crash_analysis.stack_parsing import stack_analyzer
 from fuzzing import strategy
 from metrics import logs
 from system import environment
+
+from bot.fuzzers import dictionary_manager
+from bot.fuzzers import utils as fuzzer_utils
+from bot.fuzzers.libFuzzer import constants
 
 # Regular expressions to detect different types of crashes.
 LEAK_TESTCASE_REGEX = re.compile(r".*ERROR: LeakSanitizer.*")

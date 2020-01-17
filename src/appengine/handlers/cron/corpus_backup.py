@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """corpus backup handler."""
-
 import datetime
 
 from base import utils

@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Builtin fuzzers."""
-
 from bot.fuzzers.afl import fuzzer as afl
 from bot.fuzzers.libFuzzer import fuzzer as libFuzzer
 

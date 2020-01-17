@@ -19,7 +19,6 @@ from builtins import range
 from . import delta_minimizer
 from . import minimizer
 from . import utils
-
 from bot.tokenizer.antlr_tokenizer import AntlrTokenizer
 from bot.tokenizer.grammars.JavaScriptLexer import JavaScriptLexer
 
