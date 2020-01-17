@@ -18,30 +18,30 @@
 #include <cstdlib>
 
 void Foo(const uint8_t *Data, size_t Size) {
-    if (Size < 256) {
-        return;
-    }
+  if (Size < 256) {
+    return;
+  }
 
-    uint8_t Expected[256];
-    for (int i = 0; i < 256; ++i) {
-        Expected[i] = i;
-    }
+  uint8_t Expected[256];
+  for (int i = 0; i < 256; ++i) {
+    Expected[i] = i;
+  }
 
-    bool blah = true;
-    for (size_t i = 0; i < 256; ++i) {
-        if (Data[i] != Expected[i])
-            blah = false;
-    }
+  bool blah = true;
+  for (size_t i = 0; i < 256; ++i) {
+    if (Data[i] != Expected[i])
+      blah = false;
+  }
 
-    if (blah) {
-        char *a = (char *)malloc(1);
-        free(a);
-        *a = 'A';
-        *((volatile uint8_t*)0) = 0;
-    }
+  if (blah) {
+    char *a = (char *)malloc(1);
+    free(a);
+    *a = 'A';
+    *((volatile uint8_t *)0) = 0;
+  }
 }
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
-    Foo(Data, Size);
-    return 0;
+  Foo(Data, Size);
+  return 0;
 }

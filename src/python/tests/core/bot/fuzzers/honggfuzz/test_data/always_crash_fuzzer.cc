@@ -16,17 +16,17 @@
 #include <cstdlib>
 
 void Foo(const uint8_t *Data) {
-    if (*Data == 'A') {
-        char *a = (char *)malloc(1);
-        free(a);
-        *a = 'A';
-    }
+  if (*Data == 'A') {
+    char *a = (char *)malloc(1);
+    free(a);
+    *a = 'A';
+  }
 }
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
-    if (!Size)
-        return 0;
-
-    Foo(Data);
+  if (!Size)
     return 0;
+
+  Foo(Data);
+  return 0;
 }
