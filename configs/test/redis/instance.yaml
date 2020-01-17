@@ -13,11 +13,11 @@
 # limitations under the License.
 
 imports:
-- path: memorystore-instance.jinja
+  - path: memorystore-instance.jinja
 
 resources:
-- name: redis
-  type: memorystore-instance.jinja
-  properties:
-    region: gae-region
-    memorySizeGb: 1
+  - name: redis
+    type: memorystore-instance.jinja
+    properties:
+      region: gae-region
+      memorySizeGb: 1
