@@ -17,8 +17,9 @@ from bot.minimizer import chunk_minimizer
 
 
 class ChunkMinimizerTest(base_minimizer_tester.BaseMinimizerTester):
-    """Test for Chunk Minimizer. Sets up the minimizer being used and then
+  """Test for Chunk Minimizer. Sets up the minimizer being used and then
     runs all of the tests in BaseMinimizerTester."""
 
-    def setUp(self):
-        self.line_minimizer = chunk_minimizer.ChunkMinimizer(self._mock_test_function)
+  def setUp(self):
+    self.line_minimizer = chunk_minimizer.ChunkMinimizer(
+        self._mock_test_function)

@@ -16,32 +16,32 @@ import unittest
 
 
 class BaseMinimizerTester(unittest.TestCase):
-    """Base class for chunk and delta minimizer tests."""
+  """Base class for chunk and delta minimizer tests."""
 
-    def setUp(self):
-        raise NotImplementedError
+  def setUp(self):
+    raise NotImplementedError
 
-    def _mock_test_function(self, data_file):
-        """Mock test function to reduce time minimizer takes and simplify tests."""
-        data = open(data_file, "r").read()
-        if "error" in data:
-            return False
-        return True
+  def _mock_test_function(self, data_file):
+    """Mock test function to reduce time minimizer takes and simplify tests."""
+    data = open(data_file, "r").read()
+    if "error" in data:
+      return False
+    return True
 
-    def test_minimizer_still_contains_error(self):
-        """Tests a simple minimization. Should remove the first and last lines."""
-        testcase = "x = 2 \n error \n return x"
-        minimized = self.line_minimizer.minimize(testcase)
-        self.assertEqual(minimized, " error ")
+  def test_minimizer_still_contains_error(self):
+    """Tests a simple minimization. Should remove the first and last lines."""
+    testcase = "x = 2 \n error \n return x"
+    minimized = self.line_minimizer.minimize(testcase)
+    self.assertEqual(minimized, " error ")
 
-    def test_minimizer_accepts_empty_data(self):
-        """Tests that the minimizer does not break on empty string."""
-        testcase = ""
-        minimized = self.line_minimizer.minimize(testcase)
-        self.assertEqual(minimized, "")
+  def test_minimizer_accepts_empty_data(self):
+    """Tests that the minimizer does not break on empty string."""
+    testcase = ""
+    minimized = self.line_minimizer.minimize(testcase)
+    self.assertEqual(minimized, "")
 
-    def test_minimizer_does_not_minimize_non_errored_code(self):
-        """"Test that the minimizer does not break when there is nothing to min."""
-        testcase = "This \n Code \n Has \n No \n Error"
-        minimized = self.line_minimizer.minimize(testcase)
-        self.assertEqual(minimized, testcase)
+  def test_minimizer_does_not_minimize_non_errored_code(self):
+    """"Test that the minimizer does not break when there is nothing to min."""
+    testcase = "This \n Code \n Has \n No \n Error"
+    minimized = self.line_minimizer.minimize(testcase)
+    self.assertEqual(minimized, testcase)

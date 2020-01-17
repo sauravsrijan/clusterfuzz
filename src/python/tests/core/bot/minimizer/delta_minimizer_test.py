@@ -17,8 +17,9 @@ from bot.minimizer import delta_minimizer
 
 
 class DeltaMinimizerTest(base_minimizer_tester.BaseMinimizerTester):
-    """Test for Delta Minimizer.Sets up the minimizer being used and then
+  """Test for Delta Minimizer.Sets up the minimizer being used and then
     runs all of the tests in BaseMinimizerTester."""
 
-    def setUp(self):
-        self.line_minimizer = delta_minimizer.DeltaMinimizer(self._mock_test_function)
+  def setUp(self):
+    self.line_minimizer = delta_minimizer.DeltaMinimizer(
+        self._mock_test_function)
