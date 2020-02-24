@@ -1,7 +1,7 @@
 crcmod==1.7
 future==0.17.1
-psutil==5.4.7
-tensorflow==1.8.0
+psutil==release-5.6.7
+tensorflow==1.15
 numpy==1.16.4
 
 # The following are added by pip freeze.
@@ -13,3 +13,6 @@ idna==2.7
 ipaddress==1.0.22
 pycparser==2.19
 six==1.12.0
+
+bleach>=2.1 # not directly required, pinned by Snyk to avoid a vulnerability
+html5lib>=0.99999999 # not directly required, pinned by Snyk to avoid a vulnerability
