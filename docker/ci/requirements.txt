@@ -1,5 +1,5 @@
 beautifulsoup4==4.5.1
-ecdsa==0.13.3
+ecdsa==0.14
 extras==1.0.0
 fixtures==3.0.0
 funcsigs==1.0.2
@@ -12,11 +12,11 @@ pbr==1.10.0
 pyfakefs==3.4.3
 pylint==1.9.3
 python-mimeparse==1.5.2
-PyYAML==5.1
+PyYAML==5.2
 six==1.12.0
 testtools==2.2.0
 traceback2==1.4.0
 unittest2==1.1.0
-waitress==1.4.2
+waitress==1.4.3
 WebTest==2.0.23
 yapf==0.22.0
