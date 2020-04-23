@@ -26,18 +26,18 @@ TEMP_DIR = os.path.join(TEST_PATH, "temp")
 
 
 def clear_temp_dir():
-    """Clear temp directory."""
-    if os.path.exists(TEMP_DIR):
-        shutil.rmtree(TEMP_DIR)
+  """Clear temp directory."""
+  if os.path.exists(TEMP_DIR):
+    shutil.rmtree(TEMP_DIR)
 
-    os.mkdir(TEMP_DIR)
+  os.mkdir(TEMP_DIR)
 
 
 @test_utils.integration
 class IntegrationTest(unittest.TestCase):
-    """Integration tests."""
+  """Integration tests."""
 
-    def setUp(self):
-        test_helpers.patch_environ(self)
+  def setUp(self):
+    test_helpers.patch_environ(self)
 
-        os.environ["BUILD_DIR"] = DATA_DIR
+    os.environ["BUILD_DIR"] = DATA_DIR

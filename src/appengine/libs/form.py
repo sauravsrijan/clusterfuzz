@@ -23,31 +23,31 @@ from libs import helpers
 
 
 def generate_csrf_token(length=64, valid_seconds=3600, html=False):
-    """Generate a CSRF token."""
-    now = utils.utcnow()
-    valid_token = None
+  """Generate a CSRF token."""
+  now = utils.utcnow()
+  valid_token = None
 
-    # Clean up expired tokens to prevent junk from building up in the datastore.
-    tokens = data_types.CSRFToken.query(
-        data_types.CSRFToken.user_email == helpers.get_user_email()
-    )
-    tokens_to_delete = []
-    for token in tokens:
-        if token.expiration_time > now:
-            valid_token = token
-            continue
-        tokens_to_delete.append(token.key)
-    ndb_utils.delete_multi(tokens_to_delete)
+  # Clean up expired tokens to prevent junk from building up in the datastore.
+  tokens = data_types.CSRFToken.query(
+      data_types.CSRFToken.user_email == helpers.get_user_email())
+  tokens_to_delete = []
+  for token in tokens:
+    if token.expiration_time > now:
+      valid_token = token
+      continue
+    tokens_to_delete.append(token.key)
+  ndb_utils.delete_multi(tokens_to_delete)
 
-    # Generate a new token.
-    if not valid_token:
-        valid_token = data_types.CSRFToken()
-        valid_token.value = base64.b64encode(os.urandom(length))
-        valid_token.expiration_time = now + datetime.timedelta(seconds=valid_seconds)
-        valid_token.user_email = helpers.get_user_email()
-        valid_token.put()
+  # Generate a new token.
+  if not valid_token:
+    valid_token = data_types.CSRFToken()
+    valid_token.value = base64.b64encode(os.urandom(length))
+    valid_token.expiration_time = now + datetime.timedelta(
+        seconds=valid_seconds)
+    valid_token.user_email = helpers.get_user_email()
+    valid_token.put()
 
-    value = valid_token.value
-    if html:
-        return '<input type="hidden" name="csrf_token" value="%s" />' % value
-    return value
+  value = valid_token.value
+  if html:
+    return '<input type="hidden" name="csrf_token" value="%s" />' % value
+  return value

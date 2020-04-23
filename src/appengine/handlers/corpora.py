@@ -22,107 +22,102 @@ from libs import helpers
 
 
 class Handler(base_handler.Handler):
-    """Manage data bundles."""
+  """Manage data bundles."""
 
-    @handler.unsupported_on_local_server
-    @handler.check_admin_access_if_oss_fuzz
-    @handler.check_user_access(need_privileged_access=False)
-    @handler.get(handler.HTML)
-    def get(self):
-        """Handle a get request."""
-        data_bundles = list(
-            data_types.DataBundle.query().order(data_types.DataBundle.name)
-        )
+  @handler.unsupported_on_local_server
+  @handler.check_admin_access_if_oss_fuzz
+  @handler.check_user_access(need_privileged_access=False)
+  @handler.get(handler.HTML)
+  def get(self):
+    """Handle a get request."""
+    data_bundles = list(data_types.DataBundle.query().order(
+        data_types.DataBundle.name))
 
-        template_values = {
-            "corpora": data_bundles,
-            "fieldValues": {
-                "csrfToken": form.generate_csrf_token(),
-                "createUrl": "/corpora/create",
-                "deleteUrl": "/corpora/delete",
-            },
-        }
-        self.render("corpora.html", template_values)
+    template_values = {
+        "corpora": data_bundles,
+        "fieldValues": {
+            "csrfToken": form.generate_csrf_token(),
+            "createUrl": "/corpora/create",
+            "deleteUrl": "/corpora/delete",
+        },
+    }
+    self.render("corpora.html", template_values)
 
 
 class CreateHandler(base_handler.Handler):
-    """Create a corpus."""
+  """Create a corpus."""
 
-    @handler.check_user_access(need_privileged_access=True)
-    @handler.post(handler.FORM, handler.HTML)
-    @handler.require_csrf_token
-    def post(self):
-        """Handle a post request."""
-        name = self.request.get("name")
-        if not name:
-            raise helpers.EarlyExitException("Please give this corpus a name!", 400)
+  @handler.check_user_access(need_privileged_access=True)
+  @handler.post(handler.FORM, handler.HTML)
+  @handler.require_csrf_token
+  def post(self):
+    """Handle a post request."""
+    name = self.request.get("name")
+    if not name:
+      raise helpers.EarlyExitException("Please give this corpus a name!", 400)
 
-        if not data_types.DataBundle.VALID_NAME_REGEX.match(name):
-            raise helpers.EarlyExitException(
-                "Name can only contain letters, numbers, dashes and underscores.", 400
-            )
+    if not data_types.DataBundle.VALID_NAME_REGEX.match(name):
+      raise helpers.EarlyExitException(
+          "Name can only contain letters, numbers, dashes and underscores.",
+          400)
 
-        user_email = helpers.get_user_email()
-        bucket_name = data_handler.get_data_bundle_bucket_name(name)
-        bucket_url = data_handler.get_data_bundle_bucket_url(name)
-        is_local = not self.request.get("nfs", False)
+    user_email = helpers.get_user_email()
+    bucket_name = data_handler.get_data_bundle_bucket_name(name)
+    bucket_url = data_handler.get_data_bundle_bucket_url(name)
+    is_local = not self.request.get("nfs", False)
 
-        if not data_handler.create_data_bundle_bucket_and_iams(name, [user_email]):
-            raise helpers.EarlyExitException(
-                "Failed to create bucket %s." % bucket_name, 400
-            )
+    if not data_handler.create_data_bundle_bucket_and_iams(name, [user_email]):
+      raise helpers.EarlyExitException(
+          "Failed to create bucket %s." % bucket_name, 400)
 
-        data_bundle = data_types.DataBundle.query(
-            data_types.DataBundle.name == name
-        ).get()
+    data_bundle = data_types.DataBundle.query(
+        data_types.DataBundle.name == name).get()
 
-        if not data_bundle:
-            data_bundle = data_types.DataBundle()
-        data_bundle.name = name
-        data_bundle.bucket_name = bucket_name
-        data_bundle.is_local = is_local
-        data_bundle.put()
+    if not data_bundle:
+      data_bundle = data_types.DataBundle()
+    data_bundle.name = name
+    data_bundle.bucket_name = bucket_name
+    data_bundle.is_local = is_local
+    data_bundle.put()
 
-        template_values = {
-            "title": "Success",
-            "message": (
-                "Upload data to the corpus using: "
-                "gsutil -d -m rsync -r <local_corpus_directory> %s" % bucket_url
-            ),
-        }
-        self.render("message.html", template_values)
+    template_values = {
+        "title":
+            "Success",
+        "message":
+            ("Upload data to the corpus using: "
+             "gsutil -d -m rsync -r <local_corpus_directory> %s" % bucket_url),
+    }
+    self.render("message.html", template_values)
 
 
 class DeleteHandler(base_handler.Handler):
-    """Delete a corpus."""
+  """Delete a corpus."""
 
-    @handler.check_user_access(need_privileged_access=True)
-    @handler.post(handler.FORM, handler.HTML)
-    @handler.require_csrf_token
-    def post(self):
-        """Handle a post request."""
-        key = helpers.get_integer_key(self.request)
+  @handler.check_user_access(need_privileged_access=True)
+  @handler.post(handler.FORM, handler.HTML)
+  @handler.require_csrf_token
+  def post(self):
+    """Handle a post request."""
+    key = helpers.get_integer_key(self.request)
 
-        data_bundle = ndb.Key(data_types.DataBundle, key).get()
-        if not data_bundle:
-            raise helpers.EarlyExitException("Corpus not found", 400)
+    data_bundle = ndb.Key(data_types.DataBundle, key).get()
+    if not data_bundle:
+      raise helpers.EarlyExitException("Corpus not found", 400)
 
-        affected_fuzzers = data_types.Fuzzer.query(
-            data_types.Fuzzer.data_bundle_name == data_bundle.name
-        )
-        for fuzzer in affected_fuzzers:
-            fuzzer.data_bundle_name = None
-            fuzzer.put()
+    affected_fuzzers = data_types.Fuzzer.query(
+        data_types.Fuzzer.data_bundle_name == data_bundle.name)
+    for fuzzer in affected_fuzzers:
+      fuzzer.data_bundle_name = None
+      fuzzer.put()
 
-        data_bundle.key.delete()
+    data_bundle.key.delete()
 
-        template_values = {
-            "title": "Success",
-            "message": (
-                "Corpus %s is successfully deleted. "
-                "Redirecting back to corpora page..."
-            )
-            % data_bundle.name,
-            "redirect_url": "/corpora",
-        }
-        self.render("message.html", template_values)
+    template_values = {
+        "title":
+            "Success",
+        "message": ("Corpus %s is successfully deleted. "
+                    "Redirecting back to corpora page...") % data_bundle.name,
+        "redirect_url":
+            "/corpora",
+    }
+    self.render("message.html", template_values)

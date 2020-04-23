@@ -19,7 +19,7 @@ from bot.fuzzers.syzkaller import engine as syzkaller_engine
 
 
 def run():
-    """Initialise builtin fuzzing engines."""
-    engine.register("libFuzzer", libFuzzer_engine.LibFuzzerEngine)
-    engine.register("honggfuzz", honggfuzz_engine.HonggfuzzEngine)
-    engine.register("syzkaller", syzkaller_engine.SyzkallerEngine)
+  """Initialise builtin fuzzing engines."""
+  engine.register("libFuzzer", libFuzzer_engine.LibFuzzerEngine)
+  engine.register("honggfuzz", honggfuzz_engine.HonggfuzzEngine)
+  engine.register("syzkaller", syzkaller_engine.SyzkallerEngine)

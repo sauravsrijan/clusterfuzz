@@ -18,29 +18,31 @@ from google.cloud import ndb
 
 
 def get_fuzz_targets_for_target_jobs(target_jobs):
-    """Return corresponding FuzzTargets for the given FuzzTargetJobs."""
-    target_keys = [
-        ndb.Key(data_types.FuzzTarget, t.fuzz_target_name) for t in target_jobs
-    ]
-    return ndb_utils.get_multi(target_keys)
+  """Return corresponding FuzzTargets for the given FuzzTargetJobs."""
+  target_keys = [
+      ndb.Key(data_types.FuzzTarget, t.fuzz_target_name) for t in target_jobs
+  ]
+  return ndb_utils.get_multi(target_keys)
 
 
-def get_fuzz_target_jobs(fuzz_target_name=None, engine=None, job=None, limit=None):
-    """Return a Datastore query for fuzz target to job mappings."""
-    query = data_types.FuzzTargetJob.query()
+def get_fuzz_target_jobs(fuzz_target_name=None,
+                         engine=None,
+                         job=None,
+                         limit=None):
+  """Return a Datastore query for fuzz target to job mappings."""
+  query = data_types.FuzzTargetJob.query()
 
-    if fuzz_target_name:
-        query = query.filter(
-            data_types.FuzzTargetJob.fuzz_target_name == fuzz_target_name
-        )
+  if fuzz_target_name:
+    query = query.filter(
+        data_types.FuzzTargetJob.fuzz_target_name == fuzz_target_name)
 
-    if job:
-        query = query.filter(data_types.FuzzTargetJob.job == job)
+  if job:
+    query = query.filter(data_types.FuzzTargetJob.job == job)
 
-    if engine:
-        query = query.filter(data_types.FuzzTargetJob.engine == engine)
+  if engine:
+    query = query.filter(data_types.FuzzTargetJob.engine == engine)
 
-    if limit is not None:
-        return query.iter(limit=limit)
+  if limit is not None:
+    return query.iter(limit=limit)
 
-    return ndb_utils.get_all_from_query(query)
+  return ndb_utils.get_all_from_query(query)

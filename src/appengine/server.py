@@ -85,20 +85,22 @@ _is_oss_fuzz = utils.is_oss_fuzz()
 
 
 class _TrailingSlashRemover(webapp2.RequestHandler):
-    def get(self, url):
-        self.redirect(url)
+
+  def get(self, url):
+    self.redirect(url)
 
 
 def redirect_to(to_domain):
-    """Create a redirect handler to a domain."""
+  """Create a redirect handler to a domain."""
 
-    class RedirectHandler(webapp2.RequestHandler):
-        """Handler to redirect to domain."""
+  class RedirectHandler(webapp2.RequestHandler):
+    """Handler to redirect to domain."""
 
-        def get(self, _):
-            self.redirect("https://" + to_domain + self.request.path_qs, permanent=True)
+    def get(self, _):
+      self.redirect(
+          "https://" + to_domain + self.request.path_qs, permanent=True)
 
-    return RedirectHandler
+  return RedirectHandler
 
 
 # Add item to the navigation menu. Order is important.
@@ -108,12 +110,12 @@ base_handler.add_menu("Crash Statistics", "/crash-stats")
 base_handler.add_menu("Upload Testcase", "/upload-testcase")
 
 if _is_chromium:
-    base_handler.add_menu("Crashes by range", "/commit-range")
+  base_handler.add_menu("Crashes by range", "/commit-range")
 
 if not _is_oss_fuzz:
-    base_handler.add_menu("Fuzzers", "/fuzzers")
-    base_handler.add_menu("Corpora", "/corpora")
-    base_handler.add_menu("Bots", "/bots")
+  base_handler.add_menu("Fuzzers", "/fuzzers")
+  base_handler.add_menu("Corpora", "/corpora")
+  base_handler.add_menu("Bots", "/bots")
 
 base_handler.add_menu("Jobs", "/jobs")
 base_handler.add_menu("Configuration", "/configuration")
@@ -143,7 +145,8 @@ _CRON_ROUTES = [
     ("/schedule-impact-tasks", recurring_tasks.ImpactTasksScheduler),
     ("/schedule-ml-train-tasks", ml_train.Handler),
     ("/schedule-progression-tasks", recurring_tasks.ProgressionTasksScheduler),
-    ("/schedule-upload-reports-tasks", recurring_tasks.UploadReportsTaskScheduler),
+    ("/schedule-upload-reports-tasks",
+     recurring_tasks.UploadReportsTaskScheduler),
     ("/sync-admins", sync_admins.Handler),
     ("/testcases/cache", testcase_list.CacheHandler),
     ("/triage", triage.Handler),
@@ -159,7 +162,8 @@ _ROUTES = [
     ("/commit-range/load", commit_range.JsonHandler),
     ("/configuration", configuration.Handler),
     ("/add-external-user-permission", configuration.AddExternalUserPermission),
-    ("/delete-external-user-permission", configuration.DeleteExternalUserPermission),
+    ("/delete-external-user-permission",
+     configuration.DeleteExternalUserPermission),
     ("/coverage-report/([^/]+)/([^/]+)/([^/]+)(/.*)?", coverage_report.Handler),
     ("/crash-stats/load", crash_stats.JsonHandler),
     ("/crash-stats", crash_stats.Handler),
@@ -228,11 +232,11 @@ main_domain = config.get("domains.main")
 redirect_domains = config.get("domains.redirects")
 _DOMAIN_ROUTES = []
 if main_domain and redirect_domains:
-    for redirect_domain in redirect_domains:
-        _DOMAIN_ROUTES.append(
-            routes.DomainRoute(
-                redirect_domain, [webapp2.Route("<:.*>", redirect_to(main_domain)),]
-            )
-        )
+  for redirect_domain in redirect_domains:
+    _DOMAIN_ROUTES.append(
+        routes.DomainRoute(redirect_domain, [
+            webapp2.Route("<:.*>", redirect_to(main_domain)),
+        ]))
 
-app = webapp2.WSGIApplication(_CRON_ROUTES + _DOMAIN_ROUTES + _ROUTES, debug=False)
+app = webapp2.WSGIApplication(
+    _CRON_ROUTES + _DOMAIN_ROUTES + _ROUTES, debug=False)

@@ -27,101 +27,93 @@ from metrics import logs
 
 
 def _set_public_acl_if_needed(url):
-    """Sets public ACL on the object with given URL, if it's not public yet."""
-    if storage.get_acl(url, "allUsers"):
-        logs.log("%s is already marked public, skipping." % url)
-        return True
-
-    if not storage.set_acl(url, "allUsers"):
-        logs.log_error("Failed to mark %s public." % url)
-        return False
-
+  """Sets public ACL on the object with given URL, if it's not public yet."""
+  if storage.get_acl(url, "allUsers"):
+    logs.log("%s is already marked public, skipping." % url)
     return True
 
+  if not storage.set_acl(url, "allUsers"):
+    logs.log_error("Failed to mark %s public." % url)
+    return False
 
-def _make_corpus_backup_public(
-    target, corpus_fuzzer_name_override, corpus_backup_bucket_name
-):
-    """Identifies old corpus backups and makes them public."""
-    corpus_backup_date = utils.utcnow().date() - datetime.timedelta(
-        days=data_types.CORPUS_BACKUP_PUBLIC_LOOKBACK_DAYS
-    )
+  return True
 
-    corpus_backup_url = corpus_manager.gcs_url_for_backup_file(
-        corpus_backup_bucket_name,
-        corpus_fuzzer_name_override or target.engine,
-        target.project_qualified_name(),
-        corpus_backup_date,
-    )
 
-    if not storage.get(corpus_backup_url):
-        logs.log_warn("Failed to find corpus backup %s." % corpus_backup_url)
-        return
+def _make_corpus_backup_public(target, corpus_fuzzer_name_override,
+                               corpus_backup_bucket_name):
+  """Identifies old corpus backups and makes them public."""
+  corpus_backup_date = utils.utcnow().date() - datetime.timedelta(
+      days=data_types.CORPUS_BACKUP_PUBLIC_LOOKBACK_DAYS)
 
-    if not _set_public_acl_if_needed(corpus_backup_url):
-        return
+  corpus_backup_url = corpus_manager.gcs_url_for_backup_file(
+      corpus_backup_bucket_name,
+      corpus_fuzzer_name_override or target.engine,
+      target.project_qualified_name(),
+      corpus_backup_date,
+  )
 
-    filename = (
-        corpus_manager.PUBLIC_BACKUP_TIMESTAMP
-        + os.extsep
-        + corpus_manager.BACKUP_ARCHIVE_FORMAT
-    )
-    public_url = os.path.join(os.path.dirname(corpus_backup_url), filename)
+  if not storage.get(corpus_backup_url):
+    logs.log_warn("Failed to find corpus backup %s." % corpus_backup_url)
+    return
 
-    if not storage.copy_blob(corpus_backup_url, public_url):
-        logs.log_error(
-            "Failed to overwrite %s with the latest public corpus backup." % public_url
-        )
-        return
+  if not _set_public_acl_if_needed(corpus_backup_url):
+    return
 
-    if not _set_public_acl_if_needed(public_url):
-        return
+  filename = (
+      corpus_manager.PUBLIC_BACKUP_TIMESTAMP + os.extsep +
+      corpus_manager.BACKUP_ARCHIVE_FORMAT)
+  public_url = os.path.join(os.path.dirname(corpus_backup_url), filename)
 
-    logs.log("Corpus backup %s is now marked public." % corpus_backup_url)
+  if not storage.copy_blob(corpus_backup_url, public_url):
+    logs.log_error(
+        "Failed to overwrite %s with the latest public corpus backup." %
+        public_url)
+    return
+
+  if not _set_public_acl_if_needed(public_url):
+    return
+
+  logs.log("Corpus backup %s is now marked public." % corpus_backup_url)
 
 
 class MakePublicHandler(base_handler.Handler):
-    """Makes corpuses older than 90 days public."""
+  """Makes corpuses older than 90 days public."""
 
-    @handler.check_cron()
-    def get(self):
-        """Handle a GET request."""
-        jobs = ndb_utils.get_all_from_model(data_types.Job)
-        default_backup_bucket = utils.default_backup_bucket()
-        for job in jobs:
-            job_environment = job.get_environment()
-            if utils.string_is_true(job_environment.get("EXPERIMENTAL")):
-                # Don't use corpus backups from experimental jobs. Skip.
-                continue
+  @handler.check_cron()
+  def get(self):
+    """Handle a GET request."""
+    jobs = ndb_utils.get_all_from_model(data_types.Job)
+    default_backup_bucket = utils.default_backup_bucket()
+    for job in jobs:
+      job_environment = job.get_environment()
+      if utils.string_is_true(job_environment.get("EXPERIMENTAL")):
+        # Don't use corpus backups from experimental jobs. Skip.
+        continue
 
-            if not utils.string_is_true(job_environment.get("CORPUS_PRUNE")):
-                # There won't be any corpus backups for these jobs. Skip.
-                continue
+      if not utils.string_is_true(job_environment.get("CORPUS_PRUNE")):
+        # There won't be any corpus backups for these jobs. Skip.
+        continue
 
-            corpus_backup_bucket_name = job_environment.get(
-                "BACKUP_BUCKET", default_backup_bucket
-            )
-            if not corpus_backup_bucket_name:
-                # No backup bucket found. Skip.
-                continue
+      corpus_backup_bucket_name = job_environment.get("BACKUP_BUCKET",
+                                                      default_backup_bucket)
+      if not corpus_backup_bucket_name:
+        # No backup bucket found. Skip.
+        continue
 
-            corpus_fuzzer_name_override = job_environment.get(
-                "CORPUS_FUZZER_NAME_OVERRIDE"
-            )
+      corpus_fuzzer_name_override = job_environment.get(
+          "CORPUS_FUZZER_NAME_OVERRIDE")
 
-            target_jobs = list(fuzz_target_utils.get_fuzz_target_jobs(job=job.name))
-            fuzz_targets = fuzz_target_utils.get_fuzz_targets_for_target_jobs(
-                target_jobs
-            )
+      target_jobs = list(fuzz_target_utils.get_fuzz_target_jobs(job=job.name))
+      fuzz_targets = fuzz_target_utils.get_fuzz_targets_for_target_jobs(
+          target_jobs)
 
-            for target in fuzz_targets:
-                if not target:
-                    # This is expected if any fuzzer/job combinations become outdated.
-                    continue
+      for target in fuzz_targets:
+        if not target:
+          # This is expected if any fuzzer/job combinations become outdated.
+          continue
 
-                try:
-                    _make_corpus_backup_public(
-                        target, corpus_fuzzer_name_override, corpus_backup_bucket_name
-                    )
-                except:
-                    logs.log_error("Failed to make %s corpus backup public." % target)
+        try:
+          _make_corpus_backup_public(target, corpus_fuzzer_name_override,
+                                     corpus_backup_bucket_name)
+        except:
+          logs.log_error("Failed to make %s corpus backup public." % target)

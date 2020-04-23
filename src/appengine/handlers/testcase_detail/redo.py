@@ -22,28 +22,28 @@ from libs import helpers
 
 
 class Handler(base_handler.Handler):
-    """Handler that redo tasks."""
+  """Handler that redo tasks."""
 
-    @staticmethod
-    def redo(testcase, testcase_tasks, user_email):
-        """Redo tasks."""
-        try:
-            tasks.redo_testcase(testcase, testcase_tasks, user_email)
-        except tasks.InvalidRedoTask as error:
-            raise helpers.EarlyExitException(str(error), 400)
+  @staticmethod
+  def redo(testcase, testcase_tasks, user_email):
+    """Redo tasks."""
+    try:
+      tasks.redo_testcase(testcase, testcase_tasks, user_email)
+    except tasks.InvalidRedoTask as error:
+      raise helpers.EarlyExitException(str(error), 400)
 
-        helpers.log(
-            "Redo testcase %d: %s" % (testcase.key.id(), testcase_tasks),
-            helpers.MODIFY_OPERATION,
-        )
+    helpers.log(
+        "Redo testcase %d: %s" % (testcase.key.id(), testcase_tasks),
+        helpers.MODIFY_OPERATION,
+    )
 
-    @handler.post(handler.JSON, handler.JSON)
-    @handler.require_csrf_token
-    @handler.check_testcase_access
-    def post(self, testcase):
-        """Queue redo tasks."""
-        testcase_tasks = self.request.get("tasks")
-        user_email = helpers.get_user_email()
+  @handler.post(handler.JSON, handler.JSON)
+  @handler.require_csrf_token
+  @handler.check_testcase_access
+  def post(self, testcase):
+    """Queue redo tasks."""
+    testcase_tasks = self.request.get("tasks")
+    user_email = helpers.get_user_email()
 
-        self.redo(testcase, testcase_tasks, user_email)
-        self.render_json(show.get_testcase_detail(testcase))
+    self.redo(testcase, testcase_tasks, user_email)
+    self.render_json(show.get_testcase_detail(testcase))

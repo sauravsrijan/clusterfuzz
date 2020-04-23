@@ -17,43 +17,47 @@ from protos import heartbeat_pb2 as protos_dot_heartbeat__pb2
 
 
 class HeartbeatStub(object):
-    """Service for receiving hearbeats.
+  """Service for receiving hearbeats.
     """
 
-    def __init__(self, channel):
-        """Constructor.
+  def __init__(self, channel):
+    """Constructor.
 
         Args:
           channel: A grpc.Channel.
         """
-        self.Beat = channel.unary_unary(
-            "/Heartbeat/Beat",
-            request_serializer=protos_dot_heartbeat__pb2.HeartbeatRequest.SerializeToString,
-            response_deserializer=protos_dot_heartbeat__pb2.HeartbeatResponse.FromString,
-        )
+    self.Beat = channel.unary_unary(
+        "/Heartbeat/Beat",
+        request_serializer=protos_dot_heartbeat__pb2.HeartbeatRequest
+        .SerializeToString,
+        response_deserializer=protos_dot_heartbeat__pb2.HeartbeatResponse
+        .FromString,
+    )
 
 
 class HeartbeatServicer(object):
-    """Service for receiving hearbeats.
+  """Service for receiving hearbeats.
     """
 
-    def Beat(self, request, context):
-        """Send a beat.
+  def Beat(self, request, context):
+    """Send a beat.
         """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details("Method not implemented!")
-        raise NotImplementedError("Method not implemented!")
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details("Method not implemented!")
+    raise NotImplementedError("Method not implemented!")
 
 
 def add_HeartbeatServicer_to_server(servicer, server):
-    rpc_method_handlers = {
-        "Beat": grpc.unary_unary_rpc_method_handler(
-            servicer.Beat,
-            request_deserializer=protos_dot_heartbeat__pb2.HeartbeatRequest.FromString,
-            response_serializer=protos_dot_heartbeat__pb2.HeartbeatResponse.SerializeToString,
-        ),
-    }
-    generic_handler = grpc.method_handlers_generic_handler(
-        "Heartbeat", rpc_method_handlers
-    )
-    server.add_generic_rpc_handlers((generic_handler,))
+  rpc_method_handlers = {
+      "Beat":
+          grpc.unary_unary_rpc_method_handler(
+              servicer.Beat,
+              request_deserializer=protos_dot_heartbeat__pb2.HeartbeatRequest
+              .FromString,
+              response_serializer=protos_dot_heartbeat__pb2.HeartbeatResponse
+              .SerializeToString,
+          ),
+  }
+  generic_handler = grpc.method_handlers_generic_handler(
+      "Heartbeat", rpc_method_handlers)
+  server.add_generic_rpc_handlers((generic_handler,))

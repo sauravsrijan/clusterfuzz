@@ -21,63 +21,59 @@ _MODIFY_BATCH_SIZE = 500
 
 
 def is_true(boolean_prop):
-    """Helper for boolean property filters to avoid lint errors."""
-    return (
-        boolean_prop == True
-    )  # pylint: disable=g-explicit-bool-comparison,singleton-comparison
+  """Helper for boolean property filters to avoid lint errors."""
+  return (boolean_prop == True)  # pylint: disable=g-explicit-bool-comparison,singleton-comparison
 
 
 def is_false(boolean_prop):
-    """Helper for boolean property filters to avoid lint errors."""
-    return (
-        boolean_prop == False
-    )  # pylint: disable=g-explicit-bool-comparison,singleton-comparison
+  """Helper for boolean property filters to avoid lint errors."""
+  return (boolean_prop == False)  # pylint: disable=g-explicit-bool-comparison,singleton-comparison
 
 
 def get_all_from_model(model):
-    """Get all results from a ndb.Model."""
-    return get_all_from_query(model.query())
+  """Get all results from a ndb.Model."""
+  return get_all_from_query(model.query())
 
 
 def get_all_from_query(query, **kwargs):
-    """Return all entities based on the query by paging, to avoid query
+  """Return all entities based on the query by paging, to avoid query
     expirations on App Engine."""
-    # TODO(ochang): Queries no longer expire with new NDB. Remove this and all
-    # fix up callers.
-    kwargs.pop("batch_size", None)  # No longer supported.
-    for entity in query.iter(**kwargs):
-        yield entity
+  # TODO(ochang): Queries no longer expire with new NDB. Remove this and all
+  # fix up callers.
+  kwargs.pop("batch_size", None)  # No longer supported.
+  for entity in query.iter(**kwargs):
+    yield entity
 
 
 def _gen_chunks(values, size):
-    """Generate chunks of iterable."""
-    values = list(values)
-    for i in range(0, len(values), size):
-        yield values[i : i + size]
+  """Generate chunks of iterable."""
+  values = list(values)
+  for i in range(0, len(values), size):
+    yield values[i:i + size]
 
 
 def get_multi(keys):
-    """Get multiple entities, working around a limitation in the NDB library with
+  """Get multiple entities, working around a limitation in the NDB library with
     the maximum number of keys allowed."""
-    result = []
-    for chunk in _gen_chunks(keys, _GET_BATCH_SIZE):
-        result.extend(ndb.get_multi(chunk))
+  result = []
+  for chunk in _gen_chunks(keys, _GET_BATCH_SIZE):
+    result.extend(ndb.get_multi(chunk))
 
-    return result
+  return result
 
 
 def put_multi(entities):
-    """Put multiple entities, working around a limitation in the NDB library with
+  """Put multiple entities, working around a limitation in the NDB library with
     the maximum number of keys allowed."""
-    result = []
-    for chunk in _gen_chunks(entities, _MODIFY_BATCH_SIZE):
-        result.extend(ndb.put_multi(chunk))
+  result = []
+  for chunk in _gen_chunks(entities, _MODIFY_BATCH_SIZE):
+    result.extend(ndb.put_multi(chunk))
 
-    return result
+  return result
 
 
 def delete_multi(keys):
-    """Delete multiple entities, working around a limitation in the NDB library
+  """Delete multiple entities, working around a limitation in the NDB library
     with the maximum number of keys allowed."""
-    for chunk in _gen_chunks(keys, _MODIFY_BATCH_SIZE):
-        ndb.delete_multi(chunk)
+  for chunk in _gen_chunks(keys, _MODIFY_BATCH_SIZE):
+    ndb.delete_multi(chunk)

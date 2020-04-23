@@ -29,213 +29,207 @@ from libs import helpers
 
 
 def get_queues():
-    """Return list of task queues."""
-    queues = []
-    for name, display_name in six.iteritems(tasks.TASK_QUEUE_DISPLAY_NAMES):
-        queue = {
-            "name": name,
-            "display_name": display_name,
-        }
-        queues.append(queue)
+  """Return list of task queues."""
+  queues = []
+  for name, display_name in six.iteritems(tasks.TASK_QUEUE_DISPLAY_NAMES):
+    queue = {
+        "name": name,
+        "display_name": display_name,
+    }
+    queues.append(queue)
 
-    queues.sort(key=lambda q: q["display_name"])
-    return queues
+  queues.sort(key=lambda q: q["display_name"])
+  return queues
 
 
 class Handler(base_handler.Handler):
-    """View job handler."""
+  """View job handler."""
 
-    @handler.check_user_access(need_privileged_access=True)
-    @handler.get(handler.HTML)
-    def get(self):
-        """Handle a get request."""
-        helpers.log("Jobs", helpers.VIEW_OPERATION)
+  @handler.check_user_access(need_privileged_access=True)
+  @handler.get(handler.HTML)
+  def get(self):
+    """Handle a get request."""
+    helpers.log("Jobs", helpers.VIEW_OPERATION)
 
-        template_values = self.get_results()
-        self.render("jobs.html", template_values)
+    template_values = self.get_results()
+    self.render("jobs.html", template_values)
 
-    @staticmethod
-    def get_results():
-        """Get results for the jobs page."""
-        jobs = list(data_types.Job.query().order(data_types.Job.name))
-        templates = list(
-            data_types.JobTemplate.query().order(data_types.JobTemplate.name)
-        )
-        queues = get_queues()
+  @staticmethod
+  def get_results():
+    """Get results for the jobs page."""
+    jobs = list(data_types.Job.query().order(data_types.Job.name))
+    templates = list(data_types.JobTemplate.query().order(
+        data_types.JobTemplate.name))
+    queues = get_queues()
 
-        return {
-            "jobs": jobs,
-            "templates": templates,
-            "fieldValues": {
-                "csrf_token": form.generate_csrf_token(),
-                "queues": queues,
-                "update_job_url": "/update-job",
-                "update_job_template_url": "/update-job-template",
-                "upload_info": gcs.prepare_blob_upload()._asdict(),
-            },
-        }
+    return {
+        "jobs": jobs,
+        "templates": templates,
+        "fieldValues": {
+            "csrf_token": form.generate_csrf_token(),
+            "queues": queues,
+            "update_job_url": "/update-job",
+            "update_job_template_url": "/update-job-template",
+            "upload_info": gcs.prepare_blob_upload()._asdict(),
+        },
+    }
 
 
 class UpdateJob(base_handler.GcsUploadHandler):
-    """Update job handler."""
+  """Update job handler."""
 
-    @handler.check_user_access(need_privileged_access=True)
-    @handler.require_csrf_token
-    def post(self):
-        """Handle a post request."""
-        name = self.request.get("name")
-        if not name:
-            raise helpers.EarlyExitException("Please give this job a name!", 400)
+  @handler.check_user_access(need_privileged_access=True)
+  @handler.require_csrf_token
+  def post(self):
+    """Handle a post request."""
+    name = self.request.get("name")
+    if not name:
+      raise helpers.EarlyExitException("Please give this job a name!", 400)
 
-        if not data_types.Job.VALID_NAME_REGEX.match(name):
-            raise helpers.EarlyExitException(
-                "Job name can only contain letters, numbers, dashes and underscores.",
-                400,
-            )
+    if not data_types.Job.VALID_NAME_REGEX.match(name):
+      raise helpers.EarlyExitException(
+          "Job name can only contain letters, numbers, dashes and underscores.",
+          400,
+      )
 
-        templates = self.request.get("templates", "").splitlines()
-        for template in templates:
-            if not data_types.JobTemplate.query(
-                data_types.JobTemplate.name == template
-            ).get():
-                raise helpers.EarlyExitException(
-                    "Invalid template name(s) specified.", 400
-                )
+    templates = self.request.get("templates", "").splitlines()
+    for template in templates:
+      if not data_types.JobTemplate.query(
+          data_types.JobTemplate.name == template).get():
+        raise helpers.EarlyExitException("Invalid template name(s) specified.",
+                                         400)
 
-        new_platform = self.request.get("platform")
-        if not new_platform or new_platform == "undefined":
-            raise helpers.EarlyExitException("No platform provided for job.", 400)
+    new_platform = self.request.get("platform")
+    if not new_platform or new_platform == "undefined":
+      raise helpers.EarlyExitException("No platform provided for job.", 400)
 
-        description = self.request.get("description", "")
-        environment_string = self.request.get("environment_string", "")
+    description = self.request.get("description", "")
+    environment_string = self.request.get("environment_string", "")
+    previous_custom_binary_revision = 0
+
+    job = data_types.Job.query(data_types.Job.name == name).get()
+    recreate_fuzzer_mappings = False
+    if not job:
+      job = data_types.Job()
+    else:
+      previous_custom_binary_revision = job.custom_binary_revision
+      if previous_custom_binary_revision is None:
         previous_custom_binary_revision = 0
+      if new_platform != job.platform:
+        # The rare case of modifying a job's platform causes many problems with
+        # task selection. If a job is leased from the old queue, the task will
+        # be recreated in the correct queue at lease time. Fuzzer mappings must
+        # be purged and recreated, since they depend on the job's platform.
+        recreate_fuzzer_mappings = True
 
-        job = data_types.Job.query(data_types.Job.name == name).get()
-        recreate_fuzzer_mappings = False
-        if not job:
-            job = data_types.Job()
-        else:
-            previous_custom_binary_revision = job.custom_binary_revision
-            if previous_custom_binary_revision is None:
-                previous_custom_binary_revision = 0
-            if new_platform != job.platform:
-                # The rare case of modifying a job's platform causes many problems with
-                # task selection. If a job is leased from the old queue, the task will
-                # be recreated in the correct queue at lease time. Fuzzer mappings must
-                # be purged and recreated, since they depend on the job's platform.
-                recreate_fuzzer_mappings = True
+    job.name = name
+    job.platform = new_platform
+    job.description = description
+    job.environment_string = environment_string
+    job.templates = templates
 
-        job.name = name
-        job.platform = new_platform
-        job.description = description
-        job.environment_string = environment_string
-        job.templates = templates
+    blob_info = self.get_upload()
+    if blob_info:
+      job.custom_binary_key = str(blob_info.key())
+      job.custom_binary_filename = blob_info.filename
+      job.custom_binary_revision = previous_custom_binary_revision + 1
 
-        blob_info = self.get_upload()
-        if blob_info:
-            job.custom_binary_key = str(blob_info.key())
-            job.custom_binary_filename = blob_info.filename
-            job.custom_binary_revision = previous_custom_binary_revision + 1
+    if job.custom_binary_key and "CUSTOM_BINARY" not in job.environment_string:
+      job.environment_string += "\nCUSTOM_BINARY = True"
 
-        if job.custom_binary_key and "CUSTOM_BINARY" not in job.environment_string:
-            job.environment_string += "\nCUSTOM_BINARY = True"
+    job.put()
 
-        job.put()
+    if recreate_fuzzer_mappings:
+      fuzzer_selection.update_platform_for_job(name, new_platform)
 
-        if recreate_fuzzer_mappings:
-            fuzzer_selection.update_platform_for_job(name, new_platform)
+    # pylint: disable=unexpected-keyword-arg
+    _ = data_handler.get_all_job_type_names(__memoize_force__=True)
 
-        # pylint: disable=unexpected-keyword-arg
-        _ = data_handler.get_all_job_type_names(__memoize_force__=True)
-
-        helpers.log("Job created %s" % name, helpers.MODIFY_OPERATION)
-        template_values = {
-            "title": "Success",
-            "message": (
-                "Job %s is successfully updated. " "Redirecting back to jobs page..."
-            )
-            % name,
-            "redirect_url": "/jobs",
-        }
-        self.render("message.html", template_values)
+    helpers.log("Job created %s" % name, helpers.MODIFY_OPERATION)
+    template_values = {
+        "title":
+            "Success",
+        "message": ("Job %s is successfully updated. "
+                    "Redirecting back to jobs page...") % name,
+        "redirect_url":
+            "/jobs",
+    }
+    self.render("message.html", template_values)
 
 
 class UpdateJobTemplate(base_handler.Handler):
-    """Update job template handler."""
+  """Update job template handler."""
 
-    @handler.check_user_access(need_privileged_access=True)
-    @handler.require_csrf_token
-    @handler.post(handler.FORM, handler.HTML)
-    def post(self):
-        """Handle a post request."""
-        name = self.request.get("name")
-        if not name:
-            raise helpers.EarlyExitException("Please give this template a name!", 400)
+  @handler.check_user_access(need_privileged_access=True)
+  @handler.require_csrf_token
+  @handler.post(handler.FORM, handler.HTML)
+  def post(self):
+    """Handle a post request."""
+    name = self.request.get("name")
+    if not name:
+      raise helpers.EarlyExitException("Please give this template a name!", 400)
 
-        if not data_types.Job.VALID_NAME_REGEX.match(name):
-            raise helpers.EarlyExitException(
-                "Template name can only contain letters, numbers, dashes and "
-                "underscores.",
-                400,
-            )
+    if not data_types.Job.VALID_NAME_REGEX.match(name):
+      raise helpers.EarlyExitException(
+          "Template name can only contain letters, numbers, dashes and "
+          "underscores.",
+          400,
+      )
 
-        environment_string = self.request.get("environment_string")
-        if not environment_string:
-            raise helpers.EarlyExitException(
-                "No environment string provided for job template.", 400
-            )
+    environment_string = self.request.get("environment_string")
+    if not environment_string:
+      raise helpers.EarlyExitException(
+          "No environment string provided for job template.", 400)
 
-        template = data_types.JobTemplate.query(
-            data_types.JobTemplate.name == name
-        ).get()
-        if not template:
-            template = data_types.JobTemplate()
+    template = data_types.JobTemplate.query(
+        data_types.JobTemplate.name == name).get()
+    if not template:
+      template = data_types.JobTemplate()
 
-        template.name = name
-        template.environment_string = environment_string
-        template.put()
+    template.name = name
+    template.environment_string = environment_string
+    template.put()
 
-        helpers.log("Template created %s" % name, helpers.MODIFY_OPERATION)
+    helpers.log("Template created %s" % name, helpers.MODIFY_OPERATION)
 
-        template_values = {
-            "title": "Success",
-            "message": (
-                "Template %s is successfully updated. "
-                "Redirecting back to jobs page..."
-            )
-            % name,
-            "redirect_url": "/jobs",
-        }
-        self.render("message.html", template_values)
+    template_values = {
+        "title":
+            "Success",
+        "message": ("Template %s is successfully updated. "
+                    "Redirecting back to jobs page...") % name,
+        "redirect_url":
+            "/jobs",
+    }
+    self.render("message.html", template_values)
 
 
 class DeleteJobHandler(base_handler.Handler):
-    """Delete job handler."""
+  """Delete job handler."""
 
-    @handler.check_user_access(need_privileged_access=True)
-    @handler.post(handler.JSON, handler.JSON)
-    @handler.require_csrf_token
-    def post(self):
-        """Handle a post request."""
-        key = helpers.get_integer_key(self.request)
-        job = ndb.Key(data_types.Job, key).get()
-        if not job:
-            raise helpers.EarlyExitException("Job not found.", 400)
+  @handler.check_user_access(need_privileged_access=True)
+  @handler.post(handler.JSON, handler.JSON)
+  @handler.require_csrf_token
+  def post(self):
+    """Handle a post request."""
+    key = helpers.get_integer_key(self.request)
+    job = ndb.Key(data_types.Job, key).get()
+    if not job:
+      raise helpers.EarlyExitException("Job not found.", 400)
 
-        # Delete from fuzzers' jobs' list.
-        for fuzzer in ndb_utils.get_all_from_model(data_types.Fuzzer):
-            if job.name in fuzzer.jobs:
-                fuzzer.jobs.remove(job.name)
-                fuzzer.put()
+    # Delete from fuzzers' jobs' list.
+    for fuzzer in ndb_utils.get_all_from_model(data_types.Fuzzer):
+      if job.name in fuzzer.jobs:
+        fuzzer.jobs.remove(job.name)
+        fuzzer.put()
 
-        # Delete associated fuzzer-job mapping(s).
-        query = data_types.FuzzerJob.query()
-        query = query.filter(data_types.FuzzerJob.job == job.name)
-        for mapping in ndb_utils.get_all_from_query(query):
-            mapping.key.delete()
+    # Delete associated fuzzer-job mapping(s).
+    query = data_types.FuzzerJob.query()
+    query = query.filter(data_types.FuzzerJob.job == job.name)
+    for mapping in ndb_utils.get_all_from_query(query):
+      mapping.key.delete()
 
-        # Delete job.
-        job.key.delete()
+    # Delete job.
+    job.key.delete()
 
-        helpers.log("Deleted job %s" % job.name, helpers.MODIFY_OPERATION)
-        self.redirect("/jobs")
+    helpers.log("Deleted job %s" % job.name, helpers.MODIFY_OPERATION)
+    self.redirect("/jobs")

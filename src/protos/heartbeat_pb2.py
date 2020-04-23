@@ -25,7 +25,6 @@ _b = sys.version_info[0] < 3 and (lambda x: x) or (lambda x: x.encode("latin1"))
 
 _sym_db = _symbol_database.Default()
 
-
 DESCRIPTOR = _descriptor.FileDescriptor(
     name="protos/heartbeat.proto",
     package="",
@@ -35,7 +34,6 @@ DESCRIPTOR = _descriptor.FileDescriptor(
         '\n\x16protos/heartbeat.proto"\x12\n\x10HeartbeatRequest"\x13\n\x11HeartbeatResponse2:\n\tHeartbeat\x12-\n\x04\x42\x65\x61t\x12\x11.HeartbeatRequest\x1a\x12.HeartbeatResponseB%Z#clusterfuzz/protos/untrusted_runner'
     ),
 )
-
 
 _HEARTBEATREQUEST = _descriptor.Descriptor(
     name="HeartbeatRequest",
@@ -55,7 +53,6 @@ _HEARTBEATREQUEST = _descriptor.Descriptor(
     serialized_start=26,
     serialized_end=44,
 )
-
 
 _HEARTBEATRESPONSE = _descriptor.Descriptor(
     name="HeartbeatResponse",
@@ -101,7 +98,6 @@ HeartbeatResponse = _reflection.GeneratedProtocolMessageType(
     ),
 )
 _sym_db.RegisterMessage(HeartbeatResponse)
-
 
 DESCRIPTOR._options = None
 

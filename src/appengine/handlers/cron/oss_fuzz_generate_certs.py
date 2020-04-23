@@ -24,48 +24,49 @@ from metrics import logs
 
 
 def generate_cert(project_name):
-    """Generate a self signed cerficate."""
-    # Defer imports to avoid issues on Python 2.
-    from OpenSSL import crypto
+  """Generate a self signed cerficate."""
+  # Defer imports to avoid issues on Python 2.
+  from OpenSSL import crypto
 
-    key = crypto.PKey()
-    key.generate_key(crypto.TYPE_RSA, 2048)
+  key = crypto.PKey()
+  key.generate_key(crypto.TYPE_RSA, 2048)
 
-    cert = crypto.X509()
-    cert.get_subject().C = "US"
-    cert.get_subject().CN = "*" + untrusted.internal_network_domain()
-    cert.get_subject().O = project_name
-    cert.set_serial_number(9001)
-    cert.set_notBefore(b"20000101000000Z")
-    cert.set_notAfter(b"21000101000000Z")
-    cert.set_issuer(cert.get_subject())
-    cert.set_pubkey(key)
-    cert.sign(key, "sha256")
+  cert = crypto.X509()
+  cert.get_subject().C = "US"
+  cert.get_subject().CN = "*" + untrusted.internal_network_domain()
+  cert.get_subject().O = project_name
+  cert.set_serial_number(9001)
+  cert.set_notBefore(b"20000101000000Z")
+  cert.set_notAfter(b"21000101000000Z")
+  cert.set_issuer(cert.get_subject())
+  cert.set_pubkey(key)
+  cert.sign(key, "sha256")
 
-    cert_contents = crypto.dump_certificate(crypto.FILETYPE_PEM, cert)
-    key_contents = crypto.dump_privatekey(crypto.FILETYPE_PEM, key)
-    return cert_contents, key_contents
+  cert_contents = crypto.dump_certificate(crypto.FILETYPE_PEM, cert)
+  key_contents = crypto.dump_privatekey(crypto.FILETYPE_PEM, key)
+  return cert_contents, key_contents
 
 
 class Handler(base_handler.Handler):
-    """Generate OSS-Fuzz certs."""
+  """Generate OSS-Fuzz certs."""
 
-    @handler.check_cron()
-    def get(self):
-        """Handles a get request."""
-        if sys.version_info.major == 2:
-            raise helpers.EarlyExitException("Unsupported on Python 2.", 500)
+  @handler.check_cron()
+  def get(self):
+    """Handles a get request."""
+    if sys.version_info.major == 2:
+      raise helpers.EarlyExitException("Unsupported on Python 2.", 500)
 
-        for project in data_types.OssFuzzProject.query():
-            tls_cert_key = ndb.Key(data_types.WorkerTlsCert, project.name)
-            if tls_cert_key.get():
-                # Already generated.
-                continue
+    for project in data_types.OssFuzzProject.query():
+      tls_cert_key = ndb.Key(data_types.WorkerTlsCert, project.name)
+      if tls_cert_key.get():
+        # Already generated.
+        continue
 
-            logs.log("Generating cert for %s." % project.name)
-            cert_contents, key_contents = generate_cert(project.name)
+      logs.log("Generating cert for %s." % project.name)
+      cert_contents, key_contents = generate_cert(project.name)
 
-            tls_cert = data_types.WorkerTlsCert(
-                id=project.name, cert_contents=cert_contents, key_contents=key_contents
-            )
-            tls_cert.put()
+      tls_cert = data_types.WorkerTlsCert(
+          id=project.name,
+          cert_contents=cert_contents,
+          key_contents=key_contents)
+      tls_cert.put()

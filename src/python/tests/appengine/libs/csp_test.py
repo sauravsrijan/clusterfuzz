@@ -19,69 +19,69 @@ from libs import csp
 
 
 class CSPBuilderTest(unittest.TestCase):
-    """Tests for CSPBuilder."""
+  """Tests for CSPBuilder."""
 
-    def test_simple_policy(self):
-        """Ensure that generating a simple policy works as expected."""
-        builder = csp.CSPBuilder()
+  def test_simple_policy(self):
+    """Ensure that generating a simple policy works as expected."""
+    builder = csp.CSPBuilder()
 
-        builder.add("default-src", "none", quote=True)
-        builder.add("connect-src", "self", quote=True)
-        builder.add("script-src", "self", quote=True)
-        builder.add("script-src", "scripts.test.tld")
-        builder.add_sourceless("upgrade-insecure-requests")
+    builder.add("default-src", "none", quote=True)
+    builder.add("connect-src", "self", quote=True)
+    builder.add("script-src", "self", quote=True)
+    builder.add("script-src", "scripts.test.tld")
+    builder.add_sourceless("upgrade-insecure-requests")
 
-        self.assertEqual(
-            str(builder),
-            "connect-src 'self'; default-src 'none'; "
-            "script-src 'self' scripts.test.tld; upgrade-insecure-requests;",
-        )
+    self.assertEqual(
+        str(builder),
+        "connect-src 'self'; default-src 'none'; "
+        "script-src 'self' scripts.test.tld; upgrade-insecure-requests;",
+    )
 
-    def test_policy_modification(self):
-        """Ensure that policies can be modified."""
-        builder = csp.CSPBuilder()
+  def test_policy_modification(self):
+    """Ensure that policies can be modified."""
+    builder = csp.CSPBuilder()
 
-        builder.add("default-src", "none", quote=True)
-        builder.add("script-src", "self", quote=True)
-        builder.add("script-src", "unsafe-inline", quote=True)
-        builder.add("script-src", "external.site")
-        self.assertEqual(
-            str(builder),
-            "default-src 'none'; script-src 'self' 'unsafe-inline' external.site;",
-        )
+    builder.add("default-src", "none", quote=True)
+    builder.add("script-src", "self", quote=True)
+    builder.add("script-src", "unsafe-inline", quote=True)
+    builder.add("script-src", "external.site")
+    self.assertEqual(
+        str(builder),
+        "default-src 'none'; script-src 'self' 'unsafe-inline' external.site;",
+    )
 
-        builder.remove("script-src", "unsafe-inline", quote=True)
-        builder.remove("script-src", "external.site")
-        self.assertEqual(str(builder), "default-src 'none'; script-src 'self';")
+    builder.remove("script-src", "unsafe-inline", quote=True)
+    builder.remove("script-src", "external.site")
+    self.assertEqual(str(builder), "default-src 'none'; script-src 'self';")
 
-    def test_exception_on_duplicate_add(self):
-        """Ensure that an exception is thrown if we add a duplicate item."""
-        builder = csp.CSPBuilder()
-        builder.add("default-src", "none", quote=True)
+  def test_exception_on_duplicate_add(self):
+    """Ensure that an exception is thrown if we add a duplicate item."""
+    builder = csp.CSPBuilder()
+    builder.add("default-src", "none", quote=True)
 
-        with self.assertRaises(AssertionError):
-            builder.add("default-src", "none", quote=True)
+    with self.assertRaises(AssertionError):
+      builder.add("default-src", "none", quote=True)
 
-        with self.assertRaises(AssertionError):
-            builder.add_sourceless("default-src")
+    with self.assertRaises(AssertionError):
+      builder.add_sourceless("default-src")
 
-        builder.add_sourceless("block-all-mixed-content")
-        with self.assertRaises(AssertionError):
-            builder.add_sourceless("block-all-mixed-content")
+    builder.add_sourceless("block-all-mixed-content")
+    with self.assertRaises(AssertionError):
+      builder.add_sourceless("block-all-mixed-content")
 
-    def test_exception_on_bad_removal(self):
-        """Ensure that an exception is thrown if we remove a nonexistent item."""
-        builder = csp.CSPBuilder()
+  def test_exception_on_bad_removal(self):
+    """Ensure that an exception is thrown if we remove a nonexistent item."""
+    builder = csp.CSPBuilder()
 
-        builder.add("default-src", "none", quote=True)
-        builder.remove("default-src", "none", quote=True)
+    builder.add("default-src", "none", quote=True)
+    builder.remove("default-src", "none", quote=True)
 
-        with self.assertRaises(AssertionError):
-            builder.remove("default-src", "none", quote=True)
+    with self.assertRaises(AssertionError):
+      builder.remove("default-src", "none", quote=True)
 
-        with self.assertRaises(AssertionError):
-            builder.remove("script-src", "unadded.domain")
+    with self.assertRaises(AssertionError):
+      builder.remove("script-src", "unadded.domain")
 
-    def test_no_exception_from_default_policy(self):
-        """Ensure that no exceptions are raised building the default policy."""
-        csp.get_default()
+  def test_no_exception_from_default_policy(self):
+    """Ensure that no exceptions are raised building the default policy."""
+    csp.get_default()

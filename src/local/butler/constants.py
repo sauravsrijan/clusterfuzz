@@ -19,11 +19,10 @@ from builtins import str
 
 # Chromedriver related constants.
 CHROMEDRIVER_VERSION_URL = (
-    "https://commondatastorage.googleapis.com/chromedriver/LATEST_RELEASE_79"
-)
+    "https://commondatastorage.googleapis.com/chromedriver/LATEST_RELEASE_79")
 CHROMEDRIVER_DOWNLOAD_PATTERN = (
-    "https://commondatastorage.googleapis.com/chromedriver/{version}/" "{archive_name}"
-)
+    "https://commondatastorage.googleapis.com/chromedriver/{version}/"
+    "{archive_name}")
 
 # Local directory of deployment files.
 PACKAGE_TARGET_ZIP_DIRECTORY = "deployment"
@@ -32,23 +31,20 @@ PACKAGE_TARGET_ZIP_DIRECTORY = "deployment"
 LEGACY_ZIP_NAME = "clusterfuzz-source.zip"
 
 # File containing the source revision information.
-PACKAGE_TARGET_MANIFEST_PATH = os.path.join(
-    "src", "appengine", "resources", "clusterfuzz-source.manifest"
-)
+PACKAGE_TARGET_MANIFEST_PATH = os.path.join("src", "appengine", "resources",
+                                            "clusterfuzz-source.manifest")
 
 # Supported Platforms and ABIS.
-PLATFORMS = collections.OrderedDict(
-    [
-        ("windows", "win_amd64"),
-        ("macos", ("macosx_10_10_intel", "macosx_10_12_x86_64")),
-        ("linux", "manylinux1_x86_64"),
-    ]
-)
+PLATFORMS = collections.OrderedDict([
+    ("windows", "win_amd64"),
+    ("macos", ("macosx_10_10_intel", "macosx_10_12_x86_64")),
+    ("linux", "manylinux1_x86_64"),
+])
 
 if sys.version_info.major == 2:
-    ABIS = {"linux": "cp27mu", "windows": "cp27m", "macos": "cp27m"}
+  ABIS = {"linux": "cp27mu", "windows": "cp27m", "macos": "cp27m"}
 else:
-    ABIS = {"linux": "cp37m", "windows": "cp37m", "macos": "cp37m"}
+  ABIS = {"linux": "cp37m", "windows": "cp37m", "macos": "cp37m"}
 
 # Config directory to use for tests.
 TEST_CONFIG_DIR = os.path.join("configs", "test")

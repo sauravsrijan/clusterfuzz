@@ -26,28 +26,29 @@ AFL_DUMMY_INPUT = "in1"
 
 
 def write_dummy_file(input_dir):
-    """Afl will refuse to run if the corpus directory is empty or contains empty
+  """Afl will refuse to run if the corpus directory is empty or contains empty
     files. So write the bare minimum to get afl to run if there is no corpus
     yet."""
-    # TODO(metzman): Ask lcamtuf to allow AFL to run with an empty input corpus.
-    dummy_input_path = os.path.join(input_dir, AFL_DUMMY_INPUT)
-    if environment.is_trusted_host():
-        from bot.untrusted_runner import file_host
+  # TODO(metzman): Ask lcamtuf to allow AFL to run with an empty input corpus.
+  dummy_input_path = os.path.join(input_dir, AFL_DUMMY_INPUT)
+  if environment.is_trusted_host():
+    from bot.untrusted_runner import file_host
 
-        file_host.write_data_to_worker(b" ", dummy_input_path)
-    else:
-        utils.write_data_to_file(" ", dummy_input_path)
+    file_host.write_data_to_worker(b" ", dummy_input_path)
+  else:
+    utils.write_data_to_file(" ", dummy_input_path)
 
 
 class Afl(builtin.EngineFuzzer):
-    """Builtin AFL fuzzer."""
+  """Builtin AFL fuzzer."""
 
-    def generate_arguments(self, fuzzer_path):  # pylint: disable=unused-argument
-        """Generate arguments for fuzzer using .options file or default values."""
-        return ""
+  def generate_arguments(self, fuzzer_path):  # pylint: disable=unused-argument
+    """Generate arguments for fuzzer using .options file or default values."""
+    return ""
 
-    def run(self, input_directory, output_directory, no_of_files):
-        result = super(Afl, self).run(input_directory, output_directory, no_of_files)
+  def run(self, input_directory, output_directory, no_of_files):
+    result = super(Afl, self).run(input_directory, output_directory,
+                                  no_of_files)
 
-        write_dummy_file(result.corpus_directory)
-        return result
+    write_dummy_file(result.corpus_directory)
+    return result

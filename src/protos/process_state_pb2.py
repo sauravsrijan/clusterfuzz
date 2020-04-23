@@ -25,7 +25,6 @@ _b = sys.version_info[0] < 3 and (lambda x: x) or (lambda x: x.encode("latin1"))
 
 _sym_db = _symbol_database.Default()
 
-
 DESCRIPTOR = _descriptor.FileDescriptor(
     name="protos/process_state.proto",
     package="",
@@ -35,7 +34,6 @@ DESCRIPTOR = _descriptor.FileDescriptor(
         '\n\x1aprotos/process_state.proto"\x9f\x03\n\x11ProcessStateProto\x12\x17\n\x0ftime_date_stamp\x18\x01 \x01(\x03\x12\x1b\n\x13process_create_time\x18\r \x01(\x03\x12\'\n\x05\x63rash\x18\x02 \x01(\x0b\x32\x18.ProcessStateProto.Crash\x12\x11\n\tassertion\x18\x03 \x01(\t\x12\x19\n\x11requesting_thread\x18\x04 \x01(\x05\x12*\n\x07threads\x18\x05 \x03(\x0b\x32\x19.ProcessStateProto.Thread\x12\x1c\n\x07modules\x18\x06 \x03(\x0b\x32\x0b.CodeModule\x12\n\n\x02os\x18\x07 \x01(\t\x12\x10\n\x08os_short\x18\x08 \x01(\t\x12\x12\n\nos_version\x18\t \x01(\t\x12\x0b\n\x03\x63pu\x18\n \x01(\t\x12\x10\n\x08\x63pu_info\x18\x0b \x01(\t\x12\x11\n\tcpu_count\x18\x0c \x01(\x05\x1a(\n\x05\x43rash\x12\x0e\n\x06reason\x18\x01 \x02(\t\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x02(\x03\x1a%\n\x06Thread\x12\x1b\n\x06\x66rames\x18\x01 \x03(\x0b\x32\x0b.StackFrame"\x8e\x03\n\nStackFrame\x12\x13\n\x0binstruction\x18\x01 \x02(\x03\x12\x1b\n\x06module\x18\x02 \x01(\x0b\x32\x0b.CodeModule\x12\x15\n\rfunction_name\x18\x03 \x01(\t\x12\x15\n\rfunction_base\x18\x04 \x01(\x03\x12\x18\n\x10source_file_name\x18\x05 \x01(\t\x12\x13\n\x0bsource_line\x18\x06 \x01(\x05\x12\x18\n\x10source_line_base\x18\x07 \x01(\x03\x12%\n\x05trust\x18\x08 \x01(\x0e\x32\x16.StackFrame.FrameTrust"\xaf\x01\n\nFrameTrust\x12\x14\n\x10\x46RAME_TRUST_NONE\x10\x00\x12\x14\n\x10\x46RAME_TRUST_SCAN\x10\x01\x12\x18\n\x14\x46RAME_TRUST_CFI_SCAN\x10\x02\x12\x12\n\x0e\x46RAME_TRUST_FP\x10\x03\x12\x13\n\x0f\x46RAME_TRUST_CFI\x10\x04\x12\x19\n\x15\x46RAME_TRUST_PREWALKED\x10\x05\x12\x17\n\x13\x46RAME_TRUST_CONTEXT\x10\x06"\x9b\x01\n\nCodeModule\x12\x14\n\x0c\x62\x61se_address\x18\x01 \x01(\x03\x12\x0c\n\x04size\x18\x02 \x01(\x03\x12\x11\n\tcode_file\x18\x03 \x01(\t\x12\x17\n\x0f\x63ode_identifier\x18\x04 \x01(\t\x12\x12\n\ndebug_file\x18\x05 \x01(\t\x12\x18\n\x10\x64\x65\x62ug_identifier\x18\x06 \x01(\t\x12\x0f\n\x07version\x18\x07 \x01(\t'
     ),
 )
-
 
 _STACKFRAME_FRAMETRUST = _descriptor.EnumDescriptor(
     name="FrameTrust",
@@ -65,8 +63,11 @@ _STACKFRAME_FRAMETRUST = _descriptor.EnumDescriptor(
             type=None,
         ),
         _descriptor.EnumValueDescriptor(
-            name="FRAME_TRUST_FP", index=3, number=3, serialized_options=None, type=None
-        ),
+            name="FRAME_TRUST_FP",
+            index=3,
+            number=3,
+            serialized_options=None,
+            type=None),
         _descriptor.EnumValueDescriptor(
             name="FRAME_TRUST_CFI",
             index=4,
@@ -95,7 +96,6 @@ _STACKFRAME_FRAMETRUST = _descriptor.EnumDescriptor(
     serialized_end=847,
 )
 _sym_db.RegisterEnumDescriptor(_STACKFRAME_FRAMETRUST)
-
 
 _PROCESSSTATEPROTO_CRASH = _descriptor.Descriptor(
     name="Crash",
@@ -434,7 +434,10 @@ _PROCESSSTATEPROTO = _descriptor.Descriptor(
         ),
     ],
     extensions=[],
-    nested_types=[_PROCESSSTATEPROTO_CRASH, _PROCESSSTATEPROTO_THREAD,],
+    nested_types=[
+        _PROCESSSTATEPROTO_CRASH,
+        _PROCESSSTATEPROTO_THREAD,
+    ],
     enum_types=[],
     serialized_options=None,
     is_extendable=False,
@@ -444,7 +447,6 @@ _PROCESSSTATEPROTO = _descriptor.Descriptor(
     serialized_start=31,
     serialized_end=446,
 )
-
 
 _STACKFRAME = _descriptor.Descriptor(
     name="StackFrame",
@@ -600,7 +602,9 @@ _STACKFRAME = _descriptor.Descriptor(
     ],
     extensions=[],
     nested_types=[],
-    enum_types=[_STACKFRAME_FRAMETRUST,],
+    enum_types=[
+        _STACKFRAME_FRAMETRUST,
+    ],
     serialized_options=None,
     is_extendable=False,
     syntax="proto2",
@@ -609,7 +613,6 @@ _STACKFRAME = _descriptor.Descriptor(
     serialized_start=449,
     serialized_end=847,
 )
-
 
 _CODEMODULE = _descriptor.Descriptor(
     name="CodeModule",
@@ -760,8 +763,10 @@ _CODEMODULE = _descriptor.Descriptor(
 _PROCESSSTATEPROTO_CRASH.containing_type = _PROCESSSTATEPROTO
 _PROCESSSTATEPROTO_THREAD.fields_by_name["frames"].message_type = _STACKFRAME
 _PROCESSSTATEPROTO_THREAD.containing_type = _PROCESSSTATEPROTO
-_PROCESSSTATEPROTO.fields_by_name["crash"].message_type = _PROCESSSTATEPROTO_CRASH
-_PROCESSSTATEPROTO.fields_by_name["threads"].message_type = _PROCESSSTATEPROTO_THREAD
+_PROCESSSTATEPROTO.fields_by_name[
+    "crash"].message_type = _PROCESSSTATEPROTO_CRASH
+_PROCESSSTATEPROTO.fields_by_name[
+    "threads"].message_type = _PROCESSSTATEPROTO_THREAD
 _PROCESSSTATEPROTO.fields_by_name["modules"].message_type = _CODEMODULE
 _STACKFRAME.fields_by_name["module"].message_type = _CODEMODULE
 _STACKFRAME.fields_by_name["trust"].enum_type = _STACKFRAME_FRAMETRUST
@@ -823,6 +828,5 @@ CodeModule = _reflection.GeneratedProtocolMessageType(
     ),
 )
 _sym_db.RegisterMessage(CodeModule)
-
 
 # @@protoc_insertion_point(module_scope)

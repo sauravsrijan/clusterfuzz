@@ -29,60 +29,61 @@ _initial_pid = None
 
 
 def _client():
-    """Get or initialize the NDB client."""
-    global _ndb_client
-    global _initial_pid
+  """Get or initialize the NDB client."""
+  global _ndb_client
+  global _initial_pid
 
-    if not _ndb_client:
-        with _ndb_client_lock:
-            if not _ndb_client:
-                _ndb_client = ndb.Client(project=utils.get_application_id())
-                _initial_pid = os.getpid()
+  if not _ndb_client:
+    with _ndb_client_lock:
+      if not _ndb_client:
+        _ndb_client = ndb.Client(project=utils.get_application_id())
+        _initial_pid = os.getpid()
 
-                # TODO(ochang): Remove hack once migration to Python 3 is done.
-                if sys.version_info.major == 2:
-                    # NDB doesn't like newstrs. On Python 3, keeping this breaks because
-                    # the bytes gets propgated down to a DNS resolution on
-                    # "b'datastore.googleapis.com'" which doesn't work.
-                    _ndb_client.host = utils.newstr_to_native_str(_ndb_client.host)
+        # TODO(ochang): Remove hack once migration to Python 3 is done.
+        if sys.version_info.major == 2:
+          # NDB doesn't like newstrs. On Python 3, keeping this breaks because
+          # the bytes gets propgated down to a DNS resolution on
+          # "b'datastore.googleapis.com'" which doesn't work.
+          _ndb_client.host = utils.newstr_to_native_str(_ndb_client.host)
 
-    return _ndb_client
+  return _ndb_client
 
 
 @contextlib.contextmanager
 def context():
-    """Get the NDB context."""
-    if _initial_pid != os.getpid():
-        # Forked, clear the existing context to avoid issues.
-        # TODO(ochang): Remove this hack once on Python 3, where we can set
-        # multiprocessing.set_start_method to not fork.
-        context_module._state.context = None  # pylint: disable=protected-access
+  """Get the NDB context."""
+  if _initial_pid != os.getpid():
+    # Forked, clear the existing context to avoid issues.
+    # TODO(ochang): Remove this hack once on Python 3, where we can set
+    # multiprocessing.set_start_method to not fork.
+    context_module._state.context = None  # pylint: disable=protected-access
 
-    with _client().context() as ndb_context:
-        from google.cloud.ndb import _retry
+  with _client().context() as ndb_context:
+    from google.cloud.ndb import _retry
 
-        # Add an additional code to retry on.
-        if grpc.StatusCode.UNKNOWN not in _retry.TRANSIENT_CODES:
-            _retry.TRANSIENT_CODES = _retry.TRANSIENT_CODES + (grpc.StatusCode.UNKNOWN,)
+    # Add an additional code to retry on.
+    if grpc.StatusCode.UNKNOWN not in _retry.TRANSIENT_CODES:
+      _retry.TRANSIENT_CODES = _retry.TRANSIENT_CODES + (
+          grpc.StatusCode.UNKNOWN,)
 
-        # Disable NDB caching, as NDB on GCE VMs do not use memcache and therefore
-        # can't invalidate the memcache cache.
-        ndb_context.set_memcache_policy(False)
+    # Disable NDB caching, as NDB on GCE VMs do not use memcache and therefore
+    # can't invalidate the memcache cache.
+    ndb_context.set_memcache_policy(False)
 
-        # Disable the in-context cache, as it can use up a lot of memory for
-        # longer running tasks such as cron jobs.
-        ndb_context.set_cache_policy(False)
+    # Disable the in-context cache, as it can use up a lot of memory for
+    # longer running tasks such as cron jobs.
+    ndb_context.set_cache_policy(False)
 
-        yield ndb_context
+    yield ndb_context
 
 
 def thread_wrapper(func):
-    """Wrapper for thread targets to initialize an NDB context, since contexts are
+  """Wrapper for thread targets to initialize an NDB context, since contexts are
     thread local."""
 
-    @functools.wraps(func)
-    def _wrapper(*args, **kwargs):
-        with context():
-            return func(*args, **kwargs)
+  @functools.wraps(func)
+  def _wrapper(*args, **kwargs):
+    with context():
+      return func(*args, **kwargs)
 
-    return _wrapper
+  return _wrapper

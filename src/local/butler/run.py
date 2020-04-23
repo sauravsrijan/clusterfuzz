@@ -24,28 +24,27 @@ from src.python.datastore import ndb_init
 
 
 def execute(args):
-    """Run Python unit tests under v2. For unittests involved appengine, sys.path
+  """Run Python unit tests under v2. For unittests involved appengine, sys.path
        needs certain modification."""
-    os.environ["CONFIG_DIR_OVERRIDE"] = args.config_dir
-    local_config.ProjectConfig().set_environment()
+  os.environ["CONFIG_DIR_OVERRIDE"] = args.config_dir
+  local_config.ProjectConfig().set_environment()
 
-    if args.local:
-        os.environ["DATASTORE_EMULATOR_HOST"] = constants.DATASTORE_EMULATOR_HOST
-        os.environ["PUBSUB_EMULATOR_HOST"] = constants.PUBSUB_EMULATOR_HOST
-        os.environ["DATASTORE_USE_PROJECT_ID_AS_APP_ID"] = "true"
-        os.environ["LOCAL_DEVELOPMENT"] = "True"
+  if args.local:
+    os.environ["DATASTORE_EMULATOR_HOST"] = constants.DATASTORE_EMULATOR_HOST
+    os.environ["PUBSUB_EMULATOR_HOST"] = constants.PUBSUB_EMULATOR_HOST
+    os.environ["DATASTORE_USE_PROJECT_ID_AS_APP_ID"] = "true"
+    os.environ["LOCAL_DEVELOPMENT"] = "True"
 
-    if not args.non_dry_run:
-        print(
-            "Running in dry-run mode, no datastore writes are committed. "
-            "For permanent modifications, re-run with --non-dry-run."
-        )
+  if not args.non_dry_run:
+    print("Running in dry-run mode, no datastore writes are committed. "
+          "For permanent modifications, re-run with --non-dry-run.")
 
-    with ndb_init.context():
-        script = importlib.import_module("local.butler.scripts.%s" % args.script_name)
-        script.execute(args)
+  with ndb_init.context():
+    script = importlib.import_module("local.butler.scripts.%s" %
+                                     args.script_name)
+    script.execute(args)
 
-    if not args.local:
-        print()
-        print("Please remember to run the migration individually on all projects.")
-        print()
+  if not args.local:
+    print()
+    print("Please remember to run the migration individually on all projects.")
+    print()
