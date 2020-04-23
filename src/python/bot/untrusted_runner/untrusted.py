@@ -14,35 +14,24 @@
 """Untrusted instance."""
 from __future__ import absolute_import
 
-from builtins import object
-from builtins import str
-
 import functools
-import grpc
 import os
 import threading
 import time
 import traceback
-
+from builtins import object, str
 from concurrent import futures
 
-from . import build_setup
-from . import config
-from . import file_impl
-from . import remote_process
-from . import symbolize
-from . import tasks_impl
-
+import grpc
 from base import utils
 from google_cloud_utils import compute_metadata
 from metrics import logs
-from protos import heartbeat_pb2
-from protos import heartbeat_pb2_grpc
-from protos import untrusted_runner_pb2
-from protos import untrusted_runner_pb2_grpc
-from system import environment
-from system import process_handler
-from system import shell
+from protos import (heartbeat_pb2, heartbeat_pb2_grpc, untrusted_runner_pb2,
+                    untrusted_runner_pb2_grpc)
+from system import environment, process_handler, shell
+
+from . import (build_setup, config, file_impl, remote_process, symbolize,
+               tasks_impl)
 
 SHUTDOWN_GRACE_SECONDS = 5
 

@@ -17,23 +17,19 @@
 # pylint: disable=unused-argument
 from __future__ import print_function
 
-from builtins import object
-from builtins import str
-
 import os
 import socket
 import subprocess
 import tempfile
 import time
+from builtins import object, str
 
 from metrics import logs
 from platforms.fuchsia import errors
 from platforms.fuchsia.util.device import Device
 from platforms.fuchsia.util.fuzzer import Fuzzer
 from platforms.fuchsia.util.host import Host
-from system import environment
-from system import new_process
-from system import process_handler
+from system import environment, new_process, process_handler
 
 _QEMU_WAIT_SECONDS = 60
 

@@ -13,16 +13,15 @@
 # limitations under the License.
 """Tests for corpus_manager."""
 
-from builtins import object
 import datetime
-import mock
 import os
 import unittest
+from builtins import object
 
-from pyfakefs import fake_filesystem_unittest
-
+import mock
 from base import utils
 from fuzzing import corpus_manager
+from pyfakefs import fake_filesystem_unittest
 from system import new_process
 from tests.test_libs import helpers as test_helpers
 from tests.test_libs import test_utils

@@ -18,21 +18,15 @@ import datetime
 import itertools
 import json
 
-from . import grouper
-
-from base import dates
-from base import errors
-from base import utils
-from datastore import data_handler
-from datastore import data_types
-from datastore import ndb_utils
+from base import dates, errors, utils
+from datastore import data_handler, data_types, ndb_utils
 from handlers import base_handler
 from libs import handler
-from libs.issue_management import issue_filer
-from libs.issue_management import issue_tracker_policy
-from libs.issue_management import issue_tracker_utils
-from metrics import crash_stats
-from metrics import logs
+from libs.issue_management import (issue_filer, issue_tracker_policy,
+                                   issue_tracker_utils)
+from metrics import crash_stats, logs
+
+from . import grouper
 
 UNREPRODUCIBLE_CRASH_IGNORE_CRASH_TYPES = ["Out-of-memory", "Stack-overflow", "Timeout"]
 TRIAGE_MESSAGE_KEY = "triage_message"

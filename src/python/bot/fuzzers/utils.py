@@ -13,17 +13,15 @@
 # limitations under the License.
 """Fuzzer utils."""
 
-from builtins import str
-
 import os
 import re
 import stat
 import tempfile
+from builtins import str
 
 from base import utils
 from metrics import logs
-from system import environment
-from system import shell
+from system import environment, shell
 
 ALLOWED_FUZZ_TARGET_EXTENSIONS = ["", ".exe", ".par"]
 FUZZ_TARGET_SEARCH_BYTES = b"LLVMFuzzerTestOneInput"

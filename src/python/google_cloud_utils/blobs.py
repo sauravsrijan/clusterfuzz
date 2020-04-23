@@ -14,18 +14,15 @@
 """Blobs handling."""
 from __future__ import absolute_import
 
-from builtins import str
-from past.builtins import basestring
-
 import os
 import re
 import uuid
+from builtins import str
 
-from google.cloud import ndb
-
-from base import memoize
-from base import retry
+from base import memoize, retry
 from datastore import data_types
+from google.cloud import ndb
+from past.builtins import basestring
 from system import environment
 
 from . import storage

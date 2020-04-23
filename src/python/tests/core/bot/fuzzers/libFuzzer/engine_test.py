@@ -14,31 +14,27 @@
 """Tests for libFuzzer engine."""
 # pylint: disable=unused-argument
 
-from tests.test_libs import test_utils
-from tests.test_libs import helpers as test_helpers
-from tests.test_libs import android_helpers
-from system import shell
-from system import new_process
-from system import environment
-from platforms import android
-from metrics import logs
-from fuzzing import strategy
-from build_management import build_manager
-from bot.fuzzers.libFuzzer import engine
-from bot.fuzzers.libFuzzer import constants
-from bot.fuzzers import utils as fuzzer_utils
-from bot.fuzzers import strategy_selection
-from bot.fuzzers import libfuzzer
-from bot.fuzzers import engine_common
-import six
-import pyfakefs.fake_filesystem_unittest as fake_fs_unittest
-import parameterized
-import mock
-import unittest
-import tempfile
-import shutil
 import os
+import shutil
+import tempfile
+import unittest
+
+import mock
+import parameterized
+import pyfakefs.fake_filesystem_unittest as fake_fs_unittest
+import six
+from bot.fuzzers import engine_common, libfuzzer, strategy_selection
+from bot.fuzzers import utils as fuzzer_utils
+from bot.fuzzers.libFuzzer import constants, engine
+from build_management import build_manager
 from future import standard_library
+from fuzzing import strategy
+from metrics import logs
+from platforms import android
+from system import environment, new_process, shell
+from tests.test_libs import android_helpers
+from tests.test_libs import helpers as test_helpers
+from tests.test_libs import test_utils
 
 standard_library.install_aliases()
 

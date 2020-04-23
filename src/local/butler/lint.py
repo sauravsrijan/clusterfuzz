@@ -17,10 +17,9 @@ from __future__ import print_function
 
 import os
 import sys
-import yaml
 
-from local.butler import appengine
-from local.butler import common
+import yaml
+from local.butler import appengine, common
 
 _FUTURIZE_EXCEPTIONS = [
     # Causes issues if applied to the same code multiple times.

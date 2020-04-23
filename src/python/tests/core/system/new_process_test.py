@@ -14,16 +14,15 @@
 """Tests for process."""
 # pylint: disable=unused-argument
 
-from tests.test_libs import test_utils
-from tests.test_libs import helpers
-from system import new_process
-import unittest
-import time
 import queue
+import time
+import unittest
+from builtins import object, range
+
 import mock
-from builtins import range
-from builtins import object
 from future import standard_library
+from system import new_process
+from tests.test_libs import helpers, test_utils
 
 standard_library.install_aliases()
 

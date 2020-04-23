@@ -13,32 +13,22 @@
 # limitations under the License.
 """Build manager."""
 
-from builtins import map
-from builtins import object
-from builtins import range
-from builtins import str
-
 import os
 import re
 import subprocess
 import time
-
+from builtins import map, object, range, str
 from collections import namedtuple
 from distutils import spawn
 
-from base import errors
-from base import utils
+from base import errors, utils
 from build_management import revisions
-from datastore import data_types
-from datastore import ndb_utils
+from datastore import data_types, ndb_utils
 from fuzzing import fuzzer_selection
-from google_cloud_utils import blobs
-from google_cloud_utils import storage
+from google_cloud_utils import blobs, storage
 from metrics import logs
 from platforms import android
-from system import archive
-from system import environment
-from system import shell
+from system import archive, environment, shell
 
 # The default environment variables for specifying build bucket paths.
 DEFAULT_BUILD_BUCKET_PATH_ENV_VARS = (

@@ -13,19 +13,15 @@
 # limitations under the License.
 """manage_vms tests."""
 
-from builtins import object
-from builtins import range
-from builtins import str
-
 import copy
 import functools
-import mock
 import unittest
+from builtins import object, range, str
 
-from google.cloud import ndb
+import mock
 import six
-
 from datastore import data_types
+from google.cloud import ndb
 from google_cloud_utils import compute_engine_projects
 from handlers.cron import manage_vms
 from handlers.cron.helpers import bot_manager

@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Python 3 entrypoint."""
-import server
 import importlib
 import os
 import sys
+
+import server
 
 # Add necessary directories to path.
 sys.path.append("python")

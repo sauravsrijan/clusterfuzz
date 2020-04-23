@@ -13,18 +13,14 @@
 # limitations under the License.
 """Compute Engine helpers."""
 
-from builtins import range
-from builtins import str
-
 import datetime
 import random
-import six
 import time
+from builtins import range, str
 
+import six
+from base import dates, persistent_cache
 from googleapiclient.discovery import build
-
-from base import dates
-from base import persistent_cache
 from metrics import logs
 
 GCE_INSTANCE_INFO_KEY = "gce_instance_info"

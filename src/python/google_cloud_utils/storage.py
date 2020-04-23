@@ -14,10 +14,6 @@
 """Functions for managing Google Cloud Storage."""
 from __future__ import absolute_import
 
-from builtins import next
-from builtins import object
-from past.builtins import basestring
-
 import copy
 import datetime
 import json
@@ -25,19 +21,18 @@ import os
 import shutil
 import threading
 import time
+from builtins import next, object
 
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-
-from . import credentials
-
-from base import retry
-from base import utils
+from base import retry, utils
 from config import local_config
 from datastore import locks
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 from metrics import logs
-from system import environment
-from system import shell
+from past.builtins import basestring
+from system import environment, shell
+
+from . import credentials
 
 try:
     import google.cloud

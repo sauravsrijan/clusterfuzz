@@ -13,14 +13,10 @@
 # limitations under the License.
 """Manage corpora ."""
 
+from datastore import data_handler, data_types
 from google.cloud import ndb
-
-from datastore import data_handler
-from datastore import data_types
 from handlers import base_handler
-from libs import form
-from libs import handler
-from libs import helpers
+from libs import form, handler, helpers
 
 
 class Handler(base_handler.Handler):

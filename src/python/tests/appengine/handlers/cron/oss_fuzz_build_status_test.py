@@ -13,16 +13,15 @@
 # limitations under the License.
 """Tests for oss_fuzz_build_status."""
 
-from builtins import object
 import datetime
 import json
-import mock
 import unittest
+from builtins import object
 
+import mock
 import six
 import webapp2
 import webtest
-
 from datastore import data_types
 from handlers.cron import oss_fuzz_build_status
 from libs.issue_management import monorail

@@ -16,18 +16,17 @@ from __future__ import absolute_import
 
 import datetime
 
-from google.protobuf import wrappers_pb2
 import grpc
 import six
-
-from . import host
-
 from bot import testcase_manager
 from bot.fuzzers import engine
 from bot.tasks import corpus_pruning_task
 from bot.untrusted_runner import file_host
 from datastore import data_types
+from google.protobuf import wrappers_pb2
 from protos import untrusted_runner_pb2
+
+from . import host
 
 
 def _fuzz_target_to_proto(fuzz_target):

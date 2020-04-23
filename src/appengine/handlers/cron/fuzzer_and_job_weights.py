@@ -15,19 +15,15 @@
 
 import collections
 import datetime
+
 import six
-
-from google.cloud import ndb
-
 from base import utils
-from datastore import data_handler
-from datastore import data_types
-from datastore import ndb_utils
+from datastore import data_handler, data_types, ndb_utils
+from google.cloud import ndb
 from google_cloud_utils import big_query
 from handlers import base_handler
 from libs import handler
-from metrics import fuzzer_stats
-from metrics import logs
+from metrics import fuzzer_stats, logs
 from system import environment
 
 QuerySpecification = collections.namedtuple(

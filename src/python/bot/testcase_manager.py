@@ -13,35 +13,24 @@
 # limitations under the License.
 """Functions for testcase management."""
 
-from builtins import object
-from builtins import range
-from builtins import str
-
 import base64
 import collections
 import datetime
 import os
 import re
 import zlib
+from builtins import object, range, str
 
 from base import utils
-from bot.fuzzers import engine
-from bot.fuzzers import engine_common
+from bot.fuzzers import engine, engine_common
 from build_management import revisions
 from crash_analysis import crash_analyzer
 from crash_analysis.crash_comparer import CrashComparer
 from crash_analysis.crash_result import CrashResult
-from datastore import data_handler
-from datastore import data_types
-from datastore import ndb_init
-from metrics import fuzzer_logs
-from metrics import fuzzer_stats
-from metrics import logs
+from datastore import data_handler, data_types, ndb_init
+from metrics import fuzzer_logs, fuzzer_stats, logs
 from platforms import android
-from system import archive
-from system import environment
-from system import process_handler
-from system import shell
+from system import archive, environment, process_handler, shell
 
 # Testcase filename prefixes and suffixes.
 CRASH_PREFIX = "crash-"

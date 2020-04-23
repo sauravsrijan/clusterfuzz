@@ -14,23 +14,19 @@
 """Tests for libFuzzer script."""
 # pylint: disable=unused-argument
 
-from tests.test_libs import test_utils
-from tests.test_libs import helpers as test_helpers
-from system import environment
-from fuzzing import strategy
-from bot.fuzzers import strategy_selection
-from bot.fuzzers import libfuzzer
-from bot.fuzzers import engine_common
-import unittest
-import shutil
-import pyfakefs.fake_filesystem_unittest as fake_fs_unittest
-import os
 import copy
-from builtins import object
-from builtins import range
-from builtins import str
+import os
+import shutil
+import unittest
+from builtins import object, range, str
 
+import pyfakefs.fake_filesystem_unittest as fake_fs_unittest
+from bot.fuzzers import engine_common, libfuzzer, strategy_selection
 from future import standard_library
+from fuzzing import strategy
+from system import environment
+from tests.test_libs import helpers as test_helpers
+from tests.test_libs import test_utils
 
 standard_library.install_aliases()
 

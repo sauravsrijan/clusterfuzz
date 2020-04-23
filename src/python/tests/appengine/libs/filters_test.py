@@ -13,12 +13,11 @@
 # limitations under the License.
 """filters tests"""
 
-from builtins import str
-import mock
 import unittest
+from builtins import str
 
-from libs import filters
-from libs import helpers
+import mock
+from libs import filters, helpers
 
 
 class ExtractKeywordFieldTest(unittest.TestCase):

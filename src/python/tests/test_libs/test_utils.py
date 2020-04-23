@@ -13,29 +13,26 @@
 # limitations under the License.
 """Generic helper functions useful in tests."""
 
-from system import process_handler
-from system import environment
-from google_cloud_utils import pubsub
-from datastore import ndb_init
-from datastore import data_types
-from config import local_config
-import unittest
-import threading
-import tempfile
-import sys
-import subprocess
-import socket
-import six
-import shutil
-import requests
-import os
-import io
-import datetime
 import atexit
-from builtins import object
-from builtins import str
+import datetime
+import io
+import os
+import shutil
+import socket
+import subprocess
+import sys
+import tempfile
+import threading
+import unittest
+from builtins import object, str
 
+import requests
+import six
+from config import local_config
+from datastore import data_types, ndb_init
 from future import standard_library
+from google_cloud_utils import pubsub
+from system import environment, process_handler
 
 standard_library.install_aliases()
 

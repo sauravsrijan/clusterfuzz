@@ -14,9 +14,9 @@
 """Tests for the base handler class."""
 
 import unittest
+
 import webapp2
 import webtest
-
 from handlers import base_handler
 from libs import helpers
 from tests.test_libs import helpers as test_helpers

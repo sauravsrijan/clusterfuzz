@@ -13,9 +13,10 @@
 # limitations under the License.
 """Tests for the Antlr Tokenizer."""
 
+import unittest
+
 from bot.tokenizer.antlr_tokenizer import AntlrTokenizer
 from bot.tokenizer.grammars.JavaScriptLexer import JavaScriptLexer
-import unittest
 
 
 class AntlrTokenizerTest(unittest.TestCase):

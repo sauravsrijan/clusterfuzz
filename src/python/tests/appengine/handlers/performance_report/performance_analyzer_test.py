@@ -13,11 +13,10 @@
 # limitations under the License.
 """Tests for performance_analyzer."""
 
-from builtins import next
-
 import json
 import os
 import unittest
+from builtins import next
 
 from base import utils
 from bot.fuzzers import libfuzzer

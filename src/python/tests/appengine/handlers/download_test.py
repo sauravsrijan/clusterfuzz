@@ -13,19 +13,20 @@
 # limitations under the License.
 """Tests for download."""
 
-from tests.test_libs import test_utils
-from tests.test_libs import helpers as test_helpers
-from libs.issue_management import issue_tracker
-from handlers import download
-from google_cloud_utils import storage
-from datastore import data_types
-import webtest
-import webapp2
-import urllib.parse
-import unittest
 import sys
+import unittest
+import urllib.parse
 from builtins import str
+
+import webapp2
+import webtest
+from datastore import data_types
 from future import standard_library
+from google_cloud_utils import storage
+from handlers import download
+from libs.issue_management import issue_tracker
+from tests.test_libs import helpers as test_helpers
+from tests.test_libs import test_utils
 
 standard_library.install_aliases()
 

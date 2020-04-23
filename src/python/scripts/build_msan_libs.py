@@ -14,6 +14,12 @@
 """Build MSan instrumented libs on Google Container Builder."""
 from __future__ import print_function
 
+import argparse
+import datetime
+from builtins import str
+
+from googleapiclient.discovery import build
+
 # Usage:
 # 1. build_msan_libs.py [--no-track-origins] build_packages
 # 2. Wait for builds to complete on
@@ -21,12 +27,8 @@ from __future__ import print_function
 # 3. Once all builds have succeeded, run:
 #    build_msan_libs.py [--no-track-origins] merge
 
-from builtins import str
 
-import argparse
-import datetime
 
-from googleapiclient.discovery import build
 
 UPLOAD_BUCKET = "clusterfuzz-chromium-msan-libs"
 DISTRO_VERSION = "16.04"

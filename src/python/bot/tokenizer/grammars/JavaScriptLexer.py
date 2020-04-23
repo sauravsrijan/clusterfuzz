@@ -14,14 +14,13 @@
 """Translation from Java code for JavaScriptBaseLexer made to work with
 JavaScriptLexer"""
 
-from __future__ import absolute_import
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
+import sys
 from builtins import str
+from io import StringIO
 
 from antlr4 import *
-from io import StringIO
-import sys
 
 from .JavaScriptBaseLexer import JavaScriptBaseLexer
 

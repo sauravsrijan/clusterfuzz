@@ -19,8 +19,7 @@ import zipfile
 
 from local.butler import package
 from system import shell
-from tests.test_libs import helpers
-from tests.test_libs import test_utils
+from tests.test_libs import helpers, test_utils
 
 
 class IsNodeUpToDateTest(unittest.TestCase):

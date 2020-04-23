@@ -12,19 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """commands tests."""
-from tests.test_libs import test_utils
-from tests.test_libs import helpers
-from system import environment
-from datastore import data_types
-from bot.tasks import commands
-from base import errors
-from google.cloud import ndb
-import unittest
-import os
-import mock
 import datetime
+import os
+import unittest
 from builtins import str
+
+import mock
+from base import errors
+from bot.tasks import commands
+from datastore import data_types
 from future import standard_library
+from google.cloud import ndb
+from system import environment
+from tests.test_libs import helpers, test_utils
 
 standard_library.install_aliases()
 

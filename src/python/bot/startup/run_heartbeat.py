@@ -14,20 +14,18 @@
 """Heartbeat script wrapper."""
 from __future__ import print_function
 
-from system import shell
-from system import environment
-from metrics import logs
-from datastore import ndb_init
-from datastore import data_handler
-import subprocess
 import os
-from python.base import modules
-from builtins import str
-
+import subprocess
 # We want to use utf-8 encoding everywhere throughout the application
 # instead of the default 'ascii' encoding. This must happen before any
 # other imports.
 import sys
+from builtins import str
+
+from datastore import data_handler, ndb_init
+from metrics import logs
+from python.base import modules
+from system import environment, shell
 
 if sys.version_info.major == 2:
     reload(sys)

@@ -12,18 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Fuchsia utilities for handling fuzzers."""
-from __future__ import absolute_import
-from __future__ import print_function
-from builtins import object
-from builtins import str
+from __future__ import absolute_import, print_function
 
 import datetime
 import errno
 import glob
 import os
-import six
 import subprocess
 import time
+from builtins import object, str
+
+import six
 
 
 class Fuzzer(object):

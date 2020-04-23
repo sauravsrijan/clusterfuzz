@@ -16,27 +16,22 @@
 import filecmp
 import os
 import shutil
-import six
 import subprocess
 import sys
 import tempfile
 
+import six
 from base import utils
 from bot import testcase_manager
 from bot.tasks import setup
-from bot.untrusted_runner import config
-from bot.untrusted_runner import corpus_manager
+from bot.untrusted_runner import config, corpus_manager
 from bot.untrusted_runner import environment as untrusted_env
-from bot.untrusted_runner import file_host
-from bot.untrusted_runner import host
-from bot.untrusted_runner import remote_process_host
-from bot.untrusted_runner import symbolize_host
+from bot.untrusted_runner import (file_host, host, remote_process_host,
+                                  symbolize_host)
 from build_management import build_manager
 from datastore import data_types
 from google_cloud_utils import blobs
-from system import environment
-from system import process_handler
-from system import shell
+from system import environment, process_handler, shell
 from tests.test_libs import untrusted_runner_helpers
 
 TEST_FILE_CONTENTS = (

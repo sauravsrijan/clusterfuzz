@@ -14,18 +14,13 @@
 # pylint: disable=protected-access
 """Tests for triage task."""
 
-from builtins import range
-from builtins import str
-
 import datetime
 import unittest
+from builtins import range, str
 
-from datastore import data_handler
-from datastore import data_types
+from datastore import data_handler, data_types
 from handlers.cron import triage
-from tests.test_libs import appengine_test_utils
-from tests.test_libs import helpers
-from tests.test_libs import test_utils
+from tests.test_libs import appengine_test_utils, helpers, test_utils
 
 
 @test_utils.with_cloud_emulators("datastore")

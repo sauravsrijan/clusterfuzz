@@ -12,20 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for tasks."""
-from tests.test_libs import test_utils
-from tests.test_libs import helpers
-from system import environment
-from google_cloud_utils import pubsub
-from datastore import data_types
-from base import tasks
-import mock
-import unittest
-import time
-import tempfile
-import shutil
 import os
+import shutil
+import tempfile
+import time
+import unittest
 from builtins import str
+
+import mock
+from base import tasks
+from datastore import data_types
 from future import standard_library
+from google_cloud_utils import pubsub
+from system import environment
+from tests.test_libs import helpers, test_utils
 
 standard_library.install_aliases()
 

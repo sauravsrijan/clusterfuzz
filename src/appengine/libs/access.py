@@ -13,17 +13,12 @@
 # limitations under the License.
 """access.py contains static methods around access permissions."""
 
-from builtins import object
-from builtins import range
+from builtins import object, range
 
-from base import errors
-from base import external_users
-from base import utils
-from config import db_config
-from config import local_config
+from base import errors, external_users, utils
+from config import db_config, local_config
 from datastore import data_handler
-from libs import auth
-from libs import helpers
+from libs import auth, helpers
 from libs.issue_management import issue_tracker_utils
 
 

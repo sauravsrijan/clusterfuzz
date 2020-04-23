@@ -13,8 +13,8 @@
 # limitations under the License.
 """request_cache tests."""
 
-from builtins import object
 import unittest
+from builtins import object
 
 from libs import request_cache
 from tests.test_libs import helpers as test_helpers

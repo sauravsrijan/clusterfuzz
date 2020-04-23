@@ -14,12 +14,10 @@
 """Fast minimizer that attempts to remove tokens grouped in chunks."""
 from __future__ import absolute_import
 
-from builtins import range
 import functools
+from builtins import range
 
-from . import errors
-from . import minimizer
-from . import utils
+from . import errors, minimizer, utils
 
 
 class ChunkMinimizer(minimizer.Minimizer):

@@ -13,23 +13,20 @@
 """Tests for Handler."""
 from __future__ import print_function
 
-from builtins import str
-
 import json
-import mock
 import os
 import sys
 import unittest
+from builtins import str
+
+import mock
 import webapp2
 import webtest
 import yaml
-
 from config import local_config
 from datastore import data_types
 from handlers import base_handler
-from libs import auth
-from libs import handler
-from libs import helpers
+from libs import auth, handler, helpers
 from tests.test_libs import helpers as test_helpers
 
 if sys.version_info.major == 3:

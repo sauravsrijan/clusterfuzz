@@ -15,14 +15,12 @@
 from __future__ import print_function
 
 from builtins import object
+
 import six
-
-from google.cloud import monitoring_v3
-
 from base import utils
 from datastore import data_types
-from metrics import monitor
-from metrics import monitoring_metrics
+from google.cloud import monitoring_v3
+from metrics import monitor, monitoring_metrics
 
 LIBFUZZER_TEMPLATE = """MAX_FUZZ_THREADS = 1
 MAX_TESTCASES = 4

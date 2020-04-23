@@ -18,11 +18,10 @@ import datetime
 import random
 import time
 
-from google.cloud import ndb
-from google.cloud.ndb import exceptions
-
 from config import db_config
 from datastore import data_types
+from google.cloud import ndb
+from google.cloud.ndb import exceptions
 from metrics import logs
 from system import environment
 

@@ -16,7 +16,6 @@
 from builtins import object
 
 from google.cloud.ndb import exceptions
-
 from libs.query import base
 
 

@@ -14,11 +14,12 @@
 """Patch the path-related methods to make them compatible with windows. Please
   see crbug.com/656653"""
 
-import sys
-import six
-import os
-import functools
 import builtins
+import functools
+import os
+import sys
+
+import six
 from future import standard_library
 
 standard_library.install_aliases()

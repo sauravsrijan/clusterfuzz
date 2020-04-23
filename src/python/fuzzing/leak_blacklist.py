@@ -17,9 +17,7 @@ import os
 import re
 
 from base import errors
-from datastore import data_handler
-from datastore import data_types
-from datastore import ndb_utils
+from datastore import data_handler, data_types, ndb_utils
 from metrics import logs
 from system import environment
 

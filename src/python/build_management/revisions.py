@@ -13,28 +13,26 @@
 # limitations under the License.
 """Revisions related helper functions."""
 
-from system import environment
-from metrics import logs
-from google_cloud_utils import storage
-from datastore import data_handler
-from config import local_config
-from build_management import source_mapper
-from base import utils
-from base import memoize
-import urllib.parse
-import time
-import six
-import requests
-import re
-import os
-import bisect
-import base64
 import ast
-from builtins import range
-from builtins import str
-from past.builtins import basestring
+import base64
+import bisect
+import os
+import re
+import time
+import urllib.parse
+from builtins import range, str
 
+import requests
+import six
+from base import memoize, utils
+from build_management import source_mapper
+from config import local_config
+from datastore import data_handler
 from future import standard_library
+from google_cloud_utils import storage
+from metrics import logs
+from past.builtins import basestring
+from system import environment
 
 standard_library.install_aliases()
 

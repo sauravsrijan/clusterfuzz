@@ -17,9 +17,7 @@ import datetime
 import os
 
 from base import utils
-from datastore import data_types
-from datastore import ndb_utils
-
+from datastore import data_types, ndb_utils
 from libs import helpers
 
 

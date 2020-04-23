@@ -12,33 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """The superclass of all handlers."""
-from system import environment
-from libs import helpers
-from libs import form
-from libs import auth
-from google_cloud_utils import storage
-from datastore import ndb_init
-from config import local_config
-from config import db_config
-from base import utils
-import webapp2
-import jinja2
-from google.cloud import ndb
-import urllib.parse
-import traceback
-import sys
-import re
-import os
-import logging
-import json
-import gc
-import datetime
-import cgi
 import base64
-from builtins import object
-from builtins import str
+import cgi
+import datetime
+import gc
+import json
+import logging
+import os
+import re
+import sys
+import traceback
+import urllib.parse
+from builtins import object, str
+
+import jinja2
+import webapp2
+from base import utils
+from config import db_config, local_config
+from datastore import ndb_init
 from future import standard_library
 from future import utils as future_utils
+from google.cloud import ndb
+from google_cloud_utils import storage
+from libs import auth, form, helpers
+from system import environment
 
 standard_library.install_aliases()
 

@@ -13,12 +13,12 @@
 # limitations under the License.
 """Utilities for handling Fuchsia hosts."""
 from __future__ import absolute_import
-from builtins import object
 
 import json
 import os
 import re
 import subprocess
+from builtins import object
 
 from .process import Process
 

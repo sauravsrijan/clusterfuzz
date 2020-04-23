@@ -20,9 +20,8 @@ import unittest
 from bot.tasks import blame_task
 from datastore import data_handler
 from system import environment
-from tests.core.bot.tasks.component_revision_patching_test import (
-    ComponentRevisionPatchingTest,
-)
+from tests.core.bot.tasks.component_revision_patching_test import \
+    ComponentRevisionPatchingTest
 from tests.test_libs import test_utils
 
 

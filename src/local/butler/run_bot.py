@@ -13,12 +13,11 @@
 # limitations under the License.
 """run_bot.py run a Clusterfuzz bot locally."""
 from __future__ import print_function
+
 import os
 import signal
 
-from local.butler import appengine
-from local.butler import common
-from local.butler import constants
+from local.butler import appengine, common, constants
 
 
 def _setup_bot_directory(args):

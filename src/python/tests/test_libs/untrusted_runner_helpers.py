@@ -13,22 +13,20 @@
 # limitations under the License.
 """Test helpers for untrusted_runner."""
 
-from tests.test_libs import test_utils
-from tests.test_libs import helpers as test_helpers
-from system import shell
-from system import environment
-from google_cloud_utils import pubsub
-from datastore import data_types
-from bot.untrusted_runner import untrusted
-from bot.untrusted_runner import host
-from bot.untrusted_runner import file_host
-from bot.tasks import commands
-import unittest
-import tempfile
-import subprocess
-import shutil
 import os
+import shutil
+import subprocess
+import tempfile
+import unittest
+
+from bot.tasks import commands
+from bot.untrusted_runner import file_host, host, untrusted
+from datastore import data_types
 from future import standard_library
+from google_cloud_utils import pubsub
+from system import environment, shell
+from tests.test_libs import helpers as test_helpers
+from tests.test_libs import test_utils
 
 standard_library.install_aliases()
 

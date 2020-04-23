@@ -14,13 +14,12 @@
 """Statistics for the afl launcher script."""
 from __future__ import print_function
 
-from builtins import object
 import os
 import re
-import six
+from builtins import object
 
-from bot.fuzzers import dictionary_manager
-from bot.fuzzers import engine_common
+import six
+from bot.fuzzers import dictionary_manager, engine_common
 from bot.fuzzers.afl import strategies
 from fuzzing import strategy
 from metrics import logs

@@ -14,10 +14,10 @@
 """helper.py is a kitchen sink. It contains static methods that are used by
    multiple handlers."""
 
-from builtins import str
 import logging
 import sys
 import traceback
+from builtins import str
 
 from base import errors
 from datastore import data_handler

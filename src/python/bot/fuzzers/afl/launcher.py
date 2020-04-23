@@ -14,6 +14,29 @@
 """Launcher script for afl-based fuzzers."""
 from __future__ import print_function
 
+import atexit
+import collections
+import os
+import re
+import shutil
+import signal
+import stat
+import subprocess
+import sys
+from builtins import object, str
+
+import six
+from base import utils
+from bot.fuzzers import (dictionary_manager, engine_common, options,
+                         strategy_selection)
+from bot.fuzzers import utils as fuzzer_utils
+from bot.fuzzers.afl import constants, stats, strategies
+from bot.fuzzers.afl.fuzzer import write_dummy_file
+from datastore import data_types
+from fuzzing import strategy
+from metrics import logs, profiler
+from system import environment, minijail, new_process, shell
+
 # pylint: disable=g-statement-before-imports
 try:
     # ClusterFuzz dependencies.
@@ -23,38 +46,8 @@ try:
 except ImportError:
     pass
 
-from builtins import object
-from builtins import str
 
-import atexit
-import collections
-import os
-import re
-import shutil
-import signal
-import six
-import stat
-import subprocess
-import sys
 
-from base import utils
-from bot.fuzzers import dictionary_manager
-from bot.fuzzers import engine_common
-from bot.fuzzers import options
-from bot.fuzzers import strategy_selection
-from bot.fuzzers import utils as fuzzer_utils
-from bot.fuzzers.afl import constants
-from bot.fuzzers.afl import stats
-from bot.fuzzers.afl import strategies
-from bot.fuzzers.afl.fuzzer import write_dummy_file
-from datastore import data_types
-from fuzzing import strategy
-from metrics import logs
-from metrics import profiler
-from system import environment
-from system import minijail
-from system import new_process
-from system import shell
 
 # Allow 30 minutes to merge the testcases back into the corpus. This matches
 # libFuzzer's merge timeout.

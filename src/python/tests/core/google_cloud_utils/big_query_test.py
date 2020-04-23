@@ -12,16 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """big_query tests."""
+import datetime
+import unittest
 from builtins import str
 
-import datetime
 import mock
-import unittest
-
 from datastore import data_types
 from google_cloud_utils import big_query
-from tests.test_libs import helpers
-from tests.test_libs import test_utils
+from tests.test_libs import helpers, test_utils
 
 
 class InitTest(unittest.TestCase):

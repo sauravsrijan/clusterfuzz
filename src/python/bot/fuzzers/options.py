@@ -13,19 +13,18 @@
 # limitations under the License.
 """Fuzzer options."""
 
-from system import environment
-from metrics import logs
-from bot.fuzzers.afl import constants as afl_constants
-from bot.fuzzers import utils as fuzzer_utils
-import six
-import re
-import random
-import os
 import configparser
-from builtins import object
-from builtins import str
+import os
+import random
+import re
+from builtins import object, str
 
+import six
+from bot.fuzzers import utils as fuzzer_utils
+from bot.fuzzers.afl import constants as afl_constants
 from future import standard_library
+from metrics import logs
+from system import environment
 
 standard_library.install_aliases()
 

@@ -13,27 +13,23 @@
 # limitations under the License.
 """Functions for process management."""
 
-from system import shell
-from system import environment
-from platforms import windows
-from platforms import linux
-from platforms import android
-from metrics import logs
-from crash_analysis import crash_analyzer
-from base import utils
-import time
-import threading
-import sys
-import subprocess
-import queue
-import os
-import datetime
 import copy
-from builtins import object
-from builtins import str
-from past.builtins import basestring
+import datetime
+import os
+import queue
+import subprocess
+import sys
+import threading
+import time
+from builtins import object, str
 
+from base import utils
+from crash_analysis import crash_analyzer
 from future import standard_library
+from metrics import logs
+from past.builtins import basestring
+from platforms import android, linux, windows
+from system import environment, shell
 
 standard_library.install_aliases()
 

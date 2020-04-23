@@ -13,12 +13,11 @@
 # limitations under the License.
 """Functions for dictionary analysis and management."""
 
-from builtins import object
 import os
 import re
+from builtins import object
 
-from base import errors
-from base import utils
+from base import errors, utils
 from bot.fuzzers import utils as fuzzer_utils
 from google_cloud_utils import storage
 from metrics import logs

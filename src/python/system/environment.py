@@ -13,16 +13,15 @@
 # limitations under the License.
 """Environment functions."""
 
-from builtins import range
-from builtins import str
-
 import ast
 import functools
 import os
 import re
-import six
 import socket
 import sys
+from builtins import range, str
+
+import six
 import yaml
 
 try:

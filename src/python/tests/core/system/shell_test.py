@@ -12,16 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """shell tests."""
-from builtins import object
-import mock
 import os
 import sys
 import unittest
+from builtins import object
 
+import mock
 from pyfakefs import fake_filesystem_unittest
-
-from system import environment
-from system import shell
+from system import environment, shell
 from tests.test_libs import helpers as test_helpers
 from tests.test_libs import test_utils
 

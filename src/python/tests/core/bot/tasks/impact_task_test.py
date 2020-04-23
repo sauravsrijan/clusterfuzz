@@ -12,18 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """impact_task tests."""
-from builtins import str
-import mock
 import unittest
+from builtins import str
 
+import mock
 from bot.tasks import impact_task
 from build_management import build_manager
 from datastore import data_types
-from tests.core.bot.tasks.component_revision_patching_test import (
-    ComponentRevisionPatchingTest,
-)
-from tests.test_libs import helpers
-from tests.test_libs import test_utils
+from tests.core.bot.tasks.component_revision_patching_test import \
+    ComponentRevisionPatchingTest
+from tests.test_libs import helpers, test_utils
 
 
 @test_utils.with_cloud_emulators("datastore")

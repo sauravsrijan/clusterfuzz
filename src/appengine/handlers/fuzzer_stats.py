@@ -13,28 +13,24 @@
 # limitations under the License.
 """Fuzzer statistics handler."""
 from __future__ import absolute_import
-from metrics import logs
-from metrics import fuzzer_stats
-from libs import helpers
-from libs import handler
-from libs import access
-from google_cloud_utils import big_query
-from datastore import data_types
-from datastore import data_handler
-from base import utils
-from base import memoize
-from base import external_users
-from . import base_handler
-from googleapiclient.errors import HttpError
-import yaml
-import urllib.parse
-import six
-import re
-import datetime
+
 import cgi
-from builtins import str
-from builtins import object
+import datetime
+import re
+import urllib.parse
+from builtins import object, str
+
+import six
+import yaml
+from base import external_users, memoize, utils
+from datastore import data_handler, data_types
 from future import standard_library
+from google_cloud_utils import big_query
+from googleapiclient.errors import HttpError
+from libs import access, handler, helpers
+from metrics import fuzzer_stats, logs
+
+from . import base_handler
 
 standard_library.install_aliases()
 

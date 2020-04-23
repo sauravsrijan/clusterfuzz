@@ -15,11 +15,11 @@
 import inspect
 import json
 import logging
-import mock
 import os
 import sys
 import unittest
 
+import mock
 from metrics import logs
 from tests.test_libs import helpers
 

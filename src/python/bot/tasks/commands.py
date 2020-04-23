@@ -14,33 +14,19 @@
 """Run command based on the current task."""
 
 import functools
-import six
 import sys
 import time
 
-from base import errors
-from base import tasks
-from base import utils
-from bot.tasks import analyze_task
-from bot.tasks import blame_task
-from bot.tasks import corpus_pruning_task
-from bot.tasks import fuzz_task
-from bot.tasks import impact_task
-from bot.tasks import minimize_task
-from bot.tasks import ml_train_task
-from bot.tasks import progression_task
-from bot.tasks import regression_task
-from bot.tasks import symbolize_task
-from bot.tasks import unpack_task
-from bot.tasks import upload_reports_task
-from bot.tasks import variant_task
+import six
+from base import errors, tasks, utils
+from bot.tasks import (analyze_task, blame_task, corpus_pruning_task,
+                       fuzz_task, impact_task, minimize_task, ml_train_task,
+                       progression_task, regression_task, symbolize_task,
+                       unpack_task, upload_reports_task, variant_task)
 from bot.webserver import http_server
-from datastore import data_handler
-from datastore import data_types
+from datastore import data_handler, data_types
 from metrics import logs
-from system import environment
-from system import process_handler
-from system import shell
+from system import environment, process_handler, shell
 
 COMMAND_MAP = {
     "analyze": analyze_task,

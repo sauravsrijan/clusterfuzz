@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """appengine_config initialises before the server starts."""
-import google
-import six
 import os
 import sys
 
+import google
+import six
 from google.appengine.ext import vendor
 
 # True if the app is running inside the dev appserver, false otherwise.  This

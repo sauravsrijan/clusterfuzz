@@ -14,16 +14,13 @@
 """Tasks RPC implementations."""
 from __future__ import absolute_import
 
-from google.protobuf import wrappers_pb2
-from google.protobuf.any_pb2 import Any
 import six
-
 from bot import testcase_manager
 from bot.fuzzers import engine
-from bot.tasks import corpus_pruning_task
-from bot.tasks import fuzz_task
-from bot.tasks import minimize_task
+from bot.tasks import corpus_pruning_task, fuzz_task, minimize_task
 from datastore import data_types
+from google.protobuf import wrappers_pb2
+from google.protobuf.any_pb2 import Any
 from protos import untrusted_runner_pb2
 
 

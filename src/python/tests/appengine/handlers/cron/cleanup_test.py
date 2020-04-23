@@ -14,19 +14,15 @@
 """Tests for cleanup task."""
 # pylint: disable=protected-access
 
-from builtins import range
-from builtins import str
 import datetime
 import unittest
+from builtins import range, str
 
 import six
-
 from datastore import data_types
 from handlers.cron import cleanup
 from libs.issue_management import issue_tracker_policy
-from tests.test_libs import appengine_test_utils
-from tests.test_libs import helpers
-from tests.test_libs import test_utils
+from tests.test_libs import appengine_test_utils, helpers, test_utils
 
 ISSUE_IGNORE_LABEL = "ClusterFuzz-Ignore"
 ISSUE_INVALID_FUZZER_LABEL = "ClusterFuzz-Invalid-Fuzzer"

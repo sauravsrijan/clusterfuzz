@@ -13,12 +13,13 @@
 # limitations under the License.
 """Jira issue tracker."""
 
-from libs.issue_management import issue_tracker
-from libs.issue_management.jira.issue_tracker_manager import IssueTrackerManager
-from config import db_config
-
 from builtins import str
+
+from config import db_config
 from dateutil import parser
+from libs.issue_management import issue_tracker
+from libs.issue_management.jira.issue_tracker_manager import \
+    IssueTrackerManager
 
 
 class Issue(issue_tracker.Issue):

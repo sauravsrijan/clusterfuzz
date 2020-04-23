@@ -14,8 +14,7 @@
 """Handlers used to recreate recurring tasks."""
 
 from base import tasks
-from datastore import data_types
-from datastore import ndb_utils
+from datastore import data_types, ndb_utils
 from handlers import base_handler
 from libs import handler
 from metrics import logs

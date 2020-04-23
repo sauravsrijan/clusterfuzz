@@ -1,5 +1,19 @@
 from __future__ import print_function
 
+import os
+import re
+import subprocess
+import sys
+from builtins import object, str
+
+import six
+from base import utils
+from google_cloud_utils import storage
+from metrics import logs
+from past.builtins import cmp
+from platforms.android import adb, fetch_artifact, settings
+from system import archive, environment, shell
+
 # Copyright 2019 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,25 +44,8 @@ from __future__ import print_function
 # Disable all pylint warnings/errors as this is based on external code.
 # pylint: disable-all
 
-from builtins import object
-from builtins import str
-from past.builtins import cmp
 
-import os
-import re
-import six
-import subprocess
-import sys
 
-from base import utils
-from google_cloud_utils import storage
-from metrics import logs
-from platforms.android import adb
-from platforms.android import fetch_artifact
-from platforms.android import settings
-from system import archive
-from system import environment
-from system import shell
 
 try:
     import pty

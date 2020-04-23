@@ -13,10 +13,8 @@
 # limitations under the License.
 """Stack parser module."""
 
-from builtins import object
-from builtins import str
-
 import inspect
+from builtins import object, str
 
 from metrics import logs
 from protos import process_state_pb2

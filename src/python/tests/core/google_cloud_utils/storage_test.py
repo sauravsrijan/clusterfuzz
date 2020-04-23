@@ -16,11 +16,10 @@ import datetime
 import os
 import unittest
 
-from pyfakefs import fake_filesystem_unittest
 import six
-
 from base import utils
 from google_cloud_utils import storage
+from pyfakefs import fake_filesystem_unittest
 from tests.test_libs import test_utils
 
 

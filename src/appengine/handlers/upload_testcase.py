@@ -13,33 +13,24 @@
 # limitations under the License.
 """Handler that uploads a testcase"""
 
-from system import environment
-from system import archive
-from libs.query import datastore_query
-from libs.issue_management import issue_tracker_utils
-from libs import helpers
-from libs import handler
-from libs import gcs
-from libs import form
-from libs import access
-from handlers import base_handler
-from google_cloud_utils import storage
-from google_cloud_utils import blobs
-from datastore import data_types
-from datastore import data_handler
-from base import utils
-from base import tasks
-from base import external_users
-from google.cloud import ndb
-import os
-import json
-import io
-import datetime
-import cgi
 import ast
-from builtins import str
-from builtins import object
+import cgi
+import datetime
+import io
+import json
+import os
+from builtins import object, str
+
+from base import external_users, tasks, utils
+from datastore import data_handler, data_types
 from future import standard_library
+from google.cloud import ndb
+from google_cloud_utils import blobs, storage
+from handlers import base_handler
+from libs import access, form, gcs, handler, helpers
+from libs.issue_management import issue_tracker_utils
+from libs.query import datastore_query
+from system import archive, environment
 
 standard_library.install_aliases()
 

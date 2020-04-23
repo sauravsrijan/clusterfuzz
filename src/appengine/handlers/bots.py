@@ -15,13 +15,10 @@
 
 import datetime
 
-from base import tasks
-from base import utils
-from datastore import data_types
-from datastore import ndb_utils
+from base import tasks, utils
+from datastore import data_types, ndb_utils
 from handlers import base_handler
-from libs import handler
-from libs import helpers
+from libs import handler, helpers
 
 
 def _get_alive_cutoff():

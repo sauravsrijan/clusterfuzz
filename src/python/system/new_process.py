@@ -13,18 +13,16 @@
 # limitations under the License.
 """Process handling utilities."""
 
-from builtins import object
-
-from distutils import spawn
 import os
 import subprocess
 import sys
 import tempfile
 import threading
 import time
+from builtins import object
+from distutils import spawn
 
 import psutil
-
 from base import utils
 from metrics import logs
 from system import environment

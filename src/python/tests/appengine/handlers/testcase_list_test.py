@@ -12,14 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """testcase_list tests."""
-from builtins import range
-from builtins import str
 import datetime
-import mock
 import unittest
+from builtins import range, str
+
+import mock
 import webapp2
 import webtest
-
 from datastore import data_types
 from handlers import testcase_list
 from libs import helpers

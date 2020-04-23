@@ -15,27 +15,19 @@
 
 from __future__ import absolute_import
 
-from builtins import str
-
 import copy
 import datetime
 import os
-import six
 import time
+from builtins import str
 
-from . import adb
-from . import app
-from . import constants
-from . import logger
-from . import sanitizer
-from . import settings
-from . import ui
-from . import wifi
-from base import dates
-from base import persistent_cache
+import six
+from base import dates, persistent_cache
 from config import db_config
 from metrics import logs
 from system import environment
+
+from . import adb, app, constants, logger, sanitizer, settings, ui, wifi
 
 # Variables related to adding test account on device.
 ADD_TEST_ACCOUNT_APK_NAME = "user_account_setup.apk"

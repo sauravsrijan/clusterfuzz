@@ -14,17 +14,15 @@
 """File operations host (client)."""
 from __future__ import absolute_import
 
-from builtins import range
 import os
 import shutil
-
-from . import file_utils
-from . import host
+from builtins import range
 
 from metrics import logs
 from protos import untrusted_runner_pb2
-from system import environment
-from system import shell
+from system import environment, shell
+
+from . import file_utils, host
 
 
 def is_directory_parent(path, directory):

@@ -15,13 +15,12 @@
 
 from __future__ import print_function
 
-from distutils import spawn
 import os
 import shutil
 import sys
+from distutils import spawn
 
-from local.butler import common
-from local.butler import constants
+from local.butler import common, constants
 
 SRC_DIR_PY = os.path.join("src", "appengine")
 

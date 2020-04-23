@@ -14,16 +14,14 @@
 """js_unittest.py runs JS tests under src/appengine"""
 from __future__ import print_function
 
-from builtins import input
-
 import os
 import re
 import sys
 import time
-
-from selenium import webdriver
+from builtins import input
 
 from local.butler import common
+from selenium import webdriver
 
 _SUITE_SEPARATOR = "=" * 80
 _TEST_SEPARATOR = "-" * 80

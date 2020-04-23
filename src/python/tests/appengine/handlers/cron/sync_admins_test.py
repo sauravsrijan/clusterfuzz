@@ -18,7 +18,6 @@ import unittest
 import six
 import webapp2
 import webtest
-
 from datastore import data_types
 from handlers.cron import sync_admins
 from tests.test_libs import helpers as test_helpers

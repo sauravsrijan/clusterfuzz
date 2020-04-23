@@ -13,17 +13,17 @@
 # limitations under the License.
 """run_server.py run the Clusterfuzz server locally."""
 from __future__ import print_function
-from python.tests.test_libs import test_utils
-from python.config import local_config
-from local.butler import constants
-from local.butler import common
-from local.butler import appengine
-import urllib.request
-import time
-import threading
-import shutil
+
 import os
+import shutil
+import threading
+import time
+import urllib.request
+
 from future import standard_library
+from local.butler import appengine, common, constants
+from python.config import local_config
+from python.tests.test_libs import test_utils
 
 standard_library.install_aliases()
 

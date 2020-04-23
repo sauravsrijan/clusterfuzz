@@ -14,28 +14,23 @@
 """build_manager tests."""
 # pylint: disable=protected-access
 
-from builtins import object
-from builtins import str
-
 import functools
-import mock
 import os
-import parameterized
 import shutil
 import tempfile
 import types
 import unittest
+from builtins import object, str
 
-from pyfakefs import fake_filesystem_unittest
+import mock
+import parameterized
 import six
-
-from base import errors
-from base import utils
+from base import errors, utils
 from bot.tasks import fuzz_task
 from build_management import build_manager
 from datastore import data_types
-from system import environment
-from system import shell
+from pyfakefs import fake_filesystem_unittest
+from system import environment, shell
 from tests.test_libs import helpers as test_helpers
 from tests.test_libs import test_utils
 

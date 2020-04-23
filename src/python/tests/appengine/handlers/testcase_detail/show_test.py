@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """show tests."""
-# pylint: disable=protected-access
-from builtins import str
-from past.builtins import basestring
 import collections
 import datetime
 import os
 import unittest
+# pylint: disable=protected-access
+from builtins import str
 
 from datastore import data_types
 from handlers.testcase_detail import show
 from libs import helpers
+from past.builtins import basestring
 from tests.test_libs import helpers as test_helpers
 from tests.test_libs import test_utils
 

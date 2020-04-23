@@ -14,32 +14,23 @@
 """Bot startup script."""
 from __future__ import print_function
 
+import os
+import sys
+import time
+import traceback
+from builtins import object
+
+from base import dates, errors, tasks, untrusted, utils
+from bot.fuzzers import init as fuzzers_init
+from bot.tasks import commands, update_task
+from datastore import data_handler, ndb_init
+from future import standard_library
+from metrics import logs, monitor, monitoring_metrics, profiler
+from python.base import modules
 # We want to use utf-8 encoding everywhere throughout the application
 # instead of the default 'ascii' encoding. This must happen before any
 # other imports.
-from system import environment
-from metrics import profiler
-from metrics import monitoring_metrics
-from metrics import monitor
-from metrics import logs
-from datastore import ndb_init
-from datastore import data_handler
-from bot.tasks import update_task
-from bot.tasks import commands
-from bot.fuzzers import init as fuzzers_init
-from base import utils
-from base import untrusted
-from base import tasks
-from base import errors
-from base import dates
-import traceback
-import time
-import os
-from builtins import object
-from future import standard_library
-from python.base import modules
-from system import path_patcher
-import sys
+from system import environment, path_patcher
 
 if sys.version_info.major == 2:
     reload(sys)

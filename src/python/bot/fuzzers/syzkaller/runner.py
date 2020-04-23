@@ -13,17 +13,17 @@
 # limitations under the License.
 """syzkaller fuzzer."""
 from __future__ import absolute_import
-from base import utils
-from bot.fuzzers import engine
-from bot.fuzzers import utils as fuzzer_utils
-from bot.fuzzers.syzkaller import config
-from bot.fuzzers.syzkaller import constants
-from system import environment
-from system import new_process
+
 import copy
 import os
 import re
 import tempfile
+
+from base import utils
+from bot.fuzzers import engine
+from bot.fuzzers import utils as fuzzer_utils
+from bot.fuzzers.syzkaller import config, constants
+from system import environment, new_process
 
 
 def get_arguments(unused_fuzzer_path):

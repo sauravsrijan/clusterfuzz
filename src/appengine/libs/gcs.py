@@ -13,20 +13,19 @@
 # limitations under the License.
 """App Engine GCS helpers."""
 
-from system import environment
-from google_cloud_utils import storage
-from google_cloud_utils import blobs
-from base import utils
-import googleapiclient
-import urllib.parse
-import time
-import json
-import datetime
-import collections
 import base64
-from builtins import object
-from builtins import str
+import collections
+import datetime
+import json
+import time
+import urllib.parse
+from builtins import object, str
+
+import googleapiclient
+from base import utils
 from future import standard_library
+from google_cloud_utils import blobs, storage
+from system import environment
 
 standard_library.install_aliases()
 

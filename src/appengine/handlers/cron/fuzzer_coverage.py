@@ -13,15 +13,13 @@
 # limitations under the License.
 """Cron job to get the latest code coverage stats and HTML reports."""
 
-from builtins import str
 import datetime
 import json
 import os
+from builtins import str
 
 from config import local_config
-from datastore import data_handler
-from datastore import data_types
-from datastore import ndb_utils
+from datastore import data_handler, data_types, ndb_utils
 from google_cloud_utils import storage
 from handlers import base_handler
 from libs import handler

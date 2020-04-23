@@ -13,19 +13,15 @@
 # limitations under the License.
 """Tests fuzzers.builtin."""
 
-from builtins import range
-from builtins import str
-
 import os
-import parameterized
 import unittest
+from builtins import range, str
 
-from pyfakefs import fake_filesystem_unittest
-
+import parameterized
 from bot.fuzzers import builtin
+from pyfakefs import fake_filesystem_unittest
 from system import environment
-from tests.test_libs import helpers
-from tests.test_libs import test_utils
+from tests.test_libs import helpers, test_utils
 
 
 class TestEngineFuzzer(builtin.EngineFuzzer):

@@ -13,16 +13,14 @@
 # limitations under the License.
 """Uploads test cases from blackbox fuzzers for coverage collection."""
 
-from builtins import str
-
 import os
+from builtins import str
 
 from base import utils
 from bot import testcase_manager
 from bot.fuzzers import builtin_fuzzers
 from config import local_config
-from google_cloud_utils import gsutil
-from google_cloud_utils import storage
+from google_cloud_utils import gsutil, storage
 from metrics import logs
 from system import environment
 

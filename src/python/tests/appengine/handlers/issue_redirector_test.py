@@ -13,10 +13,10 @@
 # limitations under the License.
 """Tests for the issue redirector handler."""
 
-import mock
 import unittest
-import webtest
 
+import mock
+import webtest
 from datastore import data_types
 from tests.test_libs import helpers as test_helpers
 

@@ -13,24 +13,21 @@
 # limitations under the License.
 """Analyze task for handling user uploads."""
 
-from system import environment
-from metrics import logs
-from fuzzing import leak_blacklist
-from datastore import data_types
-from datastore import data_handler
-from crash_analysis import severity_analyzer
-from crash_analysis import crash_analyzer
-from chrome import crash_uploader
-from build_management import build_manager
-from bot.tasks import task_creation
-from bot.tasks import setup
-from bot.fuzzers import engine_common
-from bot import testcase_manager
-from base import utils
-from base import tasks
-import six
 import datetime
+
+import six
+from base import tasks, utils
+from bot import testcase_manager
+from bot.fuzzers import engine_common
+from bot.tasks import setup, task_creation
+from build_management import build_manager
+from chrome import crash_uploader
+from crash_analysis import crash_analyzer, severity_analyzer
+from datastore import data_handler, data_types
 from future import standard_library
+from fuzzing import leak_blacklist
+from metrics import logs
+from system import environment
 
 standard_library.install_aliases()
 

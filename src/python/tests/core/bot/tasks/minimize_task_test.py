@@ -12,23 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for corpus_pruning_task."""
-# pylint: disable=unused-argument
-import mock
 import os
 import shutil
 import tempfile
 import unittest
 
+# pylint: disable=unused-argument
+import mock
 from base import utils
 from bot.fuzzers import init as fuzzers_init
 from bot.tasks import minimize_task
-from datastore import data_handler
-from datastore import data_types
+from datastore import data_handler, data_types
 from google_cloud_utils import blobs
 from system import environment
-from tests.test_libs import helpers
-from tests.test_libs import test_utils
-from tests.test_libs import untrusted_runner_helpers
+from tests.test_libs import helpers, test_utils, untrusted_runner_helpers
 
 TEST_DIR = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "minimize_task_data"

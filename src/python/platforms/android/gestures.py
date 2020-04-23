@@ -14,10 +14,9 @@
 """Gestures related functions."""
 from __future__ import absolute_import
 
-from builtins import str
-
 import os
 import random
+from builtins import str
 
 from . import adb
 

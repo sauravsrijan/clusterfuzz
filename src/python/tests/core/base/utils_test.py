@@ -12,22 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """utils tests."""
-from builtins import object
 import datetime
-import mock
 import os
 import shutil
 import sys
 import tempfile
 import time
 import unittest
+from builtins import object
 
+import mock
+from base import utils
 from google.cloud import ndb
 from pyfakefs import fake_filesystem_unittest
-
-from base import utils
-from tests.test_libs import helpers
-from tests.test_libs import test_utils
+from tests.test_libs import helpers, test_utils
 
 
 class GetSizeStringTest(unittest.TestCase):

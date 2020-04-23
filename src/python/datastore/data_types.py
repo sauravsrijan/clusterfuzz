@@ -13,18 +13,14 @@
 # limitations under the License.
 """Classes for objects stored in the datastore."""
 
-from builtins import next
-from builtins import object
-
 import re
-import six
+from builtins import next, object
 
+import six
+from base import json_utils, utils
+from datastore import search_tokenizer
 from future import utils as future_utils
 from google.cloud import ndb
-
-from base import json_utils
-from base import utils
-from datastore import search_tokenizer
 from metrics import logs
 from system import environment
 

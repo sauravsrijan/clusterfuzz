@@ -12,15 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """datastore_query tests."""
+import datetime
+import unittest
 # pylint: disable=protected-access
 from builtins import range
-import datetime
+
 import mock
-import unittest
-
-from google.cloud import ndb
 import six
-
+from google.cloud import ndb
 from libs.query import datastore_query
 from tests.test_libs import test_utils
 

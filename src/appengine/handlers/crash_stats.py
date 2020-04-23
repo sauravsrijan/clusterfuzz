@@ -13,18 +13,12 @@
 # limitations under the License.
 """Handler for the crash stats page."""
 
-from builtins import str
 import json
+from builtins import str
 
-from datastore import data_handler
-from datastore import data_types
-from datastore import ndb_utils
+from datastore import data_handler, data_types, ndb_utils
 from handlers import base_handler
-from libs import crash_access
-from libs import crash_stats
-from libs import filters
-from libs import handler
-from libs import helpers
+from libs import crash_access, crash_stats, filters, handler, helpers
 from metrics import crash_stats as crash_stats_common
 
 PAGE_SIZE = 10

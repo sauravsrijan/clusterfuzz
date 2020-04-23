@@ -13,40 +13,30 @@
 # limitations under the License.
 """Data handler functions."""
 
-from builtins import str
-
 import collections
 import datetime
 import os
 import re
 import shlex
-import six
 import time
+from builtins import str
+
+import six
+from base import dates, errors, memoize, persistent_cache, retry, tasks, utils
+from config import db_config, local_config
+from crash_analysis import severity_analyzer
+from datastore import data_types, ndb_utils
+from google.cloud import ndb
+from google_cloud_utils import blobs, storage
+from metrics import logs
+from system import environment, shell
 
 try:
     from shlex import quote
 except ImportError:
     from pipes import quote
 
-from google.cloud import ndb
 
-from base import dates
-from base import errors
-from base import memoize
-from base import persistent_cache
-from base import retry
-from base import tasks
-from base import utils
-from config import db_config
-from config import local_config
-from crash_analysis import severity_analyzer
-from datastore import data_types
-from datastore import ndb_utils
-from google_cloud_utils import blobs
-from google_cloud_utils import storage
-from metrics import logs
-from system import environment
-from system import shell
 
 DATA_BUNDLE_DEFAULT_BUCKET_IAM_ROLE = "roles/storage.objectAdmin"
 DEFAULT_FAIL_RETRIES = 3

@@ -13,15 +13,13 @@
 # limitations under the License.
 """Pubsub tests."""
 
-from builtins import range
 import time
 import unittest
+from builtins import range
 
 import six
-
 from google_cloud_utils import pubsub
-from tests.test_libs import helpers
-from tests.test_libs import test_utils
+from tests.test_libs import helpers, test_utils
 
 ACK_DEADLINE = 3
 

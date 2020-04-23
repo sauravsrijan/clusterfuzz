@@ -14,11 +14,10 @@
 """Tests for monorail issue management."""
 
 import datetime
-import mock
 import unittest
 
+import mock
 import six
-
 from libs.issue_management import monorail
 from libs.issue_management.monorail import issue_tracker_manager
 from libs.issue_management.monorail.comment import Comment as MonorailComment

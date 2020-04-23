@@ -19,11 +19,10 @@ import os
 import sys
 import threading
 
+import grpc
+from base import utils
 from google.cloud import ndb
 from google.cloud.ndb import context as context_module
-import grpc
-
-from base import utils
 
 _ndb_client = None
 _ndb_client_lock = threading.Lock()

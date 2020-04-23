@@ -13,14 +13,12 @@
 # limitations under the License.
 """Report upload task."""
 
-from builtins import str
 import time
+from builtins import str
 
 from base import errors
 from chrome import crash_uploader
-from datastore import data_handler
-from datastore import data_types
-from datastore import ndb_utils
+from datastore import data_handler, data_types, ndb_utils
 from metrics import logs
 from system import environment
 

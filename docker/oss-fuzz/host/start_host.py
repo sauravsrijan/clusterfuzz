@@ -14,15 +14,14 @@
 """Start host."""
 from __future__ import print_function
 
-import time
-import threading
-import sys
-import subprocess
-import socket
-import shutil
 import os
-from builtins import range
-from builtins import str
+import shutil
+import socket
+import subprocess
+import sys
+import threading
+import time
+from builtins import range, str
 
 from future import standard_library
 

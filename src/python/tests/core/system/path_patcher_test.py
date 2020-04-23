@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """path_patcher tests."""
-from tests.test_libs import test_utils
-from tests.test_libs import helpers
-from system import path_patcher
-import unittest
-import tempfile
-import os
-import mock
-import ctypes
 import builtins
+import ctypes
+import os
+import tempfile
+import unittest
 from builtins import object
+
+import mock
 from future import standard_library
+from system import path_patcher
+from tests.test_libs import helpers, test_utils
 
 standard_library.install_aliases()
 

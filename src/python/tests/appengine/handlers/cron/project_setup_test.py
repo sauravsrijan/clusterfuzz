@@ -12,26 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for project_setup."""
-from builtins import object
 import ast
 import copy
-import googleapiclient
-import mock
 import os
 import unittest
+from builtins import object
+
+import googleapiclient
+import mock
+import six
 import webapp2
 import webtest
-
-from google.cloud import ndb
-import six
-
 from base import utils
 from datastore import data_types
+from google.cloud import ndb
 from google_cloud_utils import pubsub
 from handlers.cron import project_setup
-from tests.test_libs import helpers
-from tests.test_libs import mock_config
-from tests.test_libs import test_utils
+from tests.test_libs import helpers, mock_config, test_utils
 
 DATA_DIRECTORY = os.path.join(os.path.dirname(__file__), "project_setup_data")
 

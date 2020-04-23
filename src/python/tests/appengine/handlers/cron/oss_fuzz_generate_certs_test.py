@@ -14,11 +14,10 @@
 """oss_fuzz_apply_ccs tests."""
 import unittest
 
-from google.cloud import ndb
 import webapp2
 import webtest
-
 from datastore import data_types
+from google.cloud import ndb
 from handlers.cron import oss_fuzz_generate_certs
 from tests.test_libs import helpers as test_helpers
 from tests.test_libs import test_utils

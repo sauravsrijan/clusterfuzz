@@ -13,11 +13,9 @@
 # limitations under the License.
 """Tests for grouper."""
 
-from builtins import range
-from builtins import str
-
 import datetime
 import unittest
+from builtins import range, str
 
 from datastore import data_handler
 from handlers.cron import grouper

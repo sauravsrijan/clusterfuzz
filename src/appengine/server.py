@@ -14,72 +14,34 @@
 """server.py initialises the appengine server for ClusterFuzz."""
 from __future__ import absolute_import
 
-from webapp2_extras import routes
 import webapp2
-
 from base import utils
 from config import local_config
-from handlers import base_handler
-from handlers import bots
-from handlers import commit_range
-from handlers import configuration
-from handlers import corpora
-from handlers import coverage_report
-from handlers import crash_stats
-from handlers import domain_verifier
-from handlers import download
-from handlers import fuzzer_stats
-from handlers import fuzzers
-from handlers import gcs_redirector
-from handlers import help_redirector
-from handlers import home
-from handlers import issue_redirector
-from handlers import jobs
-from handlers import login
-from handlers import report_csp_failure
-from handlers import revisions_info
-from handlers import testcase_list
-from handlers import upload_testcase
-from handlers import viewer
-from handlers.cron import backup
-from handlers.cron import build_crash_stats
-from handlers.cron import cleanup
-from handlers.cron import corpus_backup
-from handlers.cron import fuzz_strategy_selection
-from handlers.cron import fuzzer_and_job_weights
-from handlers.cron import fuzzer_coverage
-from handlers.cron import load_bigquery_stats
-from handlers.cron import manage_vms
-from handlers.cron import ml_train
-from handlers.cron import oss_fuzz_apply_ccs
-from handlers.cron import oss_fuzz_build_status
-from handlers.cron import oss_fuzz_generate_certs
-from handlers.cron import predator_pull
-from handlers.cron import project_setup
-from handlers.cron import recurring_tasks
-from handlers.cron import schedule_corpus_pruning
-from handlers.cron import sync_admins
-from handlers.cron import triage
+from handlers import (base_handler, bots, commit_range, configuration, corpora,
+                      coverage_report, crash_stats, domain_verifier, download,
+                      fuzzer_stats, fuzzers, gcs_redirector, help_redirector,
+                      home, issue_redirector, jobs, login, report_csp_failure,
+                      revisions_info, testcase_list, upload_testcase, viewer)
+from handlers.cron import (backup, build_crash_stats, cleanup, corpus_backup,
+                           fuzz_strategy_selection, fuzzer_and_job_weights,
+                           fuzzer_coverage, load_bigquery_stats, manage_vms,
+                           ml_train, oss_fuzz_apply_ccs, oss_fuzz_build_status,
+                           oss_fuzz_generate_certs, predator_pull,
+                           project_setup, recurring_tasks,
+                           schedule_corpus_pruning, sync_admins, triage)
 from handlers.performance_report import show as show_performance_report
-from handlers.reproduce_tool import get_config
-from handlers.reproduce_tool import testcase_info
+from handlers.reproduce_tool import get_config, testcase_info
 from handlers.testcase_detail import crash_stats as crash_stats_on_testcase
+from handlers.testcase_detail import (create_issue, delete, download_testcase,
+                                      find_similar_issues, mark_fixed,
+                                      mark_security, mark_unconfirmed, redo,
+                                      remove_duplicate, remove_group,
+                                      remove_issue)
 from handlers.testcase_detail import show as show_testcase
-from handlers.testcase_detail import create_issue
-from handlers.testcase_detail import delete
-from handlers.testcase_detail import download_testcase
-from handlers.testcase_detail import find_similar_issues
-from handlers.testcase_detail import mark_fixed
-from handlers.testcase_detail import mark_security
-from handlers.testcase_detail import mark_unconfirmed
-from handlers.testcase_detail import redo
-from handlers.testcase_detail import remove_duplicate
-from handlers.testcase_detail import remove_group
-from handlers.testcase_detail import remove_issue
-from handlers.testcase_detail import testcase_variants
-from handlers.testcase_detail import update_from_trunk
-from handlers.testcase_detail import update_issue
+from handlers.testcase_detail import (testcase_variants, update_from_trunk,
+                                      update_issue)
 from metrics import logs
+from webapp2_extras import routes
 
 _is_chromium = utils.is_chromium()
 _is_oss_fuzz = utils.is_oss_fuzz()

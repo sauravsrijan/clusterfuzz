@@ -21,7 +21,6 @@ import os
 import sys
 import time
 import traceback
-
 from logging import config
 
 STACKDRIVER_LOG_MESSAGE_LIMIT = 80000  # Allowed log entry size is 100 KB.

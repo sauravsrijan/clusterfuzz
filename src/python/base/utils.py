@@ -13,32 +13,28 @@
 # limitations under the License.
 """Common utility functions."""
 
-from system import environment
-from metrics import logs
-from config import local_config
-from base import retry
-from base import memoize
-from base import errors
-import weakref
-import urllib.request
-import urllib.parse
-import time
-import sys
-import requests
-import random
-import os
-import inspect
-import hashlib
-import gc
-import functools
-import datetime
 import ast
-from builtins import map
-from builtins import range
-from builtins import str
-from future import utils as future_utils
+import datetime
+import functools
+import gc
+import hashlib
+import inspect
+import os
+import random
+import sys
+import time
+import urllib.parse
+import urllib.request
+import weakref
+from builtins import map, range, str
 
+import requests
+from base import errors, memoize, retry
+from config import local_config
 from future import standard_library
+from future import utils as future_utils
+from metrics import logs
+from system import environment
 
 standard_library.install_aliases()
 

@@ -16,14 +16,13 @@
   backing up all entities. Therefore, we have to get all entities here and
   send them to the backup URL."""
 
-from builtins import str
 import datetime
+from builtins import str
 
-from google.cloud import ndb
 import googleapiclient
-
 from base import utils
 from config import local_config
+from google.cloud import ndb
 from handlers import base_handler
 from libs import handler
 from metrics import logs

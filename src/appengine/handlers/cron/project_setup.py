@@ -14,34 +14,25 @@
 """Handler used for setting up oss-fuzz jobs."""
 from __future__ import absolute_import
 
-from builtins import object
-from builtins import str
-from past.builtins import basestring
-
 import base64
 import copy
 import json
 import re
+from builtins import object, str
+
 import requests
 import six
 import yaml
-
-from google.cloud import ndb
-
-from base import tasks
-from base import untrusted
-from base import utils
-from config import db_config
-from config import local_config
-from datastore import data_handler
-from datastore import data_types
-from datastore import ndb_utils
+from base import tasks, untrusted, utils
+from config import db_config, local_config
+from datastore import data_handler, data_types, ndb_utils
 from fuzzing import fuzzer_selection
-from google_cloud_utils import pubsub
-from google_cloud_utils import storage
+from google.cloud import ndb
+from google_cloud_utils import pubsub, storage
 from handlers import base_handler
 from libs import handler
 from metrics import logs
+from past.builtins import basestring
 from system import environment
 
 from . import service_accounts

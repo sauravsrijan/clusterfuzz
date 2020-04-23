@@ -16,14 +16,11 @@ import os
 import sys
 import unittest
 
-from pyfakefs import fake_filesystem_unittest
-
 from base import utils
 from bot.tasks import update_task
-from metrics import monitor
-from metrics import monitoring_metrics
-from tests.test_libs import helpers
-from tests.test_libs import test_utils
+from metrics import monitor, monitoring_metrics
+from pyfakefs import fake_filesystem_unittest
+from tests.test_libs import helpers, test_utils
 
 
 class GetLocalSourceRevisionTest(fake_filesystem_unittest.TestCase):

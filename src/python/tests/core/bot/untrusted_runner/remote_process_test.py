@@ -13,11 +13,10 @@
 # limitations under the License.
 """Tests for remote_process."""
 
-import mock
 import unittest
 
-from bot.untrusted_runner import remote_process
-from bot.untrusted_runner import remote_process_host
+import mock
+from bot.untrusted_runner import remote_process, remote_process_host
 from protos import untrusted_runner_pb2
 from system import new_process
 from tests.test_libs import helpers as test_helpers

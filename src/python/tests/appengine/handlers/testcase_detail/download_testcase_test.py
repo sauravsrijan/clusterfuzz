@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Download testcase tests."""
-from builtins import str
 import unittest
+from builtins import str
+
 import webapp2
 import webtest
-
 from datastore import data_types
 from google_cloud_utils import storage
 from handlers.testcase_detail import download_testcase

@@ -15,12 +15,11 @@
 
 import unittest
 
-from google.cloud import ndb
-
 from bot.fuzzers import strategy_selection
 from bot.tasks import fuzz_task
 from datastore import data_types
 from fuzzing import strategy
+from google.cloud import ndb
 from system import environment
 from tests.test_libs import helpers as test_helpers
 from tests.test_libs import test_utils

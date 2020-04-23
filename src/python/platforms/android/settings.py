@@ -13,12 +13,12 @@
 # limitations under the License.
 """Settings change related functions."""
 
+import re
 from builtins import str
 
-import re
+from system import environment
 
 from . import adb
-from system import environment
 
 BUILD_FINGERPRINT_REGEX = re.compile(
     r"(?P<vendor>.+)\/(?P<target>.+)"

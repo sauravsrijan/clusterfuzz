@@ -16,9 +16,7 @@ from __future__ import absolute_import
 
 from builtins import range
 
-from . import errors
-from . import minimizer
-from . import utils
+from . import errors, minimizer, utils
 
 
 class DeltaTestcase(minimizer.Testcase):

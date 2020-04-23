@@ -15,9 +15,11 @@
 # Generated from HTMLLexer.g4 by ANTLR 4.7.1
 # encoding: utf-8
 from __future__ import print_function
-from antlr4 import *
-from io import StringIO
+
 import sys
+from io import StringIO
+
+from antlr4 import *
 
 
 def serializedATN():

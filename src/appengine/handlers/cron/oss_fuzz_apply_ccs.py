@@ -15,15 +15,12 @@
 
 import logging
 
-from base import external_users
-from base import memoize
-from datastore import data_types
-from datastore import ndb_utils
+from base import external_users, memoize
+from datastore import data_types, ndb_utils
 from handlers import base_handler
 from libs import handler
-from libs.issue_management import issue_filer
-from libs.issue_management import issue_tracker_policy
-from libs.issue_management import issue_tracker_utils
+from libs.issue_management import (issue_filer, issue_tracker_policy,
+                                   issue_tracker_utils)
 
 
 def get_open_testcases_with_bugs():

@@ -14,21 +14,15 @@
 """Test the launcher.py script for AFL-based fuzzers."""
 # pylint: disable=protected-access
 
-from builtins import range
-from builtins import str
+import os
+from builtins import range, str
+from functools import partial
 
 import mock
-import os
-
-from pyfakefs import fake_filesystem_unittest
-
 from bot.fuzzers import engine_common
-from bot.fuzzers.afl import fuzzer
-from bot.fuzzers.afl import launcher
-from bot.fuzzers.afl import strategies
-from functools import partial
-from system import environment
-from system import new_process
+from bot.fuzzers.afl import fuzzer, launcher, strategies
+from pyfakefs import fake_filesystem_unittest
+from system import environment, new_process
 from tests.core.bot.fuzzers.engine_common_test import GetTimeoutTestBase
 from tests.test_libs import helpers as test_helpers
 from tests.test_libs import test_utils

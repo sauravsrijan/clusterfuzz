@@ -13,16 +13,13 @@
 # limitations under the License.
 """Load project data."""
 
-from builtins import next
-from builtins import object
-from past.builtins import basestring
-
 import os
-import six
-
+from builtins import next, object
 from collections import namedtuple
 
+import six
 from config import local_config
+from past.builtins import basestring
 from system import environment
 
 FILE_SCHEME = "file://"
