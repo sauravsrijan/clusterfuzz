@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Fuzzing engine interface."""
-
 import os
 
-from bot.fuzzers import engine, engine_common
-from bot.fuzzers import utils as fuzzer_utils
-from bot.fuzzers.syzkaller import runner
 from metrics import profiler
 from system import environment
+
+from bot.fuzzers import engine
+from bot.fuzzers import engine_common
+from bot.fuzzers import utils as fuzzer_utils
+from bot.fuzzers.syzkaller import runner
 
 BIN_FOLDER_PATH = "bin"
 

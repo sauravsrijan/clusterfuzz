@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """App Engine helpers."""
-
 from __future__ import print_function
 
 import os
@@ -20,7 +19,8 @@ import shutil
 import sys
 from distutils import spawn
 
-from local.butler import common, constants
+from local.butler import common
+from local.butler import constants
 
 SRC_DIR_PY = os.path.join("src", "appengine")
 

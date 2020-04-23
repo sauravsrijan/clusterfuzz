@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Task queue functions."""
-
 import contextlib
 import datetime
 import random
 import threading
 import time
-from builtins import object, str
+from builtins import object
+from builtins import str
 
-from base import persistent_cache, utils
-from datastore import data_types, ndb_utils
+from base import persistent_cache
+from base import utils
+from datastore import data_types
+from datastore import ndb_utils
 from fuzzing import fuzzer_selection
 from google_cloud_utils import pubsub
 from metrics import logs

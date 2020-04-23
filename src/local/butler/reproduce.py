@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """reproduce.py reproduces test cases locally."""
-
 from __future__ import print_function
 
 import os
@@ -22,18 +21,27 @@ import time
 from builtins import object
 from urllib import parse
 
-from base import json_utils, utils
-from bot import testcase_manager
-from bot.fuzzers import init
-from bot.tasks import commands, setup
+from base import json_utils
+from base import utils
 from build_management import build_manager
 from datastore import data_types
 from future import standard_library
-from local.butler import appengine
-from local.butler.reproduce_tool import (android, config, errors, http_utils,
-                                         prompts)
 from python.base import modules
-from system import archive, environment, new_process, shell
+from system import archive
+from system import environment
+from system import new_process
+from system import shell
+
+from bot import testcase_manager
+from bot.fuzzers import init
+from bot.tasks import commands
+from bot.tasks import setup
+from local.butler import appengine
+from local.butler.reproduce_tool import android
+from local.butler.reproduce_tool import config
+from local.butler.reproduce_tool import errors
+from local.butler.reproduce_tool import http_utils
+from local.butler.reproduce_tool import prompts
 
 standard_library.install_aliases()
 

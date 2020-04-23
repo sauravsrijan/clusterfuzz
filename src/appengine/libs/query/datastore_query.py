@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Query handles pagination and OR conditions with its best effort."""
-
 from builtins import object
 
 from google.cloud.ndb import exceptions

@@ -20,10 +20,13 @@ import re
 import tempfile
 
 from base import utils
+from system import environment
+from system import new_process
+
 from bot.fuzzers import engine
 from bot.fuzzers import utils as fuzzer_utils
-from bot.fuzzers.syzkaller import config, constants
-from system import environment, new_process
+from bot.fuzzers.syzkaller import config
+from bot.fuzzers.syzkaller import constants
 
 
 def get_arguments(unused_fuzzer_path):

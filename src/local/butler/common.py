@@ -13,7 +13,6 @@
 # limitations under the License.
 """common.py contains common methods and variables that are used by multiple
    commands."""
-
 from __future__ import print_function
 
 import datetime
@@ -30,8 +29,9 @@ from builtins import object
 from distutils import dir_util
 
 from future import standard_library
-from local.butler import constants
 from past.builtins import basestring
+
+from local.butler import constants
 
 standard_library.install_aliases()
 

@@ -19,7 +19,8 @@ from builtins import object
 
 import mock
 from pyfakefs import fake_filesystem_unittest
-from system import environment, shell
+from system import environment
+from system import shell
 from tests.test_libs import helpers as test_helpers
 from tests.test_libs import test_utils
 

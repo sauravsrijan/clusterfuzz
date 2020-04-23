@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Jira issue tracker."""
-
 from builtins import str
 
 from config import db_config

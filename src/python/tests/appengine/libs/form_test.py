@@ -17,7 +17,8 @@ import unittest
 
 from datastore import data_types
 from libs import form
-from tests.test_libs import helpers, test_utils
+from tests.test_libs import helpers
+from tests.test_libs import test_utils
 
 
 @test_utils.with_cloud_emulators("datastore")

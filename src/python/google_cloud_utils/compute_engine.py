@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Compute Engine helpers."""
-
 import datetime
 import random
 import time
-from builtins import range, str
+from builtins import range
+from builtins import str
 
 import six
-from base import dates, persistent_cache
+from base import dates
+from base import persistent_cache
 from googleapiclient.discovery import build
 from metrics import logs
 

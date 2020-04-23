@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """honggfuzz engine interface."""
-
 import glob
 import os
 import re
 from builtins import str
 
 from base import utils
-from bot.fuzzers import dictionary_manager, engine
 from metrics import logs
-from system import environment, new_process
+from system import environment
+from system import new_process
+
+from bot.fuzzers import dictionary_manager
+from bot.fuzzers import engine
 
 _CLEAN_EXIT_SECS = 10
 _RSS_LIMIT = 2560

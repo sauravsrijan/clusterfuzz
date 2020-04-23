@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Load project data."""
-
 import os
-from builtins import next, object
+from builtins import next
+from builtins import object
 from collections import namedtuple
 
 import six

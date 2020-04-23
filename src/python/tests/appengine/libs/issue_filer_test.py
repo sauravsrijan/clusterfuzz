@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """issue_filer tests."""
-
 # pylint: disable=protected-access
-
 import datetime
 import os
 import unittest
@@ -24,10 +22,13 @@ import mock
 import parameterized
 import six
 from datastore import data_types
-from libs.issue_management import issue_filer, issue_tracker_policy, monorail
+from libs.issue_management import issue_filer
+from libs.issue_management import issue_tracker_policy
+from libs.issue_management import monorail
 from libs.issue_management.issue_tracker import LabelStore
 from libs.issue_management.monorail.issue import Issue as MonorailIssue
-from tests.test_libs import helpers, test_utils
+from tests.test_libs import helpers
+from tests.test_libs import test_utils
 
 CHROMIUM_POLICY = issue_tracker_policy.IssueTrackerPolicy(
     {

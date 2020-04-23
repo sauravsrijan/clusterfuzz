@@ -13,7 +13,6 @@
 # limitations under the License.
 """Patch the path-related methods to make them compatible with windows. Please
   see crbug.com/656653"""
-
 import builtins
 import functools
 import os

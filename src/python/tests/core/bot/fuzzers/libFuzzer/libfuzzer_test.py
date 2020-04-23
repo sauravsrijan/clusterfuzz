@@ -13,20 +13,24 @@
 # limitations under the License.
 """Tests for libFuzzer script."""
 # pylint: disable=unused-argument
-
 import copy
 import os
 import shutil
 import unittest
-from builtins import object, range, str
+from builtins import object
+from builtins import range
+from builtins import str
 
 import pyfakefs.fake_filesystem_unittest as fake_fs_unittest
-from bot.fuzzers import engine_common, libfuzzer, strategy_selection
 from future import standard_library
 from fuzzing import strategy
 from system import environment
 from tests.test_libs import helpers as test_helpers
 from tests.test_libs import test_utils
+
+from bot.fuzzers import engine_common
+from bot.fuzzers import libfuzzer
+from bot.fuzzers import strategy_selection
 
 standard_library.install_aliases()
 

@@ -12,28 +12,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Corpus pruning task."""
-
 import collections
 import datetime
 import os
 import random
 import shutil
-from builtins import object, zip
+from builtins import object
+from builtins import zip
 from enum import Enum
 
 from base import utils
-from bot.fuzzers import engine, engine_common, options
-from bot.tasks import setup, task_creation
 from build_management import build_manager
 from crash_analysis import crash_analyzer
-from crash_analysis.stack_parsing import stack_analyzer, stack_symbolizer
-from datastore import (corpus_tagging, data_handler, data_types,
-                       fuzz_target_utils)
-from fuzzing import corpus_manager, leak_blacklist
+from crash_analysis.stack_parsing import stack_analyzer
+from crash_analysis.stack_parsing import stack_symbolizer
+from datastore import corpus_tagging
+from datastore import data_handler
+from datastore import data_types
+from datastore import fuzz_target_utils
+from fuzzing import corpus_manager
+from fuzzing import leak_blacklist
 from google.cloud import ndb
-from google_cloud_utils import big_query, blobs, storage
+from google_cloud_utils import big_query
+from google_cloud_utils import blobs
+from google_cloud_utils import storage
 from metrics import logs
-from system import archive, environment, shell
+from system import archive
+from system import environment
+from system import shell
+
+from bot.fuzzers import engine
+from bot.fuzzers import engine_common
+from bot.fuzzers import options
+from bot.tasks import setup
+from bot.tasks import task_creation
 
 # TODO(ochang): Move common libFuzzer code from fuzzer into CF.
 

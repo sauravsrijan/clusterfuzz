@@ -16,10 +16,12 @@ from __future__ import absolute_import
 
 from builtins import range
 
+from . import delta_minimizer
+from . import errors
+from . import minimizer
+from . import utils
 from bot.tokenizer.antlr_tokenizer import AntlrTokenizer
 from bot.tokenizer.grammars.JavaScriptLexer import JavaScriptLexer
-
-from . import delta_minimizer, errors, minimizer, utils
 
 
 def step_back_while(cur_index, condition):

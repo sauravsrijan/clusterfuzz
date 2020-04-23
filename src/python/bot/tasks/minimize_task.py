@@ -12,35 +12,47 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Minimize task for handling testcase minimization."""
-
 import binascii
 import functools
 import os
 import threading
 import time
 import zipfile
-from builtins import object, range, str
+from builtins import object
+from builtins import range
+from builtins import str
 
 import six
-from base import errors, tasks, utils
-from bot import testcase_manager
-from bot.fuzzers import engine, engine_common
-from bot.fuzzers.libFuzzer.engine import LibFuzzerEngine
-from bot.minimizer import basic_minimizers, delta_minimizer
-from bot.minimizer import errors as minimizer_errors
-from bot.minimizer import html_minimizer, js_minimizer, minimizer
-from bot.tasks import setup, task_creation
-from bot.tokenizer.antlr_tokenizer import AntlrTokenizer
-from bot.tokenizer.grammars.JavaScriptLexer import JavaScriptLexer
+from base import errors
+from base import tasks
+from base import utils
 from build_management import build_manager
 from crash_analysis import severity_analyzer
 from crash_analysis.crash_comparer import CrashComparer
 from crash_analysis.crash_result import CrashResult
-from datastore import data_handler, data_types
+from datastore import data_handler
+from datastore import data_types
 from google_cloud_utils import blobs
 from metrics import logs
 from platforms import android
-from system import environment, process_handler, shell
+from system import environment
+from system import process_handler
+from system import shell
+
+from bot import testcase_manager
+from bot.fuzzers import engine
+from bot.fuzzers import engine_common
+from bot.fuzzers.libFuzzer.engine import LibFuzzerEngine
+from bot.minimizer import basic_minimizers
+from bot.minimizer import delta_minimizer
+from bot.minimizer import errors as minimizer_errors
+from bot.minimizer import html_minimizer
+from bot.minimizer import js_minimizer
+from bot.minimizer import minimizer
+from bot.tasks import setup
+from bot.tasks import task_creation
+from bot.tokenizer.antlr_tokenizer import AntlrTokenizer
+from bot.tokenizer.grammars.JavaScriptLexer import JavaScriptLexer
 
 IPCDUMP_TIMEOUT = 60
 COMBINED_IPCDUMP_TIMEOUT = 60 * 3

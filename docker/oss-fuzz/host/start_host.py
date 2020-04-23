@@ -21,7 +21,8 @@ import subprocess
 import sys
 import threading
 import time
-from builtins import range, str
+from builtins import range
+from builtins import str
 
 from future import standard_library
 

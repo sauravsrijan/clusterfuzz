@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Find CLs suspected of introducing regressions."""
-
 import json
 import re
 
 import six
-from build_management import build_manager, revisions
+from build_management import build_manager
+from build_management import revisions
 from config import db_config
-from datastore import data_handler, data_types
+from datastore import data_handler
+from datastore import data_types
 from google_cloud_utils import pubsub
 from metrics import logs
 from system import environment

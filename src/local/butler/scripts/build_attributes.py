@@ -19,8 +19,11 @@ import sys
 
 import six
 from base import utils
-from datastore import data_types, ndb_utils
-from local.butler.scripts import attribute_builder, batcher
+from datastore import data_types
+from datastore import ndb_utils
+
+from local.butler.scripts import attribute_builder
+from local.butler.scripts import batcher
 
 BATCH_SIZE = 500
 

@@ -4,15 +4,20 @@ import os
 import re
 import subprocess
 import sys
-from builtins import object, str
+from builtins import object
+from builtins import str
 
 import six
 from base import utils
 from google_cloud_utils import storage
 from metrics import logs
 from past.builtins import cmp
-from platforms.android import adb, fetch_artifact, settings
-from system import archive, environment, shell
+from platforms.android import adb
+from platforms.android import fetch_artifact
+from platforms.android import settings
+from system import archive
+from system import environment
+from system import shell
 
 # Copyright 2019 Google LLC
 #

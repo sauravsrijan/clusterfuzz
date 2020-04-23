@@ -16,16 +16,18 @@ from __future__ import print_function
 
 import os
 import subprocess
-# We want to use utf-8 encoding everywhere throughout the application
-# instead of the default 'ascii' encoding. This must happen before any
-# other imports.
 import sys
 from builtins import str
 
-from datastore import data_handler, ndb_init
+from datastore import data_handler
+from datastore import ndb_init
 from metrics import logs
 from python.base import modules
-from system import environment, shell
+from system import environment
+from system import shell
+# We want to use utf-8 encoding everywhere throughout the application
+# instead of the default 'ascii' encoding. This must happen before any
+# other imports.
 
 if sys.version_info.major == 2:
     reload(sys)

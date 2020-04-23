@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """corpus backup handler."""
-
 import datetime
 import os
 
 from base import utils
-from datastore import data_types, fuzz_target_utils, ndb_utils
+from datastore import data_types
+from datastore import fuzz_target_utils
+from datastore import ndb_utils
 from fuzzing import corpus_manager
 from google_cloud_utils import storage
 from handlers import base_handler

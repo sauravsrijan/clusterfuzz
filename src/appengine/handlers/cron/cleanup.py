@@ -12,23 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Cleanup task for cleaning up unneeded testcases."""
-
 import collections
 import datetime
 import json
 import random
 
-from base import dates, errors, memoize, utils
+from base import dates
+from base import errors
+from base import memoize
+from base import utils
 from chrome import build_info
-from crash_analysis import crash_comparer, severity_analyzer
-from datastore import data_handler, data_types, ndb_utils
+from crash_analysis import crash_comparer
+from crash_analysis import severity_analyzer
+from datastore import data_handler
+from datastore import data_types
+from datastore import ndb_utils
 from fuzzing import leak_blacklist
 from googleapiclient.errors import HttpError
 from handlers import base_handler
-from libs import handler, mail
-from libs.issue_management import (issue_filer, issue_tracker_policy,
-                                   issue_tracker_utils)
-from metrics import crash_stats, logs
+from libs import handler
+from libs import mail
+from libs.issue_management import issue_filer
+from libs.issue_management import issue_tracker_policy
+from libs.issue_management import issue_tracker_utils
+from metrics import crash_stats
+from metrics import logs
 
 GENERIC_INCORRECT_COMMENT = "\n\nIf this is incorrect, please add the {label_text}"
 OSS_FUZZ_INCORRECT_COMMENT = (

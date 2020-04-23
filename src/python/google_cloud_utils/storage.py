@@ -21,16 +21,19 @@ import os
 import shutil
 import threading
 import time
-from builtins import next, object
+from builtins import next
+from builtins import object
 
-from base import retry, utils
+from base import retry
+from base import utils
 from config import local_config
 from datastore import locks
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from metrics import logs
 from past.builtins import basestring
-from system import environment, shell
+from system import environment
+from system import shell
 
 from . import credentials
 

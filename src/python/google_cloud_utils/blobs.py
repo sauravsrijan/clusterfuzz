@@ -19,7 +19,8 @@ import re
 import uuid
 from builtins import str
 
-from base import memoize, retry
+from base import memoize
+from base import retry
 from datastore import data_types
 from google.cloud import ndb
 from past.builtins import basestring

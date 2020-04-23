@@ -25,7 +25,8 @@ import mock
 from base import utils
 from google.cloud import ndb
 from pyfakefs import fake_filesystem_unittest
-from tests.test_libs import helpers, test_utils
+from tests.test_libs import helpers
+from tests.test_libs import test_utils
 
 
 class GetSizeStringTest(unittest.TestCase):

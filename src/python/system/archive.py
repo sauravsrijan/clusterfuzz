@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Functions for handling archives."""
-
 import os
 import tarfile
 import zipfile
-from builtins import object, oct
+from builtins import object
+from builtins import oct
 
 from metrics import logs
 

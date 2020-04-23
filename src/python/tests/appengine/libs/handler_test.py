@@ -26,7 +26,9 @@ import yaml
 from config import local_config
 from datastore import data_types
 from handlers import base_handler
-from libs import auth, handler, helpers
+from libs import auth
+from libs import handler
+from libs import helpers
 from tests.test_libs import helpers as test_helpers
 
 if sys.version_info.major == 3:

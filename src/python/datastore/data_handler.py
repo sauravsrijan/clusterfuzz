@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Data handler functions."""
-
 import collections
 import datetime
 import os
@@ -22,14 +21,24 @@ import time
 from builtins import str
 
 import six
-from base import dates, errors, memoize, persistent_cache, retry, tasks, utils
-from config import db_config, local_config
+from base import dates
+from base import errors
+from base import memoize
+from base import persistent_cache
+from base import retry
+from base import tasks
+from base import utils
+from config import db_config
+from config import local_config
 from crash_analysis import severity_analyzer
-from datastore import data_types, ndb_utils
+from datastore import data_types
+from datastore import ndb_utils
 from google.cloud import ndb
-from google_cloud_utils import blobs, storage
+from google_cloud_utils import blobs
+from google_cloud_utils import storage
 from metrics import logs
-from system import environment, shell
+from system import environment
+from system import shell
 
 try:
     from shlex import quote

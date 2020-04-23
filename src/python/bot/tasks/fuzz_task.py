@@ -21,30 +21,52 @@ import os
 import random
 import re
 import time
-from builtins import object, range, str
+from builtins import object
+from builtins import range
+from builtins import str
 from collections import namedtuple
 
 import six
-from base import dates, retry, utils
-from bot import testcase_manager
-from bot.fuzzers import builtin, builtin_fuzzers, engine, engine_common
-from bot.fuzzers import utils as fuzzer_utils
-from bot.fuzzers.libFuzzer import stats as libfuzzer_stats
-from bot.tasks import setup, task_creation, trials
+from base import dates
+from base import retry
+from base import utils
 from build_management import build_manager
 from chrome import crash_uploader
 from crash_analysis import crash_analyzer
 from crash_analysis.crash_result import CrashResult
 from crash_analysis.stack_parsing import stack_analyzer
-from datastore import data_handler, data_types, ndb_utils
+from datastore import data_handler
+from datastore import data_types
+from datastore import ndb_utils
 from future import standard_library
-from fuzzing import (corpus_manager, coverage_uploader, fuzzer_selection,
-                     gesture_handler, leak_blacklist)
+from fuzzing import corpus_manager
+from fuzzing import coverage_uploader
+from fuzzing import fuzzer_selection
+from fuzzing import gesture_handler
+from fuzzing import leak_blacklist
 from google.cloud import ndb
-from google_cloud_utils import big_query, blobs, storage
-from metrics import fuzzer_logs, fuzzer_stats, logs, monitoring_metrics
+from google_cloud_utils import big_query
+from google_cloud_utils import blobs
+from google_cloud_utils import storage
+from metrics import fuzzer_logs
+from metrics import fuzzer_stats
+from metrics import logs
+from metrics import monitoring_metrics
 from platforms import android
-from system import environment, process_handler, shell
+from system import environment
+from system import process_handler
+from system import shell
+
+from bot import testcase_manager
+from bot.fuzzers import builtin
+from bot.fuzzers import builtin_fuzzers
+from bot.fuzzers import engine
+from bot.fuzzers import engine_common
+from bot.fuzzers import utils as fuzzer_utils
+from bot.fuzzers.libFuzzer import stats as libfuzzer_stats
+from bot.tasks import setup
+from bot.tasks import task_creation
+from bot.tasks import trials
 
 standard_library.install_aliases()
 

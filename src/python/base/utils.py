@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Common utility functions."""
-
 import ast
 import datetime
 import functools
@@ -26,10 +25,14 @@ import time
 import urllib.parse
 import urllib.request
 import weakref
-from builtins import map, range, str
+from builtins import map
+from builtins import range
+from builtins import str
 
 import requests
-from base import errors, memoize, retry
+from base import errors
+from base import memoize
+from base import retry
 from config import local_config
 from future import standard_library
 from future import utils as future_utils

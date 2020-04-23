@@ -19,7 +19,8 @@ from builtins import str
 import mock
 from datastore import data_types
 from google_cloud_utils import big_query
-from tests.test_libs import helpers, test_utils
+from tests.test_libs import helpers
+from tests.test_libs import test_utils
 
 
 class InitTest(unittest.TestCase):

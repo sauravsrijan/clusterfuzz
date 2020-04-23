@@ -21,14 +21,18 @@ import time
 import mozprocess
 from base import persistent_cache
 from base.untrusted import untrusted_noop
-from bot.tasks import update_task
-from datastore import data_handler, ndb_init
+from datastore import data_handler
+from datastore import ndb_init
 from metrics import logs
 from python.base import modules
+from system import environment
+from system import process_handler
+from system import shell
+
+from bot.tasks import update_task
 # Before any other imports, we must fix the path. Some libraries might expect
 # to be able to import dependencies directly, but we must store these in
 # subdirectories of common so that they are shared with App Engine.
-from system import environment, process_handler, shell
 
 modules.fix_module_search_paths()
 

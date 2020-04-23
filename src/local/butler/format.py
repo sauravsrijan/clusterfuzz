@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Format changed code in current branch."""
-
 import os
 
 from local.butler import common

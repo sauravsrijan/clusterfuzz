@@ -15,7 +15,8 @@
 from __future__ import absolute_import
 
 import json
-from builtins import object, str
+from builtins import object
+from builtins import str
 
 import jira
 from config import db_config

@@ -13,12 +13,12 @@
 # limitations under the License.
 """helpers tests."""
 # pylint: disable=protected-access
-
 import sys
 import unittest
 from builtins import str
 
-from libs import auth, helpers
+from libs import auth
+from libs import helpers
 from tests.test_libs import helpers as test_helpers
 
 

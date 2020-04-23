@@ -19,7 +19,9 @@ import re
 import sys
 import zipfile
 
-from local.butler import appengine, common, constants
+from local.butler import appengine
+from local.butler import common
+from local.butler import constants
 
 MIN_SUPPORTED_NODEJS_VERSION = 4
 

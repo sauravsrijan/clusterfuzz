@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Functions for process management."""
-
 import copy
 import datetime
 import os
@@ -21,15 +20,19 @@ import subprocess
 import sys
 import threading
 import time
-from builtins import object, str
+from builtins import object
+from builtins import str
 
 from base import utils
 from crash_analysis import crash_analyzer
 from future import standard_library
 from metrics import logs
 from past.builtins import basestring
-from platforms import android, linux, windows
-from system import environment, shell
+from platforms import android
+from platforms import linux
+from platforms import windows
+from system import environment
+from system import shell
 
 standard_library.install_aliases()
 

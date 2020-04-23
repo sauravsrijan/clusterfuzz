@@ -25,7 +25,8 @@ from datastore import data_types
 from future import standard_library
 from google_cloud_utils import pubsub
 from system import environment
-from tests.test_libs import helpers, test_utils
+from tests.test_libs import helpers
+from tests.test_libs import test_utils
 
 standard_library.install_aliases()
 

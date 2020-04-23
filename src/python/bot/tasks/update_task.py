@@ -12,27 +12,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Update task for updating source and tests."""
-
 import datetime
 import os
 import platform
 import sys
 import time
 import zipfile
-from builtins import range, str
+from builtins import range
+from builtins import str
 
-from base import dates, persistent_cache, tasks, utils
+from base import dates
+from base import persistent_cache
+from base import tasks
+from base import utils
+from config import local_config
+from datastore import data_handler
+from google_cloud_utils import storage
+from metrics import logs
+from metrics import monitoring_metrics
+from system import archive
+from system import environment
+from system import process_handler
+from system import shell
+
 from bot.init_scripts import android as android_init
 from bot.init_scripts import chromeos as chromeos_init
 from bot.init_scripts import fuchsia as fuchsia_init
 from bot.init_scripts import linux as linux_init
 from bot.init_scripts import mac as mac_init
 from bot.init_scripts import windows as windows_init
-from config import local_config
-from datastore import data_handler
-from google_cloud_utils import storage
-from metrics import logs, monitoring_metrics
-from system import archive, environment, process_handler, shell
 
 TESTS_LAST_UPDATE_KEY = "tests_last_update"
 TESTS_UPDATE_INTERVAL_DAYS = 1

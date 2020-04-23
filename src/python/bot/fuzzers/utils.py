@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Fuzzer utils."""
-
 import os
 import re
 import stat
@@ -21,7 +20,8 @@ from builtins import str
 
 from base import utils
 from metrics import logs
-from system import environment, shell
+from system import environment
+from system import shell
 
 ALLOWED_FUZZ_TARGET_EXTENSIONS = ["", ".exe", ".par"]
 FUZZ_TARGET_SEARCH_BYTES = b"LLVMFuzzerTestOneInput"

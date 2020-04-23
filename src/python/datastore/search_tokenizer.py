@@ -13,9 +13,9 @@
 # limitations under the License.
 """search_tokenizer tokenizes a string into tokens
   according to our keyword searching use cases."""
-
 import re
-from builtins import range, str
+from builtins import range
+from builtins import str
 
 
 def tokenize(s):

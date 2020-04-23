@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 # Generated from HTMLLexer.g4 by ANTLR 4.7.1
 # encoding: utf-8
 from __future__ import print_function

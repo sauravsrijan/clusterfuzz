@@ -19,7 +19,9 @@ import os
 import re
 import shutil
 import subprocess
-from builtins import object, range, str
+from builtins import object
+from builtins import range
+from builtins import str
 
 import six
 

@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Antlr Tokenizer"""
-
 from builtins import object
 
 import antlr4
 from base import utils
+
 from bot.minimizer import errors
 
 

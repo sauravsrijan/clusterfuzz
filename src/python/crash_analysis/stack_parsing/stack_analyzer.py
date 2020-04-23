@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Stack analyzer module."""
-
 import os
 import re
 import string
 import subprocess
-from builtins import object, range, str
+from builtins import object
+from builtins import range
+from builtins import str
 
 from base import utils
 from config import local_config

@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for the issue_tracker module."""
-
 import unittest
 from builtins import str
 
 import mock
 import six
-from libs.issue_management.issue_tracker import IssueTracker, LabelStore
+from libs.issue_management.issue_tracker import IssueTracker
+from libs.issue_management.issue_tracker import LabelStore
 
 
 class LabelStoreTest(unittest.TestCase):

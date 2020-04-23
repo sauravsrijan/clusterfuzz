@@ -12,18 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for performance_analyzer."""
-
 import json
 import os
 import unittest
 from builtins import next
 
 from base import utils
-from bot.fuzzers import libfuzzer
-from bot.fuzzers.libFuzzer import stats as performance_stats
 from handlers.performance_report import performance_analyzer
 from system import environment
 from tests.test_libs import helpers as test_helpers
+
+from bot.fuzzers import libfuzzer
+from bot.fuzzers.libFuzzer import stats as performance_stats
 
 # Use default values for stats values usually provided by CF.
 DEFAULT_STATS_PROVIDED_BY_CF = {

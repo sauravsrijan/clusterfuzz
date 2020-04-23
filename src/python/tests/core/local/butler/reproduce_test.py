@@ -18,11 +18,15 @@ import tempfile
 import unittest
 
 from datastore import data_types
+from system import environment
+from system import shell
+from tests.test_libs import helpers
+from tests.test_libs import test_utils
+from tests.test_libs.reproduce_tool_fakes import FakeConfig
+from tests.test_libs.reproduce_tool_fakes import FakeResponse
+
 from local.butler import reproduce
 from local.butler.reproduce_tool import errors
-from system import environment, shell
-from tests.test_libs import helpers, test_utils
-from tests.test_libs.reproduce_tool_fakes import FakeConfig, FakeResponse
 
 
 def _fake_get_echo_testcase(*_):

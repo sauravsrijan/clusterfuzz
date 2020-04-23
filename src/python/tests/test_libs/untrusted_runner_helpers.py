@@ -12,21 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Test helpers for untrusted_runner."""
-
 import os
 import shutil
 import subprocess
 import tempfile
 import unittest
 
-from bot.tasks import commands
-from bot.untrusted_runner import file_host, host, untrusted
 from datastore import data_types
 from future import standard_library
 from google_cloud_utils import pubsub
-from system import environment, shell
+from system import environment
+from system import shell
 from tests.test_libs import helpers as test_helpers
 from tests.test_libs import test_utils
+
+from bot.tasks import commands
+from bot.untrusted_runner import file_host
+from bot.untrusted_runner import host
+from bot.untrusted_runner import untrusted
 
 standard_library.install_aliases()
 

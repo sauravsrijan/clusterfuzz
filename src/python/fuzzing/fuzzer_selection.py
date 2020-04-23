@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Helper functions to update fuzzer-job mappings, and select fuzzers to run."""
-
 import collections
 from builtins import zip
 
 from base import utils
-from datastore import data_types, fuzz_target_utils, ndb_utils
+from datastore import data_types
+from datastore import fuzz_target_utils
+from datastore import ndb_utils
 from metrics import logs
 from system import environment
 

@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Configuration Manager."""
-
 from base import utils
 from config import db_config
 from datastore import data_types
 from handlers import base_handler
-from libs import form, handler, helpers
+from libs import form
+from libs import handler
+from libs import helpers
 
 USER_PERMISSION_ENTITY_KINDS = [
     {"name": "fuzzer", "value": data_types.PermissionEntityKind.FUZZER,},

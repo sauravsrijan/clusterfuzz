@@ -25,10 +25,13 @@ import sys
 import time
 import traceback
 import unittest
-from builtins import object, range
+from builtins import object
+from builtins import range
 
 from future import standard_library
-from local.butler import appengine, common
+
+from local.butler import appengine
+from local.butler import common
 from src.python.config import local_config
 
 standard_library.install_aliases()

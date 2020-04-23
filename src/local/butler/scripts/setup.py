@@ -20,7 +20,8 @@ import six
 from base import utils
 from datastore import data_types
 from google.cloud import monitoring_v3
-from metrics import monitor, monitoring_metrics
+from metrics import monitor
+from metrics import monitoring_metrics
 
 LIBFUZZER_TEMPLATE = """MAX_FUZZ_THREADS = 1
 MAX_TESTCASES = 4

@@ -12,17 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for the revisions module."""
-
 import ast
 import hashlib
 import os
 import unittest
-from builtins import object, str
+from builtins import object
+from builtins import str
 
 import mock
 from build_management import revisions
 from datastore import data_types
-from tests.test_libs import helpers, mock_config, test_utils
+from tests.test_libs import helpers
+from tests.test_libs import mock_config
+from tests.test_libs import test_utils
 
 ANDROID_JOB_TYPE = "android_asan_chrome"
 BASIC_JOB_TYPE = "linux_asan_chrome_mp"

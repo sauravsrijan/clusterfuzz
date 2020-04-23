@@ -13,7 +13,6 @@
 # limitations under the License.
 """helper.py is a kitchen sink. It contains static methods that are used by
    multiple handlers."""
-
 import logging
 import sys
 import traceback

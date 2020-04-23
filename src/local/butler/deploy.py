@@ -23,7 +23,10 @@ import time
 from builtins import range
 from collections import namedtuple
 
-from local.butler import appengine, common, constants, package
+from local.butler import appengine
+from local.butler import common
+from local.butler import constants
+from local.butler import package
 from src.python.config import local_config
 from src.python.system import environment
 

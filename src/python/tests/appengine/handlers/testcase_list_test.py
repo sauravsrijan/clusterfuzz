@@ -14,7 +14,8 @@
 """testcase_list tests."""
 import datetime
 import unittest
-from builtins import range, str
+from builtins import range
+from builtins import str
 
 import mock
 import webapp2

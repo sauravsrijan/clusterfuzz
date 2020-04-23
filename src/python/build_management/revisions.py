@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Revisions related helper functions."""
-
 import ast
 import base64
 import bisect
@@ -20,11 +19,13 @@ import os
 import re
 import time
 import urllib.parse
-from builtins import range, str
+from builtins import range
+from builtins import str
 
 import requests
 import six
-from base import memoize, utils
+from base import memoize
+from base import utils
 from build_management import source_mapper
 from config import local_config
 from datastore import data_handler

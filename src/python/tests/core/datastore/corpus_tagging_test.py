@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for corpus tagging helper functions."""
-
 import unittest
 
-from datastore import corpus_tagging, data_types
-from tests.test_libs import helpers, test_utils
+from datastore import corpus_tagging
+from datastore import data_types
+from tests.test_libs import helpers
+from tests.test_libs import test_utils
 
 
 @test_utils.with_cloud_emulators("datastore")

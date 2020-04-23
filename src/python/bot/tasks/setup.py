@@ -12,25 +12,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Common helper functions for setup at the start of tasks."""
-
 import datetime
 import os
 import shlex
 import time
 import zipfile
-from builtins import range, str
+from builtins import range
+from builtins import str
 
 import six
-from base import dates, errors, tasks, utils
+from base import dates
+from base import errors
+from base import tasks
+from base import utils
+from build_management import revisions
+from datastore import data_handler
+from datastore import data_types
+from datastore import locks
+from datastore import ndb_utils
+from fuzzing import leak_blacklist
+from google_cloud_utils import blobs
+from google_cloud_utils import storage
+from metrics import fuzzer_logs
+from metrics import logs
+from platforms import android
+from system import archive
+from system import environment
+from system import shell
+
 from bot import testcase_manager
 from bot.fuzzers import builtin_fuzzers
-from build_management import revisions
-from datastore import data_handler, data_types, locks, ndb_utils
-from fuzzing import leak_blacklist
-from google_cloud_utils import blobs, storage
-from metrics import fuzzer_logs, logs
-from platforms import android
-from system import archive, environment, shell
 
 _BOT_DIR = "bot"
 _DATA_BUNDLE_CACHE_COUNT = 10

@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for blobs."""
-
 import os
 import unittest
 
 import mock
 from google_cloud_utils import blobs
-from tests.test_libs import helpers, test_utils
+from tests.test_libs import helpers
+from tests.test_libs import test_utils
 
 TEST_UUID = "e612999f-ed89-4496-b4bd-3e8c7d8da18a"
 

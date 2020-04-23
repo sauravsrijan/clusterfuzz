@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for the Java Script minimizer."""
-
 import unittest
+
+from tests.test_libs import helpers
 
 from bot.minimizer import js_minimizer
 from bot.tokenizer import antlr_tokenizer
 from bot.tokenizer.grammars.JavaScriptLexer import JavaScriptLexer
-from tests.test_libs import helpers
 
 
 class JSMinimizerTest(unittest.TestCase):

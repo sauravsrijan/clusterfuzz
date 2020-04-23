@@ -13,7 +13,6 @@
 # limitations under the License.
 """Tests for syzkaller engine."""
 # pylint: disable=unused-argument
-
 import os
 import shutil
 import unittest

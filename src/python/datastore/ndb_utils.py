@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """NDB utilities. Provides utility functions for NDB."""
-
 from builtins import range
 
 from google.cloud import ndb

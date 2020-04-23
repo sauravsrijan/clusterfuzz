@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Classes for objects stored in the datastore."""
-
 import re
-from builtins import next, object
+from builtins import next
+from builtins import object
 
 import six
-from base import json_utils, utils
+from base import json_utils
+from base import utils
 from datastore import search_tokenizer
 from future import utils as future_utils
 from google.cloud import ndb

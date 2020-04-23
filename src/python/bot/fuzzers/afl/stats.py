@@ -19,11 +19,13 @@ import re
 from builtins import object
 
 import six
-from bot.fuzzers import dictionary_manager, engine_common
-from bot.fuzzers.afl import strategies
 from fuzzing import strategy
 from metrics import logs
 from system import environment
+
+from bot.fuzzers import dictionary_manager
+from bot.fuzzers import engine_common
+from bot.fuzzers.afl import strategies
 
 SANITIZER_START_REGEX = re.compile(r".*ERROR: [A-z]+Sanitizer:.*")
 SANITIZER_SEPERATOR_REGEX = re.compile(r"^=+$")

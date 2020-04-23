@@ -13,7 +13,6 @@
 # limitations under the License.
 """Lock functions."""
 # NOTE: Deprecated. Avoid using.
-
 import datetime
 import random
 import time

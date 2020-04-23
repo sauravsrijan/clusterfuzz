@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Gestures related functions."""
-
 import random
 import time
-from builtins import chr, range, str
+from builtins import chr
+from builtins import range
+from builtins import str
 
 from base import utils
 from metrics import logs

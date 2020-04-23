@@ -20,8 +20,10 @@ import urllib.error
 import urllib.request
 
 from future import standard_library
-from local.butler import common, constants
 from python.tests.test_libs import test_utils
+
+from local.butler import common
+from local.butler import constants
 
 standard_library.install_aliases()
 

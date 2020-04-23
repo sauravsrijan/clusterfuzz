@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Generic helper functions useful in tests."""
-
 import atexit
 import datetime
 import io
@@ -24,15 +23,18 @@ import sys
 import tempfile
 import threading
 import unittest
-from builtins import object, str
+from builtins import object
+from builtins import str
 
 import requests
 import six
 from config import local_config
-from datastore import data_types, ndb_init
+from datastore import data_types
+from datastore import ndb_init
 from future import standard_library
 from google_cloud_utils import pubsub
-from system import environment, process_handler
+from system import environment
+from system import process_handler
 
 standard_library.install_aliases()
 

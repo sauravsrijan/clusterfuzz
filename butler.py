@@ -20,7 +20,6 @@
 
    Please do `python butler.py --help` to see what Butler can help you.
 """
-
 import argparse
 import importlib
 import os

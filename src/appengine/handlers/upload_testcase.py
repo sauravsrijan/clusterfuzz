@@ -12,25 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Handler that uploads a testcase"""
-
 import ast
 import cgi
 import datetime
 import io
 import json
 import os
-from builtins import object, str
+from builtins import object
+from builtins import str
 
-from base import external_users, tasks, utils
-from datastore import data_handler, data_types
+from base import external_users
+from base import tasks
+from base import utils
+from datastore import data_handler
+from datastore import data_types
 from future import standard_library
 from google.cloud import ndb
-from google_cloud_utils import blobs, storage
+from google_cloud_utils import blobs
+from google_cloud_utils import storage
 from handlers import base_handler
-from libs import access, form, gcs, handler, helpers
+from libs import access
+from libs import form
+from libs import gcs
+from libs import handler
+from libs import helpers
 from libs.issue_management import issue_tracker_utils
 from libs.query import datastore_query
-from system import archive, environment
+from system import archive
+from system import environment
 
 standard_library.install_aliases()
 

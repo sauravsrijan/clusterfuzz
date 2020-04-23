@@ -24,23 +24,35 @@ import shutil
 import string
 import sys
 import tempfile
-from builtins import object, str
+from builtins import object
+from builtins import str
 
-from base import retry, utils
-from bot.fuzzers import dictionary_manager, engine_common, mutator_plugin
-from bot.fuzzers import utils as fuzzer_utils
-from bot.fuzzers.libFuzzer import constants
-from bot.fuzzers.libFuzzer.peach import pits
+from base import retry
+from base import utils
 from datastore import data_types
 from fuzzing import strategy
 from metrics import logs
-from platforms import android, fuchsia
-from platforms.fuchsia.device import QemuProcess, start_qemu, stop_qemu
+from platforms import android
+from platforms import fuchsia
+from platforms.fuchsia.device import QemuProcess
+from platforms.fuchsia.device import start_qemu
+from platforms.fuchsia.device import stop_qemu
 from platforms.fuchsia.util.device import Device
 from platforms.fuchsia.util.fuzzer import Fuzzer
 from platforms.fuchsia.util.host import Host
-from system import (archive, environment, minijail, new_process,
-                    process_handler, shell)
+from system import archive
+from system import environment
+from system import minijail
+from system import new_process
+from system import process_handler
+from system import shell
+
+from bot.fuzzers import dictionary_manager
+from bot.fuzzers import engine_common
+from bot.fuzzers import mutator_plugin
+from bot.fuzzers import utils as fuzzer_utils
+from bot.fuzzers.libFuzzer import constants
+from bot.fuzzers.libFuzzer.peach import pits
 
 # Maximum length of a random chosen length for `-max_len`.
 MAX_VALUE_FOR_MAX_LENGTH = 10000

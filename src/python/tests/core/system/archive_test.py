@@ -16,7 +16,8 @@ import os
 import tempfile
 import unittest
 
-from system import archive, shell
+from system import archive
+from system import shell
 from tests.test_libs import helpers
 
 TESTDATA_PATH = os.path.join(os.path.dirname(__file__), "archive_data")

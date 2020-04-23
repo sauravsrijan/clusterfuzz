@@ -20,9 +20,11 @@ from builtins import range
 
 from metrics import logs
 from protos import untrusted_runner_pb2
-from system import environment, shell
+from system import environment
+from system import shell
 
-from . import file_utils, host
+from . import file_utils
+from . import host
 
 
 def is_directory_parent(path, directory):

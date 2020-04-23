@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Functions for dictionary analysis and management."""
-
 import os
 import re
 from builtins import object
 
-from base import errors, utils
-from bot.fuzzers import utils as fuzzer_utils
+from base import errors
+from base import utils
 from google_cloud_utils import storage
 from metrics import logs
 from system import environment
+
+from bot.fuzzers import utils as fuzzer_utils
 
 DICTIONARY_FILE_EXTENSION = ".dict"
 

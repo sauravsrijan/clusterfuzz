@@ -14,9 +14,14 @@
 """Home page handler."""
 from __future__ import absolute_import
 
-from base import external_users, memoize, utils
-from datastore import data_handler, data_types
-from libs import access, handler, helpers
+from base import external_users
+from base import memoize
+from base import utils
+from datastore import data_handler
+from datastore import data_types
+from libs import access
+from libs import handler
+from libs import helpers
 from system import environment
 
 from . import base_handler

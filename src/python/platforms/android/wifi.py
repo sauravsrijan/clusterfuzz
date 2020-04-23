@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Wifi related functions."""
-
 import os
 import time
 
@@ -20,7 +19,8 @@ from config import db_config
 from metrics import logs
 from system import environment
 
-from . import adb, app
+from . import adb
+from . import app
 
 try:
     from shlex import quote

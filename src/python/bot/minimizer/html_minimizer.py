@@ -16,13 +16,18 @@
 from __future__ import absolute_import
 
 import functools
-from builtins import bytes, object, range
+from builtins import bytes
+from builtins import object
+from builtins import range
 
+from . import chunk_minimizer
+from . import delta_minimizer
+from . import js_minimizer
+from . import minimizer
+from . import utils
 from bot.tokenizer.antlr_tokenizer import AntlrTokenizer
 from bot.tokenizer.grammars.HTMLLexer import HTMLLexer
 from bot.tokenizer.grammars.JavaScriptLexer import JavaScriptLexer
-
-from . import chunk_minimizer, delta_minimizer, js_minimizer, minimizer, utils
 
 SCRIPT_START_STRING = b"<script"
 SCRIPT_END_STRING = b"</script>"

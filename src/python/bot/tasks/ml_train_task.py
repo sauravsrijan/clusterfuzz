@@ -12,17 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ML training task."""
-
 import glob
 import os
 import sys
-from builtins import filter, str
+from builtins import filter
+from builtins import str
 
-from bot.fuzzers.ml.rnn import constants
 from fuzzing import corpus_manager
 from google_cloud_utils import storage
 from metrics import logs
-from system import archive, environment, new_process, shell
+from system import archive
+from system import environment
+from system import new_process
+from system import shell
+
+from bot.fuzzers.ml.rnn import constants
 
 # Model script directory.
 ML_RNN_SCRIPT_DIR = os.path.join(

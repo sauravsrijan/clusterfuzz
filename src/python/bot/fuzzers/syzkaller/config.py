@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Generate Syzkaller fuzzer config dynamically."""
-
 import json
 import os
 

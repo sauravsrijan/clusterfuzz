@@ -12,17 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for strategy selection file."""
-
 import unittest
 
-from bot.fuzzers import strategy_selection
-from bot.tasks import fuzz_task
 from datastore import data_types
 from fuzzing import strategy
 from google.cloud import ndb
 from system import environment
 from tests.test_libs import helpers as test_helpers
 from tests.test_libs import test_utils
+
+from bot.fuzzers import strategy_selection
+from bot.tasks import fuzz_task
 
 
 class TestDefaultStrategySelectionLibFuzzerPatched(unittest.TestCase):

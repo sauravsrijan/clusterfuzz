@@ -22,10 +22,11 @@ from builtins import object
 from collections import namedtuple
 
 from base import utils
-from bot.fuzzers import engine_common
 from fuzzing import strategy
 from metrics import logs
 from system import environment
+
+from bot.fuzzers import engine_common
 
 GENERATORS = [
     strategy.CORPUS_MUTATION_RADAMSA_STRATEGY,

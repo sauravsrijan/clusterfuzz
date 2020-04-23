@@ -21,9 +21,12 @@ import time
 import urllib.request
 
 from future import standard_library
-from local.butler import appengine, common, constants
 from python.config import local_config
 from python.tests.test_libs import test_utils
+
+from local.butler import appengine
+from local.butler import common
+from local.butler import constants
 
 standard_library.install_aliases()
 

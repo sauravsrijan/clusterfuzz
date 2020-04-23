@@ -13,7 +13,6 @@
 # limitations under the License.
 """Tests for libFuzzer engine."""
 # pylint: disable=unused-argument
-
 import os
 import shutil
 import tempfile
@@ -23,18 +22,24 @@ import mock
 import parameterized
 import pyfakefs.fake_filesystem_unittest as fake_fs_unittest
 import six
-from bot.fuzzers import engine_common, libfuzzer, strategy_selection
-from bot.fuzzers import utils as fuzzer_utils
-from bot.fuzzers.libFuzzer import constants, engine
 from build_management import build_manager
 from future import standard_library
 from fuzzing import strategy
 from metrics import logs
 from platforms import android
-from system import environment, new_process, shell
+from system import environment
+from system import new_process
+from system import shell
 from tests.test_libs import android_helpers
 from tests.test_libs import helpers as test_helpers
 from tests.test_libs import test_utils
+
+from bot.fuzzers import engine_common
+from bot.fuzzers import libfuzzer
+from bot.fuzzers import strategy_selection
+from bot.fuzzers import utils as fuzzer_utils
+from bot.fuzzers.libFuzzer import constants
+from bot.fuzzers.libFuzzer import engine
 
 standard_library.install_aliases()
 

@@ -28,7 +28,9 @@ from datastore import data_types
 from google.cloud import ndb
 from google_cloud_utils import pubsub
 from handlers.cron import project_setup
-from tests.test_libs import helpers, mock_config, test_utils
+from tests.test_libs import helpers
+from tests.test_libs import mock_config
+from tests.test_libs import test_utils
 
 DATA_DIRECTORY = os.path.join(os.path.dirname(__file__), "project_setup_data")
 

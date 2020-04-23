@@ -14,7 +14,6 @@
 """datastore_query tests."""
 import datetime
 import unittest
-# pylint: disable=protected-access
 from builtins import range
 
 import mock
@@ -22,6 +21,7 @@ import six
 from google.cloud import ndb
 from libs.query import datastore_query
 from tests.test_libs import test_utils
+# pylint: disable=protected-access
 
 
 class TestDatastoreModel(ndb.Model):

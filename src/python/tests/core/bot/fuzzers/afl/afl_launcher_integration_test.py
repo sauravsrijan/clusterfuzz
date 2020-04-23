@@ -20,16 +20,20 @@ import re
 import shutil
 import subprocess
 import unittest
-from builtins import range, str
+from builtins import range
+from builtins import str
 
 import mock
-from bot.fuzzers import engine_common
-from bot.fuzzers.afl import fuzzer, launcher
 from future import standard_library
-from system import environment, new_process
+from system import environment
+from system import new_process
 from tests.core.bot.fuzzers.afl.afl_launcher_test import dont_use_strategies
 from tests.test_libs import helpers as test_helpers
 from tests.test_libs import test_utils
+
+from bot.fuzzers import engine_common
+from bot.fuzzers.afl import fuzzer
+from bot.fuzzers.afl import launcher
 
 standard_library.install_aliases()
 

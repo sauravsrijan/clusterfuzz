@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """libFuzzer fuzzer."""
-from bot.fuzzers import builtin, options
+from bot.fuzzers import builtin
+from bot.fuzzers import options
 from bot.fuzzers.libFuzzer import constants
 
 

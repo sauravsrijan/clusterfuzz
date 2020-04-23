@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Cron for checking OSS-Fuzz builds status."""
-
 import datetime
 import itertools
 import json
@@ -24,7 +23,8 @@ from base import utils
 from datastore import data_types
 from google.cloud import ndb
 from handlers import base_handler
-from libs import handler, helpers
+from libs import handler
+from libs import helpers
 from libs.issue_management import issue_tracker_utils
 from metrics import logs
 

@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Get values / settings from local configuration."""
-
 import os
-from builtins import object, str
+from builtins import object
+from builtins import str
 
 import six
 import yaml
-from base import errors, memoize
+from base import errors
+from base import memoize
 from system import environment
 
 CACHE_SIZE = 1024

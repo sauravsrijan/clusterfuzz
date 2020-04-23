@@ -12,19 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Memoize caches the result of methods."""
-
 import collections
 import functools
 import json
 import os
 import threading
-from builtins import object, str
+from builtins import object
+from builtins import str
 
 import redis
 import six
 from base import persistent_cache
 from metrics import logs
-from system.environment import appengine_noop, bot_noop, local_noop
+from system.environment import appengine_noop
+from system.environment import bot_noop
+from system.environment import local_noop
 
 # Thead local globals.
 _local = threading.local()

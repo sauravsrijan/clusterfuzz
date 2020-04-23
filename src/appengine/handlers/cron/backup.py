@@ -15,7 +15,6 @@
   https://cloud.google.com/appengine/articles/scheduled_backups doesn't support
   backing up all entities. Therefore, we have to get all entities here and
   send them to the backup URL."""
-
 import datetime
 from builtins import str
 

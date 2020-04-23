@@ -18,17 +18,24 @@ import base64
 import copy
 import json
 import re
-from builtins import object, str
+from builtins import object
+from builtins import str
 
 import requests
 import six
 import yaml
-from base import tasks, untrusted, utils
-from config import db_config, local_config
-from datastore import data_handler, data_types, ndb_utils
+from base import tasks
+from base import untrusted
+from base import utils
+from config import db_config
+from config import local_config
+from datastore import data_handler
+from datastore import data_types
+from datastore import ndb_utils
 from fuzzing import fuzzer_selection
 from google.cloud import ndb
-from google_cloud_utils import pubsub, storage
+from google_cloud_utils import pubsub
+from google_cloud_utils import storage
 from handlers import base_handler
 from libs import handler
 from metrics import logs

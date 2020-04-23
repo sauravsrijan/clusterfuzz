@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for oss_fuzz_build_status."""
-
 import datetime
 import json
 import unittest

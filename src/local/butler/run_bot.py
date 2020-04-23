@@ -17,7 +17,9 @@ from __future__ import print_function
 import os
 import signal
 
-from local.butler import appengine, common, constants
+from local.butler import appengine
+from local.butler import common
+from local.butler import constants
 
 
 def _setup_bot_directory(args):

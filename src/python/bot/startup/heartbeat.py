@@ -13,21 +13,25 @@
 # limitations under the License.
 """Heartbeat script that monitors
    whether the bot is still running or not."""
-
-
 import os
 import sys
 import time
 from builtins import str
 
-from base import dates, tasks, utils
-from datastore import data_handler, data_types, ndb_init
+from base import dates
+from base import tasks
+from base import utils
+from datastore import data_handler
+from datastore import data_types
+from datastore import ndb_init
 from metrics import logs
 from python.base import modules
+from system import environment
+from system import process_handler
+from system import shell
 # Before any other imports, we must fix the path. Some libraries might expect
 # to be able to import dependencies directly, but we must store these in
 # subdirectories of common so that they are shared with App Engine.
-from system import environment, process_handler, shell
 
 modules.fix_module_search_paths()
 

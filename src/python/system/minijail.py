@@ -12,17 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Running processes with minijail."""
-
 import os
 import shutil
 import signal
 import subprocess
 import tempfile
-from builtins import next, object, str
+from builtins import next
+from builtins import object
+from builtins import str
 from collections import namedtuple
 
 from metrics import logs
-from system import environment, new_process, shell
+from system import environment
+from system import new_process
+from system import shell
 
 
 def _get_minijail_path():

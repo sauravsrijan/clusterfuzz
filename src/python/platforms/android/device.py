@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Device information related functions."""
-
 from __future__ import absolute_import
 
 import copy
@@ -22,12 +21,20 @@ import time
 from builtins import str
 
 import six
-from base import dates, persistent_cache
+from base import dates
+from base import persistent_cache
 from config import db_config
 from metrics import logs
 from system import environment
 
-from . import adb, app, constants, logger, sanitizer, settings, ui, wifi
+from . import adb
+from . import app
+from . import constants
+from . import logger
+from . import sanitizer
+from . import settings
+from . import ui
+from . import wifi
 
 # Variables related to adding test account on device.
 ADD_TEST_ACCOUNT_APK_NAME = "user_account_setup.apk"

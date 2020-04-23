@@ -13,34 +13,41 @@
 # limitations under the License.
 """fuzz_task tests."""
 # pylint: disable=protected-access
-
 import datetime
 import os
 import shutil
 import tempfile
 import time
 import unittest
-from builtins import object, range, str, zip
+from builtins import object
+from builtins import range
+from builtins import str
+from builtins import zip
 
 import mock
 import parameterized
 import six
 from base import utils
+from build_management import build_manager
+from chrome import crash_uploader
+from crash_analysis.stack_parsing import stack_analyzer
+from datastore import data_handler
+from datastore import data_types
+from google.cloud import ndb
+from google_cloud_utils import big_query
+from metrics import monitor
+from metrics import monitoring_metrics
+from pyfakefs import fake_filesystem_unittest
+from system import environment
+from tests.test_libs import helpers
+from tests.test_libs import test_utils
+from tests.test_libs import untrusted_runner_helpers
+
 from bot import testcase_manager
 from bot.fuzzers import engine
 from bot.fuzzers.libFuzzer import engine as libfuzzer_engine
 from bot.tasks import fuzz_task
 from bot.untrusted_runner import file_host
-from build_management import build_manager
-from chrome import crash_uploader
-from crash_analysis.stack_parsing import stack_analyzer
-from datastore import data_handler, data_types
-from google.cloud import ndb
-from google_cloud_utils import big_query
-from metrics import monitor, monitoring_metrics
-from pyfakefs import fake_filesystem_unittest
-from system import environment
-from tests.test_libs import helpers, test_utils, untrusted_runner_helpers
 
 
 class TrackFuzzerRunResultTest(unittest.TestCase):

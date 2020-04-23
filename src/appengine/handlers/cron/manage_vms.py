@@ -18,13 +18,18 @@ import copy
 import itertools
 import json
 import logging
-from builtins import next, object, range, str, zip
+from builtins import next
+from builtins import object
+from builtins import range
+from builtins import str
+from builtins import zip
 from collections import namedtuple
 from concurrent.futures import ThreadPoolExecutor
 
 from base import utils
 from config import local_config
-from datastore import data_types, ndb_utils
+from datastore import data_types
+from datastore import ndb_utils
 from google.cloud import ndb
 from google_cloud_utils import compute_engine_projects
 from handlers import base_handler

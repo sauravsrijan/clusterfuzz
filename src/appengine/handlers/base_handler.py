@@ -23,18 +23,22 @@ import re
 import sys
 import traceback
 import urllib.parse
-from builtins import object, str
+from builtins import object
+from builtins import str
 
 import jinja2
 import webapp2
 from base import utils
-from config import db_config, local_config
+from config import db_config
+from config import local_config
 from datastore import ndb_init
 from future import standard_library
 from future import utils as future_utils
 from google.cloud import ndb
 from google_cloud_utils import storage
-from libs import auth, form, helpers
+from libs import auth
+from libs import form
+from libs import helpers
 from system import environment
 
 standard_library.install_aliases()

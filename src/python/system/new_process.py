@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Process handling utilities."""
-
 import os
 import subprocess
 import sys

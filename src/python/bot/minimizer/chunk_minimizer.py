@@ -17,7 +17,9 @@ from __future__ import absolute_import
 import functools
 from builtins import range
 
-from . import errors, minimizer, utils
+from . import errors
+from . import minimizer
+from . import utils
 
 
 class ChunkMinimizer(minimizer.Minimizer):

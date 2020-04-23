@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Environment functions."""
-
 import ast
 import functools
 import os
 import re
 import socket
 import sys
-from builtins import range, str
+from builtins import range
+from builtins import str
 
 import six
 import yaml

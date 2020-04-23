@@ -20,8 +20,9 @@ import sys
 import time
 from builtins import input
 
-from local.butler import common
 from selenium import webdriver
+
+from local.butler import common
 
 _SUITE_SEPARATOR = "=" * 80
 _TEST_SEPARATOR = "-" * 80

@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Functions for corpus synchronization with GCS."""
-
 import os
 import re
 import shutil
-from builtins import object, str
+from builtins import object
+from builtins import str
 
 from base import utils
 from google_cloud_utils import storage
 from metrics import logs
-from system import environment, shell
+from system import environment
+from system import shell
 
 try:
     from google_cloud_utils import gsutil

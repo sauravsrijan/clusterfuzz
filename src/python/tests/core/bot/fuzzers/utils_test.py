@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for fuzzers.utils."""
-
 import os
 import shutil
 import tempfile
 import unittest
 
-from bot.fuzzers import utils
 from system import environment
 from tests.test_libs import helpers as test_helpers
+
+from bot.fuzzers import utils
 
 
 class IsFuzzTargetLocalTest(unittest.TestCase):

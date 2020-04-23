@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Fuzzing strategies for fuzzing engines like libFuzzer, AFL, etc."""
-
 from builtins import str
 from collections import namedtuple
 

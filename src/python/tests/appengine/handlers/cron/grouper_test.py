@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for grouper."""
-
 import datetime
 import unittest
-from builtins import range, str
+from builtins import range
+from builtins import str
 
 from datastore import data_handler
 from handlers.cron import grouper

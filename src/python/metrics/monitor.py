@@ -15,7 +15,6 @@
 # pylint: disable=invalid-name
 # TODO(ochang): Remove V3 from names once all metrics are migrated to
 # stackdriver.
-
 import bisect
 import collections
 import functools
@@ -23,13 +22,18 @@ import itertools
 import re
 import threading
 import time
-from builtins import object, range, str
+from builtins import object
+from builtins import range
+from builtins import str
 
 import six
-from base import errors, utils
+from base import errors
+from base import utils
 from config import local_config
-from google.api_core import exceptions, retry
-from google_cloud_utils import compute_metadata, credentials
+from google.api_core import exceptions
+from google.api_core import retry
+from google_cloud_utils import compute_metadata
+from google_cloud_utils import credentials
 from metrics import logs
 from system import environment
 

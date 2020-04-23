@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for fuzzer_stats."""
-
 import datetime
 import json
 import os
@@ -21,10 +20,12 @@ import unittest
 
 import mock
 import six
-from bot.tasks import fuzz_task
 from datastore import data_types
 from metrics import fuzzer_stats
-from tests.test_libs import helpers, test_utils
+from tests.test_libs import helpers
+from tests.test_libs import test_utils
+
+from bot.tasks import fuzz_task
 
 
 def sanitize_sql(s):

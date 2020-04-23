@@ -13,16 +13,16 @@
 # limitations under the License.
 """Tests for blame task."""
 # pylint: disable=protected-access
-
 import json
 import unittest
 
-from bot.tasks import blame_task
 from datastore import data_handler
 from system import environment
 from tests.core.bot.tasks.component_revision_patching_test import \
     ComponentRevisionPatchingTest
 from tests.test_libs import test_utils
+
+from bot.tasks import blame_task
 
 
 class ExtractUrlAndShaFromDepsEntryTest(unittest.TestCase):

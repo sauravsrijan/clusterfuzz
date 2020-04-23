@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Cron to generate certs for OSS-Fuzz workers."""
-
 import sys
 
 from base import untrusted
 from datastore import data_types
 from google.cloud import ndb
 from handlers import base_handler
-from libs import handler, helpers
+from libs import handler
+from libs import helpers
 from metrics import logs
 
 

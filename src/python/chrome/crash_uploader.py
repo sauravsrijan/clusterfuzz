@@ -12,25 +12,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Crash minidump and symbols uploader."""
-
 import email
 import os
 import re
 import sys
 import tempfile
-from builtins import object, range, str
+from builtins import object
+from builtins import range
+from builtins import str
 
 import requests
 from base import utils
 from build_management import revisions
 from crash_analysis.stack_parsing import stack_parser
-from datastore import data_handler, data_types
+from datastore import data_handler
+from datastore import data_types
 from future import standard_library
 from google_cloud_utils import blobs
 from metrics import logs
-from platforms.android import adb, constants
+from platforms.android import adb
+from platforms.android import constants
 from protos import process_state_pb2
-from system import environment, process_handler
+from system import environment
+from system import process_handler
 
 standard_library.install_aliases()
 

@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Functions for module management."""
-
 # Do not add any imports to non-standard modules here.
 import os
 import site

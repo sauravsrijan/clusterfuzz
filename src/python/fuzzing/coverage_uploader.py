@@ -12,17 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Uploads test cases from blackbox fuzzers for coverage collection."""
-
 import os
 from builtins import str
 
 from base import utils
-from bot import testcase_manager
-from bot.fuzzers import builtin_fuzzers
 from config import local_config
-from google_cloud_utils import gsutil, storage
+from google_cloud_utils import gsutil
+from google_cloud_utils import storage
 from metrics import logs
 from system import environment
+
+from bot import testcase_manager
+from bot.fuzzers import builtin_fuzzers
 
 LIST_FILE_BASENAME = "file_list.txt"
 TESTCASES_PER_DAY = 1000

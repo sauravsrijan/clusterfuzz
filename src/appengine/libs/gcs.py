@@ -12,19 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """App Engine GCS helpers."""
-
 import base64
 import collections
 import datetime
 import json
 import time
 import urllib.parse
-from builtins import object, str
+from builtins import object
+from builtins import str
 
 import googleapiclient
 from base import utils
 from future import standard_library
-from google_cloud_utils import blobs, storage
+from google_cloud_utils import blobs
+from google_cloud_utils import storage
 from system import environment
 
 standard_library.install_aliases()

@@ -13,26 +13,29 @@
 # limitations under the License.
 """build_manager tests."""
 # pylint: disable=protected-access
-
 import functools
 import os
 import shutil
 import tempfile
 import types
 import unittest
-from builtins import object, str
+from builtins import object
+from builtins import str
 
 import mock
 import parameterized
 import six
-from base import errors, utils
-from bot.tasks import fuzz_task
+from base import errors
+from base import utils
 from build_management import build_manager
 from datastore import data_types
 from pyfakefs import fake_filesystem_unittest
-from system import environment, shell
+from system import environment
+from system import shell
 from tests.test_libs import helpers as test_helpers
 from tests.test_libs import test_utils
+
+from bot.tasks import fuzz_task
 
 FAKE_APP_NAME = "app"
 

@@ -13,16 +13,17 @@
 # limitations under the License.
 """Tests for process."""
 # pylint: disable=unused-argument
-
 import queue
 import time
 import unittest
-from builtins import object, range
+from builtins import object
+from builtins import range
 
 import mock
 from future import standard_library
 from system import new_process
-from tests.test_libs import helpers, test_utils
+from tests.test_libs import helpers
+from tests.test_libs import test_utils
 
 standard_library.install_aliases()
 

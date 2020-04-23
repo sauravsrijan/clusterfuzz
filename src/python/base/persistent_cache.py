@@ -13,7 +13,6 @@
 # limitations under the License.
 """Disk backed cache for preserving values across runs of
 run.py."""
-
 import hashlib
 import os
 from builtins import str

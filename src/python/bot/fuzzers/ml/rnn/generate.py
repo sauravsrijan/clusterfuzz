@@ -19,11 +19,14 @@ import math
 import os
 import sys
 import time
-from builtins import range, str
+from builtins import range
+from builtins import str
 
 import numpy as np
 import tensorflow as tf
-from bot.fuzzers.ml.rnn import constants, utils
+
+from bot.fuzzers.ml.rnn import constants
+from bot.fuzzers.ml.rnn import utils
 
 # Reset batch_size for generation: generate multiple inputs in each run.
 BATCH_SIZE = 50

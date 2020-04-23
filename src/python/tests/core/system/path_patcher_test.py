@@ -22,7 +22,8 @@ from builtins import object
 import mock
 from future import standard_library
 from system import path_patcher
-from tests.test_libs import helpers, test_utils
+from tests.test_libs import helpers
+from tests.test_libs import test_utils
 
 standard_library.install_aliases()
 

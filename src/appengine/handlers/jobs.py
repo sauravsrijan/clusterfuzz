@@ -12,16 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Manage job types."""
-
 from builtins import str
 
 import six
 from base import tasks
-from datastore import data_handler, data_types, ndb_utils
+from datastore import data_handler
+from datastore import data_types
+from datastore import ndb_utils
 from fuzzing import fuzzer_selection
 from google.cloud import ndb
 from handlers import base_handler
-from libs import form, gcs, handler, helpers
+from libs import form
+from libs import gcs
+from libs import handler
+from libs import helpers
 
 
 def get_queues():

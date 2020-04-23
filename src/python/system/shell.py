@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Shell related functions."""
-
 import os
 import re
 import shlex
@@ -22,7 +21,8 @@ import sys
 import tempfile
 from builtins import str
 
-from base import persistent_cache, utils
+from base import persistent_cache
+from base import utils
 from metrics import logs
 from system import environment
 

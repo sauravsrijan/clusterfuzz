@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """manage_vms tests."""
-
 import copy
 import functools
 import unittest
-from builtins import object, range, str
+from builtins import object
+from builtins import range
+from builtins import str
 
 import mock
 import six
