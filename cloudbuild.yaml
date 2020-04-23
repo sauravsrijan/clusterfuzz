@@ -13,38 +13,38 @@
 # limitations under the License.
 
 steps:
-- name: gcr.io/cloud-builders/git
-  entrypoint: /bin/bash
-  args:
-  - -exc
-  - |
-    # Cloud Build x GitHub integration uses source archives to fetch
-    # the source, rather than Git source fetching, and as a consequence
-    # does not include the .git/ directory. As a workaround, we clone
-    # the repository to grab the .git directory.
-    git clone 'https://github.com/google/clusterfuzz' tmp
-    git -C tmp fetch origin "$COMMIT_SHA"
-    git -C tmp checkout -qf FETCH_HEAD
-    mv tmp/.git .git
-    rm -rf tmp
-- name: 'gcr.io/clusterfuzz-images/ci'
-  args: ['pipenv', 'sync', '--dev']
-  env:
-    - PIPENV_VENV_IN_PROJECT=1
-- name: 'gcr.io/clusterfuzz-images/ci'
-  args: ['pipenv', 'run', 'setup']
-  env:
-    - PIPENV_VENV_IN_PROJECT=1
-- name: 'gcr.io/clusterfuzz-images/ci'
-  args: ['pipenv', 'run', 'local/tests/run_all_tests']
-  env:
-    - TEST_BLOBS_BUCKET=clusterfuzz-ci-blobs
-    - TEST_BUCKET=clusterfuzz-ci-test
-    - TEST_CORPUS_BUCKET=clusterfuzz-ci-corpus
-    - TEST_QUARANTINE_BUCKET=clusterfuzz-ci-quarantine
-    - TEST_BACKUP_BUCKET=clusterfuzz-ci-backup
-    - TEST_COVERAGE_BUCKET=clusterfuzz-ci-coverage
-    - PIPENV_VENV_IN_PROJECT=1
+  - name: gcr.io/cloud-builders/git
+    entrypoint: /bin/bash
+    args:
+      - -exc
+      - |
+        # Cloud Build x GitHub integration uses source archives to fetch
+        # the source, rather than Git source fetching, and as a consequence
+        # does not include the .git/ directory. As a workaround, we clone
+        # the repository to grab the .git directory.
+        git clone 'https://github.com/google/clusterfuzz' tmp
+        git -C tmp fetch origin "$COMMIT_SHA"
+        git -C tmp checkout -qf FETCH_HEAD
+        mv tmp/.git .git
+        rm -rf tmp
+  - name: "gcr.io/clusterfuzz-images/ci"
+    args: ["pipenv", "sync", "--dev"]
+    env:
+      - PIPENV_VENV_IN_PROJECT=1
+  - name: "gcr.io/clusterfuzz-images/ci"
+    args: ["pipenv", "run", "setup"]
+    env:
+      - PIPENV_VENV_IN_PROJECT=1
+  - name: "gcr.io/clusterfuzz-images/ci"
+    args: ["pipenv", "run", "local/tests/run_all_tests"]
+    env:
+      - TEST_BLOBS_BUCKET=clusterfuzz-ci-blobs
+      - TEST_BUCKET=clusterfuzz-ci-test
+      - TEST_CORPUS_BUCKET=clusterfuzz-ci-corpus
+      - TEST_QUARANTINE_BUCKET=clusterfuzz-ci-quarantine
+      - TEST_BACKUP_BUCKET=clusterfuzz-ci-backup
+      - TEST_COVERAGE_BUCKET=clusterfuzz-ci-coverage
+      - PIPENV_VENV_IN_PROJECT=1
 timeout: 5400s
 options:
   machineType: N1_HIGHCPU_32
