@@ -26,16 +26,14 @@ def get_fuzz_targets_for_target_jobs(target_jobs):
     return ndb_utils.get_multi(target_keys)
 
 
-def get_fuzz_target_jobs(fuzz_target_name=None,
-                         engine=None,
-                         job=None,
-                         limit=None):
+def get_fuzz_target_jobs(fuzz_target_name=None, engine=None, job=None, limit=None):
     """Return a Datastore query for fuzz target to job mappings."""
     query = data_types.FuzzTargetJob.query()
 
     if fuzz_target_name:
         query = query.filter(
-            data_types.FuzzTargetJob.fuzz_target_name == fuzz_target_name)
+            data_types.FuzzTargetJob.fuzz_target_name == fuzz_target_name
+        )
 
     if job:
         query = query.filter(data_types.FuzzTargetJob.job == job)

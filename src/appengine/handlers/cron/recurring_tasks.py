@@ -23,6 +23,7 @@ from metrics import logs
 
 class OpenReproducibleTestcaseTasksScheduler(base_handler.Handler):
     """Create tasks for open reproducible testcases."""
+
     task = None
 
     @handler.check_cron()
@@ -31,11 +32,12 @@ class OpenReproducibleTestcaseTasksScheduler(base_handler.Handler):
         assert self.task
 
         # Create new tasks for the open reproducible test cases.
-        for status in ['Processed', 'Duplicate']:
+        for status in ["Processed", "Duplicate"]:
             testcases = data_types.Testcase.query(
                 ndb_utils.is_true(data_types.Testcase.open),
                 ndb_utils.is_false(data_types.Testcase.one_time_crasher_flag),
-                data_types.Testcase.status == status)
+                data_types.Testcase.status == status,
+            )
 
             for testcase in testcases:
                 try:
@@ -43,27 +45,31 @@ class OpenReproducibleTestcaseTasksScheduler(base_handler.Handler):
                         self.task,
                         testcase.key.id(),
                         testcase.job_type,
-                        queue=tasks.queue_for_testcase(testcase))
+                        queue=tasks.queue_for_testcase(testcase),
+                    )
                 except Exception:
-                    logs.log_error('Failed to add task.')
+                    logs.log_error("Failed to add task.")
                     continue
 
 
 class ImpactTasksScheduler(OpenReproducibleTestcaseTasksScheduler):
     """Create impact tasks."""
-    task = 'impact'
+
+    task = "impact"
 
 
 class ProgressionTasksScheduler(OpenReproducibleTestcaseTasksScheduler):
     """Create progression tasks."""
-    task = 'progression'
+
+    task = "progression"
 
 
 class SimpleRecurringTaskScheduler(base_handler.Handler):
     """Recreate a recurring task."""
+
     task = None
     argument = 0
-    job_type = 'none'
+    job_type = "none"
 
     @handler.check_cron()
     def get(self):
@@ -73,4 +79,5 @@ class SimpleRecurringTaskScheduler(base_handler.Handler):
 
 class UploadReportsTaskScheduler(SimpleRecurringTaskScheduler):
     """Recreate upload reports tasks."""
-    task = 'upload_reports'
+
+    task = "upload_reports"

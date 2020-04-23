@@ -25,8 +25,8 @@ from metrics import logs
 
 _ISSUE_TRACKER_CACHE_CAPACITY = 8
 _ISSUE_TRACKER_CONSTRUCTORS = {
-    'monorail': monorail.get_issue_tracker,
-    'jira': jira.get_issue_tracker
+    "monorail": monorail.get_issue_tracker,
+    "jira": jira.get_issue_tracker,
 }
 
 
@@ -34,13 +34,15 @@ def register_issue_tracker(tracker_type, constructor):
     """Register an issue tracker implementation."""
     if tracker_type in _ISSUE_TRACKER_CONSTRUCTORS:
         raise ValueError(
-            'Tracker type {type} is already registered.'.format(type=tracker_type))
+            "Tracker type {type} is already registered.".format(type=tracker_type)
+        )
     _ISSUE_TRACKER_CONSTRUCTORS[tracker_type] = constructor
 
 
 def _get_issue_tracker_project_name(testcase=None):
     """Return issue tracker project name given a testcase or default."""
     from datastore import data_handler
+
     job_type = testcase.job_type if testcase else None
     return data_handler.get_issue_tracker_name(job_type)
 
@@ -51,17 +53,16 @@ def get_issue_tracker(project_name=None):
     issue_tracker_config = local_config.IssueTrackerConfig()
     if not project_name:
         from datastore import data_handler
+
         project_name = data_handler.get_issue_tracker_name()
 
     issue_project_config = issue_tracker_config.get(project_name)
     if not issue_project_config:
-        raise ValueError(
-            'Issue tracker for {} does not exist'.format(project_name))
+        raise ValueError("Issue tracker for {} does not exist".format(project_name))
 
-    constructor = _ISSUE_TRACKER_CONSTRUCTORS.get(issue_project_config['type'])
+    constructor = _ISSUE_TRACKER_CONSTRUCTORS.get(issue_project_config["type"])
     if not constructor:
-        raise ValueError('Invalid issue tracker type: ' +
-                         issue_project_config['type'])
+        raise ValueError("Invalid issue tracker type: " + issue_project_config["type"])
 
     return constructor(project_name, issue_project_config)
 
@@ -69,7 +70,7 @@ def get_issue_tracker(project_name=None):
 def get_issue_tracker_for_testcase(testcase):
     """Get the issue tracker with the given type and name."""
     issue_tracker_project_name = _get_issue_tracker_project_name(testcase)
-    if not issue_tracker_project_name or issue_tracker_project_name == 'disabled':
+    if not issue_tracker_project_name or issue_tracker_project_name == "disabled":
         return None
 
     return get_issue_tracker(issue_tracker_project_name)
@@ -78,7 +79,7 @@ def get_issue_tracker_for_testcase(testcase):
 def get_issue_tracker_policy_for_testcase(testcase):
     """Get the issue tracker with the given type and name."""
     issue_tracker_project_name = _get_issue_tracker_project_name(testcase)
-    if not issue_tracker_project_name or issue_tracker_project_name == 'disabled':
+    if not issue_tracker_project_name or issue_tracker_project_name == "disabled":
         return None
 
     return issue_tracker_policy.get(issue_tracker_project_name)
@@ -100,7 +101,8 @@ def get_issue_for_testcase(testcase):
         issue = issue_tracker.get_original_issue(issue_id)
     except:
         logs.log_error(
-            'Error occurred when fetching issue %s.' % testcase.bug_information)
+            "Error occurred when fetching issue %s." % testcase.bug_information
+        )
         return None
 
     return issue
@@ -118,14 +120,14 @@ def get_similar_issues(issue_tracker, testcase, only_open=True):
     # Get list of issues using the search query.
     keywords = get_search_keywords(testcase)
 
-    issues = list(
-        issue_tracker.find_issues(keywords=keywords, only_open=only_open))
+    issues = list(issue_tracker.find_issues(keywords=keywords, only_open=only_open))
     issue_ids = [issue.id for issue in issues]
 
     # Add issues from similar testcases sharing the same group id.
     if testcase.group_id:
         group_query = data_types.Testcase.query(
-            data_types.Testcase.group_id == testcase.group_id)
+            data_types.Testcase.group_id == testcase.group_id
+        )
         similar_testcases = ndb_utils.get_all_from_query(group_query)
         for similar_testcase in similar_testcases:
             if not similar_testcase.bug_information:
@@ -143,7 +145,7 @@ def get_similar_issues(issue_tracker, testcase, only_open=True):
 
             # If our search criteria allows open bugs only, then check issue and
             # testcase status so as to exclude closed ones.
-            if (only_open and (not issue.is_open or not testcase.open)):
+            if only_open and (not issue.is_open or not testcase.open):
                 continue
 
             issues.append(issue)
@@ -167,7 +169,9 @@ def get_issue_url(testcase):
 
     issue_id = (
         testcase.bug_information
-        if testcase.bug_information else testcase.group_bug_information)
+        if testcase.bug_information
+        else testcase.group_bug_information
+    )
     if not issue_id:
         return None
 

@@ -44,7 +44,8 @@ class IssueTrackerManager(object):
         credentials = json.loads(config.jira_credentials)
         jira_url = config.jira_url
         jira_client = jira.JIRA(
-            jira_url, auth=(credentials['username'], credentials['password']))
+            jira_url, auth=(credentials["username"], credentials["password"])
+        )
         return jira_client
 
     def save(self, issue):
@@ -54,12 +55,10 @@ class IssueTrackerManager(object):
     def create(self):
         """Create an issue."""
         default_fields = {
-            'project': self.project_name,
-            'summary': 'Default summary',
-            'description': 'Default description',
-            'issuetype': {
-                'name': 'Bug'
-            }
+            "project": self.project_name,
+            "summary": "Default summary",
+            "description": "Default description",
+            "issuetype": {"name": "Bug"},
         }
 
         jira_issue = self.client.create_issue(fields=default_fields)
@@ -78,27 +77,27 @@ class IssueTrackerManager(object):
         watchers = list(issue.ccs)
 
         update_fields = {
-            'summary': issue.title,
-            'description': issue.body,
-            'labels': labels,
-            'components': components,
+            "summary": issue.title,
+            "description": issue.body,
+            "labels": labels,
+            "components": components,
         }
 
         # Only add status if it has changed.
         # Brittle - we should be pulling the equivalent of 'new' from the policy.
-        if issue.status != 'Open':
-            status = {'name': issue.status}
-            update_fields['status'] = status
+        if issue.status != "Open":
+            status = {"name": issue.status}
+            update_fields["status"] = status
 
         if issue.assignee is not None:
-            assignee = {'name': issue.assignee}
-            update_fields['assignee'] = assignee
+            assignee = {"name": issue.assignee}
+            update_fields["assignee"] = assignee
 
         # Again brittle - need to pull these strings from policy.
-        if 'Critical - P1' in labels:
-            update_fields['priority'] = {'name': 'Critical - P1'}
-        elif 'Major - P2' in labels:
-            update_fields['priority'] = {'name': 'Major - P2'}
+        if "Critical - P1" in labels:
+            update_fields["priority"] = {"name": "Critical - P1"}
+        elif "Major - P2" in labels:
+            update_fields["priority"] = {"name": "Major - P2"}
 
         # Jira weirdness, update watchers this way.
         for watcher in watchers:
@@ -126,6 +125,5 @@ class IssueTrackerManager(object):
 
     def get_issues(self, query_string, max_results=10000):
         """Return all issues for a given query."""
-        issues = self.client.search_issues(
-            query_string, maxResults=max_results)
+        issues = self.client.search_issues(query_string, maxResults=max_results)
         return issues

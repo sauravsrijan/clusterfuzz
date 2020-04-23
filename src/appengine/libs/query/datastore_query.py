@@ -78,11 +78,11 @@ class _KeyQuery(object):
 
     def filter(self, operator, prop, value):
         """Specify the filter."""
-        if operator == 'IN':
+        if operator == "IN":
             subqueries = []
             for v in value:
                 q = _KeyQuery(self.model)
-                q.filter('=', prop, v)
+                q.filter("=", prop, v)
                 subqueries.append(q)
             self.union(*subqueries)
         else:
@@ -127,17 +127,17 @@ class _KeyQuery(object):
         query = self.model.query()
         properties = self.model._properties  # pylint: disable=protected-access
         for (prop_op, prop, value) in self.filters:
-            if prop_op == '=':
+            if prop_op == "=":
                 filter_func = properties[prop].__eq__
-            elif prop_op == '!=':
+            elif prop_op == "!=":
                 filter_func = properties[prop].__ne__
-            elif prop_op == '<':
+            elif prop_op == "<":
                 filter_func = properties[prop].__le__
-            elif prop_op == '>':
+            elif prop_op == ">":
                 filter_func = properties[prop].__gt__
-            elif prop_op == '<=':
+            elif prop_op == "<=":
                 filter_func = properties[prop].__le__
-            elif prop_op == '>=':
+            elif prop_op == ">=":
                 filter_func = properties[prop].__ge__
 
             query = query.filter(filter_func(value))
@@ -165,7 +165,9 @@ class _KeyQuery(object):
                     q.to_datastore_query(),
                     keys_only=False,
                     projection=[self.order_property],
-                    limit=total))
+                    limit=total,
+                )
+            )
         return runs
 
     def _get_total_count(self, runs, offset, limit, items, more_limit):
@@ -191,7 +193,9 @@ class _KeyQuery(object):
                     start_cursor=cursor,
                     keys_only=True,
                     projection=None,
-                    limit=more_limit))
+                    limit=more_limit,
+                )
+            )
 
         keys = set([item.key.id() for item in items])
         for run in more_runs:
@@ -217,12 +221,14 @@ class _KeyQuery(object):
         items = sorted(
             list(items.values()),
             reverse=self.order_desc,
-            key=_get_key_fn(self.order_property))
+            key=_get_key_fn(self.order_property),
+        )
 
-        total_count, has_more = self._get_total_count(runs, offset, limit, items,
-                                                      more_limit)
+        total_count, has_more = self._get_total_count(
+            runs, offset, limit, items, more_limit
+        )
 
-        return items[offset:(offset + limit)], total_count, has_more
+        return items[offset : (offset + limit)], total_count, has_more
 
 
 class Query(base.Query):
@@ -235,13 +241,13 @@ class Query(base.Query):
         self.order_property = None
         self.order_desc = False
 
-    def filter(self, field, value, operator='='):
+    def filter(self, field, value, operator="="):
         """Specify the filter."""
         self.key_query.filter(operator, field, value)
 
     def filter_in(self, field, values):
         """Specify the filter IN."""
-        self.key_query.filter('IN', field, values)
+        self.key_query.filter("IN", field, values)
 
     def union(self, *queries):
         """Specify the OR condition."""
@@ -263,17 +269,21 @@ class Query(base.Query):
         assert self.order_property
 
         keys, total_count, has_more = self.key_query.fetch(
-            limit=limit, offset=offset, more_limit=more_limit)
+            limit=limit, offset=offset, more_limit=more_limit
+        )
 
         if keys:
             item_query = self.key_query.model.query(
-                self.key_query.model.key.IN([key.key for key in keys]))
+                self.key_query.model.key.IN([key.key for key in keys])
+            )
 
             items = item_query.fetch(
                 limit=limit,
-                projection=compute_projection(projection, self.order_property))
+                projection=compute_projection(projection, self.order_property),
+            )
             items = sorted(
-                items, reverse=self.order_desc, key=_get_key_fn(self.order_property))
+                items, reverse=self.order_desc, key=_get_key_fn(self.order_property)
+            )
         else:
             items = []
 
@@ -285,7 +295,8 @@ class Query(base.Query):
             offset=(page - 1) * page_size,
             limit=page_size,
             projection=projection,
-            more_limit=more_limit)
+            more_limit=more_limit,
+        )
 
         total_pages = total_items // page_size
         if (total_items % page_size) > 0:

@@ -24,6 +24,7 @@ import threading
 import shutil
 import os
 from future import standard_library
+
 standard_library.install_aliases()
 
 
@@ -33,12 +34,14 @@ def bootstrap_db():
     def bootstrap():
         # Wait for the server to run.
         time.sleep(10)
-        print('Bootstrapping datastore...')
+        print("Bootstrapping datastore...")
         common.execute(
-            ('python butler.py run setup '
-             '--non-dry-run --local --config-dir={config_dir}'
-             ).format(config_dir=constants.TEST_CONFIG_DIR),
-            exit_on_error=False)
+            (
+                "python butler.py run setup "
+                "--non-dry-run --local --config-dir={config_dir}"
+            ).format(config_dir=constants.TEST_CONFIG_DIR),
+            exit_on_error=False,
+        )
 
     thread = threading.Thread(target=bootstrap)
     thread.start()
@@ -53,39 +56,35 @@ def create_local_bucket(local_gcs_buckets_path, name):
 
 def bootstrap_gcs(storage_path):
     """Bootstrap GCS."""
-    local_gcs_buckets_path = os.path.join(storage_path, 'local_gcs')
+    local_gcs_buckets_path = os.path.join(storage_path, "local_gcs")
     if not os.path.exists(local_gcs_buckets_path):
         os.mkdir(local_gcs_buckets_path)
 
     config = local_config.ProjectConfig()
-    test_blobs_bucket = os.environ.get('TEST_BLOBS_BUCKET')
+    test_blobs_bucket = os.environ.get("TEST_BLOBS_BUCKET")
     if test_blobs_bucket:
         create_local_bucket(local_gcs_buckets_path, test_blobs_bucket)
     else:
-        create_local_bucket(local_gcs_buckets_path, config.get('blobs.bucket'))
+        create_local_bucket(local_gcs_buckets_path, config.get("blobs.bucket"))
 
-    create_local_bucket(local_gcs_buckets_path,
-                        config.get('deployment.bucket'))
-    create_local_bucket(local_gcs_buckets_path, config.get('bigquery.bucket'))
-    create_local_bucket(local_gcs_buckets_path, config.get('backup.bucket'))
-    create_local_bucket(local_gcs_buckets_path,
-                        config.get('logs.fuzzer.bucket'))
-    create_local_bucket(local_gcs_buckets_path,
-                        config.get('env.CORPUS_BUCKET'))
-    create_local_bucket(local_gcs_buckets_path,
-                        config.get('env.QUARANTINE_BUCKET'))
-    create_local_bucket(local_gcs_buckets_path,
-                        config.get('env.SHARED_CORPUS_BUCKET'))
-    create_local_bucket(local_gcs_buckets_path,
-                        config.get('env.FUZZ_LOGS_BUCKET'))
-    create_local_bucket(local_gcs_buckets_path,
-                        config.get('env.MUTATOR_PLUGINS_BUCKET'))
+    create_local_bucket(local_gcs_buckets_path, config.get("deployment.bucket"))
+    create_local_bucket(local_gcs_buckets_path, config.get("bigquery.bucket"))
+    create_local_bucket(local_gcs_buckets_path, config.get("backup.bucket"))
+    create_local_bucket(local_gcs_buckets_path, config.get("logs.fuzzer.bucket"))
+    create_local_bucket(local_gcs_buckets_path, config.get("env.CORPUS_BUCKET"))
+    create_local_bucket(local_gcs_buckets_path, config.get("env.QUARANTINE_BUCKET"))
+    create_local_bucket(local_gcs_buckets_path, config.get("env.SHARED_CORPUS_BUCKET"))
+    create_local_bucket(local_gcs_buckets_path, config.get("env.FUZZ_LOGS_BUCKET"))
+    create_local_bucket(
+        local_gcs_buckets_path, config.get("env.MUTATOR_PLUGINS_BUCKET")
+    )
 
     # Symlink local GCS bucket path to appengine src dir to bypass sandboxing
     # issues.
     common.symlink(
         src=local_gcs_buckets_path,
-        target=os.path.join(appengine.SRC_DIR_PY, 'local_gcs'))
+        target=os.path.join(appengine.SRC_DIR_PY, "local_gcs"),
+    )
 
 
 def start_cron_threads():
@@ -99,21 +98,21 @@ def start_cron_threads():
             time.sleep(interval_seconds)
 
             try:
-                url = 'http://{host}/{target}'.format(
-                    host=constants.CRON_SERVICE_HOST, target=target)
+                url = "http://{host}/{target}".format(
+                    host=constants.CRON_SERVICE_HOST, target=target
+                )
                 request = urllib.request.Request(url)
-                request.add_header('X-Appengine-Cron', 'true')
-                response = urllib.request.urlopen(
-                    request, timeout=request_timeout)
+                request.add_header("X-Appengine-Cron", "true")
+                response = urllib.request.urlopen(request, timeout=request_timeout)
                 response.read(60)  # wait for request to finish.
             except Exception:
                 continue
 
     crons = (
-        (90, 'cleanup'),
-        (60, 'triage'),
-        (6 * 3600, 'schedule-progression-tasks'),
-        (12 * 3600, 'schedule-corpus-pruning'),
+        (90, "cleanup"),
+        (60, "triage"),
+        (6 * 3600, "schedule-progression-tasks"),
+        (12 * 3600, "schedule-corpus-pruning"),
     )
 
     for interval, cron in crons:
@@ -124,7 +123,7 @@ def start_cron_threads():
 
 def execute(args):
     """Run the server."""
-    os.environ['LOCAL_DEVELOPMENT'] = 'True'
+    os.environ["LOCAL_DEVELOPMENT"] = "True"
     common.kill_leftover_emulators()
 
     if not args.skip_install_deps:
@@ -136,7 +135,7 @@ def execute(args):
     # Deploy all yaml files from test project for basic appengine deployment and
     # local testing to work. This needs to be called on every iteration as a past
     # deployment might have overwritten or deleted these config files.
-    yaml_paths = local_config.GAEConfig().get_absolute_path('deployment.prod3')
+    yaml_paths = local_config.GAEConfig().get_absolute_path("deployment.prod3")
     appengine.copy_yamls_and_preprocess(yaml_paths)
 
     # Build templates.
@@ -145,8 +144,7 @@ def execute(args):
     # Clean storage directory if needed.
     if args.bootstrap or args.clean:
         if os.path.exists(args.storage_path):
-            print('Clearing local datastore by removing %s.' %
-                  args.storage_path)
+            print("Clearing local datastore by removing %s." % args.storage_path)
             shutil.rmtree(args.storage_path)
     if not os.path.exists(args.storage_path):
         os.makedirs(args.storage_path)
@@ -156,46 +154,49 @@ def execute(args):
 
     # Start pubsub emulator.
     pubsub_emulator = test_utils.start_cloud_emulator(
-        'pubsub',
-        args=['--host-port=' + constants.PUBSUB_EMULATOR_HOST],
-        data_dir=args.storage_path)
+        "pubsub",
+        args=["--host-port=" + constants.PUBSUB_EMULATOR_HOST],
+        data_dir=args.storage_path,
+    )
     test_utils.setup_pubsub(constants.TEST_APP_ID)
 
     # Start Datastore emulator
     datastore_emulator = test_utils.start_cloud_emulator(
-        'datastore',
-        args=['--host-port=' + constants.DATASTORE_EMULATOR_HOST],
+        "datastore",
+        args=["--host-port=" + constants.DATASTORE_EMULATOR_HOST],
         data_dir=args.storage_path,
-        store_on_disk=True)
+        store_on_disk=True,
+    )
 
     # Start our custom GCS emulator.
     local_gcs = common.execute_async(
-        'go run emulators/gcs.go -storage-path=' + args.storage_path, cwd='local')
+        "go run emulators/gcs.go -storage-path=" + args.storage_path, cwd="local"
+    )
 
     if args.bootstrap:
         bootstrap_db()
 
     start_cron_threads()
 
-    os.environ['APPLICATION_ID'] = constants.TEST_APP_ID
-    os.environ['LOCAL_DEVELOPMENT'] = 'True'
-    os.environ['LOCAL_GCS_BUCKETS_PATH'] = 'local_gcs'
-    os.environ['LOCAL_GCS_SERVER_HOST'] = constants.LOCAL_GCS_SERVER_HOST
-    os.environ['DATASTORE_EMULATOR_HOST'] = constants.DATASTORE_EMULATOR_HOST
-    os.environ['PUBSUB_EMULATOR_HOST'] = constants.PUBSUB_EMULATOR_HOST
-    os.environ['GAE_ENV'] = 'dev'
+    os.environ["APPLICATION_ID"] = constants.TEST_APP_ID
+    os.environ["LOCAL_DEVELOPMENT"] = "True"
+    os.environ["LOCAL_GCS_BUCKETS_PATH"] = "local_gcs"
+    os.environ["LOCAL_GCS_SERVER_HOST"] = constants.LOCAL_GCS_SERVER_HOST
+    os.environ["DATASTORE_EMULATOR_HOST"] = constants.DATASTORE_EMULATOR_HOST
+    os.environ["PUBSUB_EMULATOR_HOST"] = constants.PUBSUB_EMULATOR_HOST
+    os.environ["GAE_ENV"] = "dev"
     try:
         cron_server = common.execute_async(
-            'gunicorn -b :{port} main:app'.format(
-                port=constants.CRON_SERVICE_PORT),
-            cwd=os.path.join('src', 'appengine'))
+            "gunicorn -b :{port} main:app".format(port=constants.CRON_SERVICE_PORT),
+            cwd=os.path.join("src", "appengine"),
+        )
 
         common.execute(
-            'gunicorn -b :{port} main:app'.format(
-                port=constants.DEV_APPSERVER_PORT),
-            cwd=os.path.join('src', 'appengine'))
+            "gunicorn -b :{port} main:app".format(port=constants.DEV_APPSERVER_PORT),
+            cwd=os.path.join("src", "appengine"),
+        )
     except KeyboardInterrupt:
-        print('Server has been stopped. Exit.')
+        print("Server has been stopped. Exit.")
         cron_server.terminate()
         datastore_emulator.cleanup()
         pubsub_emulator.cleanup()

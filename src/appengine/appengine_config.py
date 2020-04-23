@@ -25,40 +25,44 @@ from google.appengine.ext import vendor
 # for example) for both IS_RUNNING_IN_DEV_APPSERVER and IS_RUNNING_IN_PRODUCTION
 # to be false.
 IS_RUNNING_IN_DEV_APPSERVER = (
-    os.getenv('SERVER_SOFTWARE') and
-    os.getenv('SERVER_SOFTWARE').startswith('Development/') and
-    'testbed' not in os.getenv('SERVER_SOFTWARE'))
+    os.getenv("SERVER_SOFTWARE")
+    and os.getenv("SERVER_SOFTWARE").startswith("Development/")
+    and "testbed" not in os.getenv("SERVER_SOFTWARE")
+)
 # True if the app is running inside an AppEngine production environment, such
 # as prom.corp or appspot.com.  False if it's running inside dev_appserver or
 # unsupported (such as from unit tests).
-IS_RUNNING_IN_PRODUCTION = (
-    os.getenv('SERVER_SOFTWARE') and
-    os.getenv('SERVER_SOFTWARE').startswith('Google App Engine/'))
+IS_RUNNING_IN_PRODUCTION = os.getenv("SERVER_SOFTWARE") and os.getenv(
+    "SERVER_SOFTWARE"
+).startswith("Google App Engine/")
 
 # Add necessary directories to path.
-config_modules_path = os.path.join('config', 'modules')
+config_modules_path = os.path.join("config", "modules")
 
 if IS_RUNNING_IN_PRODUCTION or IS_RUNNING_IN_DEV_APPSERVER:
-    vendor.add('third_party', 0)
-    vendor.add('python', 0)
+    vendor.add("third_party", 0)
+    vendor.add("python", 0)
     if os.path.exists(config_modules_path):
         vendor.add(config_modules_path, 0)
 else:
-    sys.path.insert(0, 'third_party')
-    sys.path.insert(0, 'python')
+    sys.path.insert(0, "third_party")
+    sys.path.insert(0, "python")
     if os.path.exists(config_modules_path):
         sys.path.insert(0, config_modules_path)
 
 if IS_RUNNING_IN_PRODUCTION:
     import pkg_resources
+
     reload(pkg_resources)
 elif IS_RUNNING_IN_DEV_APPSERVER:
     import pkg_resources
-    pkg_resources.working_set.add_entry('third_party')
+
+    pkg_resources.working_set.add_entry("third_party")
 
 try:
     # Run any module initialization code.
     import module_init
+
     module_init.appengine()
 except ImportError:
     pass
@@ -68,7 +72,7 @@ reload(six)
 
 # Adding the protobuf module to the google module. Otherwise, we couldn't
 # import google.protobuf because google.appengine already took the name.
-google.__path__.insert(0, os.path.join('third_party', 'google'))
+google.__path__.insert(0, os.path.join("third_party", "google"))
 
 # In tests this is done in test_utils.with_cloud_emulators.
 if IS_RUNNING_IN_PRODUCTION or IS_RUNNING_IN_DEV_APPSERVER:
@@ -76,7 +80,9 @@ if IS_RUNNING_IN_PRODUCTION or IS_RUNNING_IN_DEV_APPSERVER:
     # URLFetch. This is a workaround till we migrate to Python 3 on App Engine
     # Flex.
     import requests_toolbelt.adapters.appengine
+
     requests_toolbelt.adapters.appengine.monkeypatch()
 
     import firebase_admin
+
     firebase_admin.initialize_app()

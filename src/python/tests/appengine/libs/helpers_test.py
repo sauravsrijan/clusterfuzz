@@ -25,6 +25,7 @@ from tests.test_libs import helpers as test_helpers
 
 class TestNotFoundException(Exception):
     """Serve as a testing exception."""
+
     pass
 
 
@@ -34,12 +35,12 @@ class IsNotEmpty(unittest.TestCase):
     def test_empty(self):
         """Test none."""
         self.assertFalse(helpers._is_not_empty(None))
-        self.assertFalse(helpers._is_not_empty(''))
+        self.assertFalse(helpers._is_not_empty(""))
         self.assertFalse(helpers._is_not_empty(0))
 
     def test_not_empty(self):
         """Test not empty."""
-        self.assertTrue(helpers._is_not_empty('a'))
+        self.assertTrue(helpers._is_not_empty("a"))
         self.assertTrue(helpers._is_not_empty(1))
         self.assertTrue(helpers._is_not_empty(object()))
 
@@ -47,13 +48,13 @@ class IsNotEmpty(unittest.TestCase):
         """Test tuple containing only empty values."""
         self.assertFalse(helpers._is_not_empty((None, None)))
         self.assertFalse(helpers._is_not_empty((None, None, None)))
-        self.assertFalse(helpers._is_not_empty(('', '')))
-        self.assertFalse(helpers._is_not_empty((None, '', 0, None)))
+        self.assertFalse(helpers._is_not_empty(("", "")))
+        self.assertFalse(helpers._is_not_empty((None, "", 0, None)))
 
     def test_tuple_not_empty(self):
         """Test tuples that are not considered as empty."""
         self.assertTrue(helpers._is_not_empty((None, 1)))
-        self.assertTrue(helpers._is_not_empty(('a', 0)))
+        self.assertTrue(helpers._is_not_empty(("a", 0)))
 
 
 class GetOrExitTest(unittest.TestCase):
@@ -61,34 +62,41 @@ class GetOrExitTest(unittest.TestCase):
 
     def test_should_render_json(self):
         """Ensure it determines render_json correctly."""
-        self.assertTrue(
-            helpers.should_render_json('adsasd;application/json;sdf', ''))
-        self.assertTrue(helpers.should_render_json('', 'application/json'))
-        self.assertFalse(helpers.should_render_json(
-            'text/plain;0.8', 'text/html'))
+        self.assertTrue(helpers.should_render_json("adsasd;application/json;sdf", ""))
+        self.assertTrue(helpers.should_render_json("", "application/json"))
+        self.assertFalse(helpers.should_render_json("text/plain;0.8", "text/html"))
 
     def test_get_or_exit_valid(self):
         """Ensure it gets value."""
-        def fn(): return 'test'
-        self.assertEqual(helpers.get_or_exit(fn, 'not_found', 'error'), 'test')
+
+        def fn():
+            return "test"
+
+        self.assertEqual(helpers.get_or_exit(fn, "not_found", "error"), "test")
 
     def test_get_or_exit_none(self):
         """Ensure it raises 404 when the value is None."""
-        def fn(): return None
+
+        def fn():
+            return None
+
         with self.assertRaises(helpers.EarlyExitException) as catched:
-            helpers.get_or_exit(fn, 'not_found', 'error')
+            helpers.get_or_exit(fn, "not_found", "error")
 
         self.assertEqual(catched.exception.status, 404)
-        self.assertEqual(str(catched.exception), 'not_found')
+        self.assertEqual(str(catched.exception), "not_found")
 
     def test_get_or_exit_tuple_none(self):
         """Ensure it raises 404 when the value is a tuple of None."""
-        def fn(): return (None, None)
+
+        def fn():
+            return (None, None)
+
         with self.assertRaises(helpers.EarlyExitException) as catched:
-            helpers.get_or_exit(fn, 'not_found', 'error')
+            helpers.get_or_exit(fn, "not_found", "error")
 
         self.assertEqual(catched.exception.status, 404)
-        self.assertEqual(str(catched.exception), 'not_found')
+        self.assertEqual(str(catched.exception), "not_found")
 
     def test_get_or_exit_not_found_exception(self):
         """Ensure it raises 404 when `fn` throws a recognised exception."""
@@ -98,66 +106,68 @@ class GetOrExitTest(unittest.TestCase):
 
         with self.assertRaises(helpers.EarlyExitException) as catched:
             helpers.get_or_exit(
-                fn, 'not_found', 'error', not_found_exception=TestNotFoundException)
+                fn, "not_found", "error", not_found_exception=TestNotFoundException
+            )
 
         self.assertEqual(catched.exception.status, 404)
-        self.assertEqual(str(catched.exception), 'not_found')
+        self.assertEqual(str(catched.exception), "not_found")
 
     def test_get_or_exit_other_exception(self):
         """Ensure it raises 500 when `fn` throws an unknown exception."""
 
         def fn():
-            raise Exception('message')
+            raise Exception("message")
 
         with self.assertRaises(helpers.EarlyExitException) as catched:
-            helpers.get_or_exit(fn, 'not_found', 'other')
+            helpers.get_or_exit(fn, "not_found", "other")
 
         self.assertEqual(catched.exception.status, 500)
 
         if sys.version_info.major == 2:
             # TODO(ochang): Remove this once migrated to Python 3.
             self.assertEqual(
-                str(catched.exception),
-                "other (<type 'exceptions.Exception'>: message)")
+                str(catched.exception), "other (<type 'exceptions.Exception'>: message)"
+            )
         else:
             self.assertEqual(
-                str(catched.exception), "other (<class 'Exception'>: message)")
+                str(catched.exception), "other (<class 'Exception'>: message)"
+            )
 
 
 class GetUserEmailTest(unittest.TestCase):
     """Test get_user_email."""
 
     def setUp(self):
-        test_helpers.patch(self, ['libs.auth.get_current_user'])
+        test_helpers.patch(self, ["libs.auth.get_current_user"])
 
     def test_get_user_email_success(self):
         """Ensure it gets the email when a user is valid."""
-        self.mock.get_current_user.return_value = (auth.User('TeSt@Test.com'))
-        self.assertEqual(helpers.get_user_email(), 'TeSt@Test.com')
+        self.mock.get_current_user.return_value = auth.User("TeSt@Test.com")
+        self.assertEqual(helpers.get_user_email(), "TeSt@Test.com")
 
     def test_get_user_email_failure(self):
         """Ensure it gets empty string when a user is invalid."""
         self.mock.get_current_user.side_effect = Exception()
-        self.assertEqual(helpers.get_user_email(), '')
+        self.assertEqual(helpers.get_user_email(), "")
 
 
 class LogTest(unittest.TestCase):
     """Test log."""
 
     def setUp(self):
-        test_helpers.patch(
-            self, ['logging.info', 'libs.helpers.get_user_email'])
-        self.mock.get_user_email.return_value = 'email'
+        test_helpers.patch(self, ["logging.info", "libs.helpers.get_user_email"])
+        self.mock.get_user_email.return_value = "email"
 
     def test_modify(self):
         """Test log modify."""
-        helpers.log('message', helpers.MODIFY_OPERATION)
-        self.mock.info.assert_called_once_with('ClusterFuzz: %s (%s): %s.',
-                                               helpers.MODIFY_OPERATION, 'email',
-                                               'message')
+        helpers.log("message", helpers.MODIFY_OPERATION)
+        self.mock.info.assert_called_once_with(
+            "ClusterFuzz: %s (%s): %s.", helpers.MODIFY_OPERATION, "email", "message"
+        )
 
     def test_view(self):
         """Test log view."""
-        helpers.log('message', helpers.VIEW_OPERATION)
+        helpers.log("message", helpers.VIEW_OPERATION)
         self.mock.info.assert_called_once_with(
-            'ClusterFuzz: %s (%s): %s.', helpers.VIEW_OPERATION, 'email', 'message')
+            "ClusterFuzz: %s (%s): %s.", helpers.VIEW_OPERATION, "email", "message"
+        )

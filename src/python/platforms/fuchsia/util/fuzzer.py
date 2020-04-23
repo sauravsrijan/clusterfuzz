@@ -43,16 +43,16 @@ class Fuzzer(object):
 
     # Matches the prefixes in libFuzzer passed to |Fuzzer::DumpCurrentUnit| or
     # |Fuzzer::WriteUnitToFileWithPrefix|.
-    ARTIFACT_PREFIXES = [
-        'crash', 'leak', 'mismatch', 'oom', 'slow-unit', 'timeout'
-    ]
+    ARTIFACT_PREFIXES = ["crash", "leak", "mismatch", "oom", "slow-unit", "timeout"]
 
     class NameError(ValueError):
         """Indicates a supplied name is malformed or unusable."""
+
         pass
 
     class StateError(ValueError):
         """Indicates a command isn't valid for the fuzzer in its current state."""
+
         pass
 
     @classmethod
@@ -64,7 +64,7 @@ class Fuzzer(object):
         if ext == sanitizer:
             return True
         # If there's no extension, assume it's an ASAN fuzzer.
-        if sanitizer == 'asan' and ext == '':
+        if sanitizer == "asan" and ext == "":
             return True
         return False
 
@@ -75,9 +75,10 @@ class Fuzzer(object):
         production). """
         # Strip any sanitizer extensions
         tgt = os.path.splitext(tgt)[0]
-        return ((pkg == 'example-fuzzers' and
-                 tgt not in ('out_of_memory_fuzzer', 'toy_example_arbitrary')) or
-                (pkg == 'zircon_fuzzers' and tgt == 'noop-fuzzer'))
+        return (
+            pkg == "example-fuzzers"
+            and tgt not in ("out_of_memory_fuzzer", "toy_example_arbitrary")
+        ) or (pkg == "zircon_fuzzers" and tgt == "noop-fuzzer")
 
     @classmethod
     def filter(cls, fuzzers, name, sanitizer=None, example_fuzzers=True):
@@ -98,15 +99,16 @@ class Fuzzer(object):
         if not name and not sanitizer:
             return fuzzers
         if name:
-            names = name.split('/')
+            names = name.split("/")
             if len(names) == 2 and (names[0], names[1]) in fuzzers:
                 return [(names[0], names[1])]
             if len(names) == 1:
                 return list(
-                    set(Fuzzer.filter(fuzzers, '/' + name))
-                    | set(Fuzzer.filter(fuzzers, name + '/')))
+                    set(Fuzzer.filter(fuzzers, "/" + name))
+                    | set(Fuzzer.filter(fuzzers, name + "/"))
+                )
             elif len(names) != 2:
-                raise Fuzzer.NameError('Malformed fuzzer name: ' + name)
+                raise Fuzzer.NameError("Malformed fuzzer name: " + name)
         filtered = []
         for pkg, tgt in fuzzers:
             if name:
@@ -128,18 +130,14 @@ class Fuzzer(object):
         """Constructs a Fuzzer from command line arguments."""
         fuzzers = Fuzzer.filter(device.host.fuzzers, args.name)
         if len(fuzzers) != 1:
-            raise Fuzzer.NameError('Name did not resolve to exactly one fuzzer: \'' +
-                                   args.name + '\'. Try using \'list-fuzzers\'.')
-        return cls(device, fuzzers[0][0], fuzzers[0][1], args.output,
-                   args.foreground)
+            raise Fuzzer.NameError(
+                "Name did not resolve to exactly one fuzzer: '"
+                + args.name
+                + "'. Try using 'list-fuzzers'."
+            )
+        return cls(device, fuzzers[0][0], fuzzers[0][1], args.output, args.foreground)
 
-    def __init__(self,
-                 device,
-                 pkg,
-                 tgt,
-                 output=None,
-                 foreground=False,
-                 sanitizer=''):
+    def __init__(self, device, pkg, tgt, output=None, foreground=False, sanitizer=""):
         self.device = device
         self.host = device.host
         self.pkg = pkg
@@ -148,30 +146,33 @@ class Fuzzer(object):
         if output:
             self._output = output
         else:
-            self._output = self.host.join(
-                'test_data', 'fuzzing', self.pkg, self.tgt)
-        self._results_output = self.host.join('test_data', 'fuzzing', self.pkg,
-                                              self.tgt)
+            self._output = self.host.join("test_data", "fuzzing", self.pkg, self.tgt)
+        self._results_output = self.host.join(
+            "test_data", "fuzzing", self.pkg, self.tgt
+        )
         self._foreground = foreground
 
         # Required for backwards compatibility with older builds where Zircon
         # fuzzers had a sanitizer suffix
-        if pkg == 'zircon_fuzzers' and sanitizer:
+        if pkg == "zircon_fuzzers" and sanitizer:
             if (pkg, tgt) not in self.host.fuzzers:
-                self.tgt += '.' + sanitizer
+                self.tgt += "." + sanitizer
 
     def __str__(self):
-        return self.pkg + '/' + self.tgt
+        return self.pkg + "/" + self.tgt
 
-    def data_path(self, relpath=''):
+    def data_path(self, relpath=""):
         """Canonicalizes the location of mutable data for this fuzzer."""
-        return '/data/r/sys/fuchsia.com:%s:0#meta:%s.cmx/%s' % (self.pkg, self.tgt,
-                                                                relpath)
+        return "/data/r/sys/fuchsia.com:%s:0#meta:%s.cmx/%s" % (
+            self.pkg,
+            self.tgt,
+            relpath,
+        )
 
     def measure_corpus(self):
         """Returns the number of corpus elements and corpus size as a pair."""
         try:
-            sizes = self.device.ls(self.data_path('corpus'))
+            sizes = self.device.ls(self.data_path("corpus"))
             return (len(sizes), sum(sizes.values()))
         except subprocess.CalledProcessError:
             return (0, 0)
@@ -197,13 +198,14 @@ class Fuzzer(object):
         """Raise an exception if the fuzzer is running."""
         if self.is_running():
             raise Fuzzer.StateError(
-                str(self) + ' is running and must be stopped first.')
+                str(self) + " is running and must be stopped first."
+            )
 
     def results(self, relpath=None):
         """Returns the path in the previously prepared results directory."""
         if relpath:
-            return os.path.join(self._output, 'latest', relpath)
-        return os.path.join(self._output, 'latest')
+            return os.path.join(self._output, "latest", relpath)
+        return os.path.join(self._output, "latest")
 
     def results_output(self, relpath=None):
         if relpath:
@@ -211,13 +213,12 @@ class Fuzzer(object):
         return self._results_output
 
     def url(self):
-        return 'fuchsia-pkg://fuchsia.com/%s#meta/%s.cmx' % (self.pkg, self.tgt)
+        return "fuchsia-pkg://fuchsia.com/%s#meta/%s.cmx" % (self.pkg, self.tgt)
 
     def run(self, fuzzer_args, logfile=None):
-        fuzz_cmd = ['run', self.url(), '-artifact_prefix=data/'] + fuzzer_args
-        print('+ ' + ' '.join(fuzz_cmd))
-        self.last_fuzz_cmd = self.device.get_ssh_cmd(['ssh', 'localhost'] +
-                                                     fuzz_cmd)
+        fuzz_cmd = ["run", self.url(), "-artifact_prefix=data/"] + fuzzer_args
+        print("+ " + " ".join(fuzz_cmd))
+        self.last_fuzz_cmd = self.device.get_ssh_cmd(["ssh", "localhost"] + fuzz_cmd)
         return self.device.ssh(fuzz_cmd, quiet=True, logfile=logfile)
 
     def start(self, fuzzer_args):
@@ -240,22 +241,21 @@ class Fuzzer(object):
             The fuzzer's process ID. May be 0 if the fuzzer stops immediately.
         """
         self.require_stopped()
-        results = os.path.join(
-            self._output, datetime.datetime.utcnow().isoformat())
+        results = os.path.join(self._output, datetime.datetime.utcnow().isoformat())
         try:
             os.makedirs(results)
         except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
         self._results_output = results
-        self.logfile = self.results_output('fuzz-0.log')
+        self.logfile = self.results_output("fuzz-0.log")
 
-        if [x for x in fuzzer_args if x.startswith('-jobs=')]:
+        if [x for x in fuzzer_args if x.startswith("-jobs=")]:
             if self._foreground:
-                fuzzer_args.append('-jobs=0')
+                fuzzer_args.append("-jobs=0")
             else:
-                fuzzer_args.append('-jobs=1')
-        self.device.ssh(['mkdir', '-p', self.data_path('corpus')])
+                fuzzer_args.append("-jobs=1")
+        self.device.ssh(["mkdir", "-p", self.data_path("corpus")])
         # If all the arguments are prepended with '-', then no corpus has been
         # passed in, and we need to add one.
         # This list comprehension returns a list of all arguments that do *not*
@@ -267,20 +267,20 @@ class Fuzzer(object):
         # Change this to *not* be the default.  (If we'd like it to make it the
         # default for e.g. most non-Clusterfuzz callers, we can have some variable
         # that those callers pass in to set this.)
-        if not [x for x in fuzzer_args if not x.startswith('-')]:
-            fuzzer_args.append('data/corpus/')
-        if 'repro' in fuzzer_args:
+        if not [x for x in fuzzer_args if not x.startswith("-")]:
+            fuzzer_args.append("data/corpus/")
+        if "repro" in fuzzer_args:
             # If this is a reproducer run, we don't need the corpus.
-            if 'data/corpus/' in fuzzer_args:
-                fuzzer_args.remove('data/corpus/')
-            fuzzer_args.remove('repro')
+            if "data/corpus/" in fuzzer_args:
+                fuzzer_args.remove("data/corpus/")
+            fuzzer_args.remove("repro")
 
         # Fuzzer logs are saved to fuzz-*.log when running in the background.
         # We tee the output to fuzz-0.log when running in the foreground to
         # make the rest of the plumbing look the same.
         if self._foreground:
-            return self.run(fuzzer_args, logfile=self.results_output('fuzz-0.log'))
-        self.device.rm(self.data_path('fuzz-*.log'))
+            return self.run(fuzzer_args, logfile=self.results_output("fuzz-0.log"))
+        self.device.rm(self.data_path("fuzz-*.log"))
         return self.run(fuzzer_args)
 
     def monitor(self, retcode=0):
@@ -293,9 +293,8 @@ class Fuzzer(object):
         while self.is_running():
             time.sleep(2)
         if not self._foreground:
-            self.device.fetch(self.data_path('fuzz-*.log'),
-                              self.results_output())
-        logs = glob.glob(self.results_output('fuzz-*.log'))
+            self.device.fetch(self.data_path("fuzz-*.log"), self.results_output())
+        logs = glob.glob(self.results_output("fuzz-*.log"))
         guess_pid = len(logs) == 1
         artifacts = []
         for log in logs:
@@ -307,7 +306,7 @@ class Fuzzer(object):
         """Stops any processes with a matching component manifest on the device."""
         pids = self.device.getpids()
         if self.tgt in pids:
-            self.device.ssh(['kill', str(pids[self.tgt])])
+            self.device.ssh(["kill", str(pids[self.tgt])])
 
     def repro(self, fuzzer_args):
         """Runs the fuzzer with test input artifacts.
@@ -322,7 +321,7 @@ class Fuzzer(object):
         """
         artifacts = self.list_artifacts()
         if artifacts:
-            self.run(fuzzer_args + ['data/' + a for a in artifacts])
+            self.run(fuzzer_args + ["data/" + a for a in artifacts])
         return len(artifacts)
 
     def merge(self, fuzzer_args, merge_control_file=None):
@@ -348,24 +347,23 @@ class Fuzzer(object):
         # directory.
         # If corpora have been passed in, we trust that the caller has passed
         # them in the order they want.
-        if not [x for x in fuzzer_args if not x.startswith('-')]:
-            self.device.ssh(['mkdir', '-p', self.data_path('corpus')])
-            self.device.ssh(['mkdir', '-p', self.data_path('corpus.prev')])
+        if not [x for x in fuzzer_args if not x.startswith("-")]:
+            self.device.ssh(["mkdir", "-p", self.data_path("corpus")])
+            self.device.ssh(["mkdir", "-p", self.data_path("corpus.prev")])
             self.device.ssh(
-                ['mv',
-                 self.data_path('corpus/*'),
-                 self.data_path('corpus.prev')])
-            self.device.ssh(['mkdir', '-p', self.data_path('corpus')])
-            fuzzer_args.append('data/corpus/')
-            fuzzer_args.append('data/corpus.prev/')
+                ["mv", self.data_path("corpus/*"), self.data_path("corpus.prev")]
+            )
+            self.device.ssh(["mkdir", "-p", self.data_path("corpus")])
+            fuzzer_args.append("data/corpus/")
+            fuzzer_args.append("data/corpus.prev/")
 
         if not merge_control_file:
-            merge_control_file = 'data/.mergefile'
+            merge_control_file = "data/.mergefile"
 
-        merge_args = ['-merge=1', '-merge_control_file=' + merge_control_file]
+        merge_args = ["-merge=1", "-merge_control_file=" + merge_control_file]
         self.run(merge_args + fuzzer_args)
 
         # Cleanup
-        self.device.rm(self.data_path('.mergefile'))
-        self.device.rm(self.data_path('corpus.prev'), recursive=True)
+        self.device.rm(self.data_path(".mergefile"))
+        self.device.rm(self.data_path("corpus.prev"), recursive=True)
         return self.measure_corpus()

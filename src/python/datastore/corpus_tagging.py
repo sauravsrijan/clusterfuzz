@@ -19,8 +19,10 @@ from datastore import data_types
 def get_fuzz_target_tags(fully_qualified_fuzz_target_name):
     """Get all the tags of a given fuzz target."""
     query = data_types.CorpusTag().query()
-    query = query.filter(data_types.CorpusTag.fully_qualified_fuzz_target_name ==
-                         fully_qualified_fuzz_target_name)
+    query = query.filter(
+        data_types.CorpusTag.fully_qualified_fuzz_target_name
+        == fully_qualified_fuzz_target_name
+    )
     return query.fetch()
 
 
@@ -38,8 +40,8 @@ def get_similarly_tagged_fuzzers(current_fully_qualified_fuzzer_name):
         targets = [
             target.fully_qualified_fuzz_target_name
             for target in get_targets_with_tag(tag.tag)
-            if target.fully_qualified_fuzz_target_name !=
-            current_fully_qualified_fuzzer_name
+            if target.fully_qualified_fuzz_target_name
+            != current_fully_qualified_fuzzer_name
         ]
         if targets:
             similarly_tagged_targets[tag.tag] = targets

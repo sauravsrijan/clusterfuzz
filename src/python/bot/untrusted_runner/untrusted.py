@@ -74,7 +74,7 @@ def wrap_servicer(func):
         # Check if there is a in-progress RPC.
         with _rpc_count_lock:
             if _rpc_count > 0:
-                logs.log_error('Hung RPC detected, shutting down.')
+                logs.log_error("Hung RPC detected, shutting down.")
                 _worker_state.shutting_down.set()
                 return None
 
@@ -97,8 +97,7 @@ def wrap_servicer(func):
     return wrapper
 
 
-class UntrustedRunnerServicer(
-        untrusted_runner_pb2_grpc.UntrustedRunnerServicer):
+class UntrustedRunnerServicer(untrusted_runner_pb2_grpc.UntrustedRunnerServicer):
     """Untrusted runner implementation."""
 
     @wrap_servicer
@@ -106,7 +105,8 @@ class UntrustedRunnerServicer(
         return untrusted_runner_pb2.GetStatusResponse(
             revision=utils.current_source_version(),
             start_time=_worker_state.start_time,
-            bot_name=environment.get_value('BOT_NAME'))
+            bot_name=environment.get_value("BOT_NAME"),
+        )
 
     @wrap_servicer
     def SetupRegularBuild(self, request, _):
@@ -165,7 +165,9 @@ class UntrustedRunnerServicer(
         return symbolize.symbolize_stacktrace(request)
 
     @wrap_servicer
-    def TerminateStaleApplicationInstances(self, request, context):  # pylint: disable=unused-argument
+    def TerminateStaleApplicationInstances(
+        self, request, context
+    ):  # pylint: disable=unused-argument
         process_handler.terminate_stale_application_instances()
         return untrusted_runner_pb2.TerminateStaleApplicationInstancesResponse()
 
@@ -200,24 +202,23 @@ class HeartbeatServicer(heartbeat_pb2_grpc.HeartbeatServicer):
 def _get_tls_cert_and_key():
     """Get the TLS cert from instance metadata."""
     # TODO(ochang): Implement a fake metadata server for testing.
-    local_cert_location = environment.get_value(
-        'UNTRUSTED_TLS_CERT_FOR_TESTING')
-    local_key_location = environment.get_value('UNTRUSTED_TLS_KEY_FOR_TESTING')
+    local_cert_location = environment.get_value("UNTRUSTED_TLS_CERT_FOR_TESTING")
+    local_key_location = environment.get_value("UNTRUSTED_TLS_KEY_FOR_TESTING")
 
     if local_cert_location and local_key_location:
-        with open(local_cert_location, 'rb') as f:
+        with open(local_cert_location, "rb") as f:
             cert_contents = f.read()
 
-        with open(local_key_location, 'rb') as f:
+        with open(local_key_location, "rb") as f:
             key_contents = f.read()
 
         return cert_contents, key_contents
 
     # TODO(mbarbella): Remove this after migrating to Python 3. The grpc library
     # has explicit type checks against str.
-    cert_contents = str(compute_metadata.get('instance/attributes/tls-cert'))
+    cert_contents = str(compute_metadata.get("instance/attributes/tls-cert"))
     cert_contents = utils.newstr_to_native_str(cert_contents)
-    key_contents = str(compute_metadata.get('instance/attributes/tls-key'))
+    key_contents = str(compute_metadata.get("instance/attributes/tls-key"))
     key_contents = utils.newstr_to_native_str(key_contents)
     return cert_contents, key_contents
 
@@ -230,29 +231,30 @@ def start_server():
 
     cert_contents, key_contents = _get_tls_cert_and_key()
     assert cert_contents and key_contents
-    server_credentials = grpc.ssl_server_credentials([(key_contents,
-                                                       cert_contents)])
+    server_credentials = grpc.ssl_server_credentials([(key_contents, cert_contents)])
     _worker_state.server = grpc.server(
         futures.ThreadPoolExecutor(max_workers=config.NUM_WORKER_THREADS),
-        options=config.GRPC_OPTIONS)
+        options=config.GRPC_OPTIONS,
+    )
 
     untrusted_runner_pb2_grpc.add_UntrustedRunnerServicer_to_server(
-        UntrustedRunnerServicer(), _worker_state.server)
-    heartbeat_pb2_grpc.add_HeartbeatServicer_to_server(HeartbeatServicer(),
-                                                       _worker_state.server)
+        UntrustedRunnerServicer(), _worker_state.server
+    )
+    heartbeat_pb2_grpc.add_HeartbeatServicer_to_server(
+        HeartbeatServicer(), _worker_state.server
+    )
 
-    _worker_state.server.add_secure_port('[::]:%d' % config.PORT,
-                                         server_credentials)
+    _worker_state.server.add_secure_port("[::]:%d" % config.PORT, server_credentials)
 
     _worker_state.start_time = int(time.time())
     _worker_state.server.start()
 
-    logs.log('Server started.')
+    logs.log("Server started.")
 
     # Run forever until shutdown.
     _worker_state.shutting_down.wait()
 
-    logs.log('Server shutting down.')
+    logs.log("Server shutting down.")
     stopped = _worker_state.server.stop(SHUTDOWN_GRACE_SECONDS)
     stopped.wait()
 

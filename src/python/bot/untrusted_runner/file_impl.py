@@ -44,7 +44,8 @@ def list_files(request, _):
                 file_paths.append(os.path.join(root, filename))
     else:
         file_paths.extend(
-            os.path.join(request.path, path) for path in os.listdir(request.path))
+            os.path.join(request.path, path) for path in os.listdir(request.path)
+        )
 
     return untrusted_runner_pb2.ListFilesResponse(file_paths=file_paths)
 
@@ -52,7 +53,7 @@ def list_files(request, _):
 def copy_file_to_worker(request_iterator, context):
     """Copy file from host to worker."""
     metadata = dict(context.invocation_metadata())
-    path = metadata['path-bin'].decode('utf-8')
+    path = metadata["path-bin"].decode("utf-8")
 
     # Create intermediate directories if needed.
     directory = os.path.dirname(path)
@@ -74,13 +75,13 @@ def copy_file_from_worker(request, context):
     """Copy file from worker to host."""
     path = request.path
     if not os.path.isfile(path):
-        context.set_trailing_metadata([('result', 'invalid-path')])
+        context.set_trailing_metadata([("result", "invalid-path")])
         return
 
-    with open(path, 'rb') as f:
+    with open(path, "rb") as f:
         for chunk in file_utils.file_chunk_generator(f):
             yield chunk
-    context.set_trailing_metadata([('result', 'ok')])
+    context.set_trailing_metadata([("result", "ok")])
 
 
 def stat(request, _):
@@ -95,11 +96,13 @@ def stat(request, _):
         st_size=stat_result.st_size,
         st_atime=stat_result.st_atime,
         st_mtime=stat_result.st_mtime,
-        st_ctime=stat_result.st_ctime)
+        st_ctime=stat_result.st_ctime,
+    )
 
 
 def get_fuzz_targets(request, _):
     """Get list of fuzz targets."""
     fuzz_target_paths = fuzzers_utils.get_fuzz_targets_local(request.path)
     return untrusted_runner_pb2.GetFuzzTargetsResponse(
-        fuzz_target_paths=fuzz_target_paths)
+        fuzz_target_paths=fuzz_target_paths
+    )

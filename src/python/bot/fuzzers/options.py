@@ -26,10 +26,11 @@ from builtins import object
 from builtins import str
 
 from future import standard_library
+
 standard_library.install_aliases()
 
 
-OPTIONS_FILE_EXTENSION = '.options'
+OPTIONS_FILE_EXTENSION = ".options"
 
 # Whitelist for env variables .options files can set.
 ENV_VAR_WHITELIST = set([afl_constants.DONT_DEFER_ENV_VAR])
@@ -74,18 +75,17 @@ class FuzzerArguments(object):
 
     def list(self):
         """Return arguments as a list."""
-        return ['-%s=%s' % (key, value) for key, value in six.iteritems(self.flags)]
+        return ["-%s=%s" % (key, value) for key, value in six.iteritems(self.flags)]
 
 
 class FuzzerOptions(object):
     """Represents fuzzer and related options."""
 
-    OPTIONS_RANDOM_REGEX = re.compile(
-        r'^\s*random\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*$')
+    OPTIONS_RANDOM_REGEX = re.compile(r"^\s*random\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*$")
 
     def __init__(self, options_file_path, cwd=None):
         if not os.path.exists(options_file_path):
-            raise FuzzerOptionsException('fuzzer options file does not exist.')
+            raise FuzzerOptionsException("fuzzer options file does not exist.")
 
         if cwd:
             self._cwd = cwd
@@ -93,12 +93,11 @@ class FuzzerOptions(object):
             self._cwd = os.path.dirname(options_file_path)
 
         self._config = configparser.ConfigParser()
-        with open(options_file_path, 'r') as f:
+        with open(options_file_path, "r") as f:
             try:
                 self._config.read_file(f)
             except configparser.Error:
-                raise FuzzerOptionsException(
-                    'Failed to parse fuzzer options file.')
+                raise FuzzerOptionsException("Failed to parse fuzzer options file.")
 
     def _get_dict_path(self, relative_dict_path):
         """Return a full path to the dictionary."""
@@ -117,7 +116,7 @@ class FuzzerOptions(object):
         Variables are assumed to contain no lower case letters.
         """
         env = {}
-        for var_name, var_value in six.iteritems(self._get_option_section('env')):
+        for var_name, var_value in six.iteritems(self._get_option_section("env")):
 
             var_name = var_name.upper()
             if var_name in ENV_VAR_WHITELIST:
@@ -129,15 +128,17 @@ class FuzzerOptions(object):
         """Return a list of fuzzer options."""
         arguments = {}
         for option_name, option_value in six.iteritems(
-                self._get_option_section(engine)):
+            self._get_option_section(engine)
+        ):
             # Check option value for usage of random() function.
             match = self.OPTIONS_RANDOM_REGEX.match(option_value)
             if match:
                 min_value, max_value = match.groups()
-                option_value = str(random.SystemRandom().randint(
-                    int(min_value), int(max_value)))
+                option_value = str(
+                    random.SystemRandom().randint(int(min_value), int(max_value))
+                )
 
-            if option_name == 'dict':
+            if option_name == "dict":
                 option_value = self._get_dict_path(option_value)
 
             arguments[option_name] = option_value
@@ -146,30 +147,32 @@ class FuzzerOptions(object):
 
     def get_asan_options(self):
         """Return a list of ASAN_OPTIONS overrides."""
-        return self._get_option_section('asan')
+        return self._get_option_section("asan")
 
     def get_msan_options(self):
         """Return a list of MSAN_OPTIONS overrides."""
-        return self._get_option_section('msan')
+        return self._get_option_section("msan")
 
     def get_ubsan_options(self):
         """Return a list of UBSAN_OPTIONS overrides."""
-        return self._get_option_section('ubsan')
+        return self._get_option_section("ubsan")
 
     def get_grammar_options(self):
         """Return a list og grammar options"""
-        return self._get_option_section('grammar')
+        return self._get_option_section("grammar")
 
 
 def get_fuzz_target_options(fuzz_target_path):
     """Return a FuzzerOptions for the given target, or None if it does not
     exist."""
-    options_file_path = fuzzer_utils.get_supporting_file(fuzz_target_path,
-                                                         OPTIONS_FILE_EXTENSION)
+    options_file_path = fuzzer_utils.get_supporting_file(
+        fuzz_target_path, OPTIONS_FILE_EXTENSION
+    )
 
     if environment.is_trusted_host():
         options_file_path = fuzzer_utils.get_file_from_untrusted_worker(
-            options_file_path)
+            options_file_path
+        )
 
     if not os.path.exists(options_file_path):
         return None
@@ -179,5 +182,5 @@ def get_fuzz_target_options(fuzz_target_path):
     try:
         return FuzzerOptions(options_file_path, cwd=options_cwd)
     except FuzzerOptionsException:
-        logs.log_error('Invalid options file: %s.' % options_file_path)
+        logs.log_error("Invalid options file: %s." % options_file_path)
         return None

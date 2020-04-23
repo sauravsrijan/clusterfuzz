@@ -26,6 +26,7 @@ import shutil
 import os
 from builtins import str
 from future import standard_library
+
 standard_library.install_aliases()
 
 
@@ -35,116 +36,111 @@ class RedoTestcaseTest(unittest.TestCase):
     def test_invalid_task(self):
         """Raise an exception on an invalid task."""
         with self.assertRaises(tasks.InvalidRedoTask) as cm:
-            tasks.redo_testcase(None, ['blame', 'rand'], 'test@user.com')
+            tasks.redo_testcase(None, ["blame", "rand"], "test@user.com")
 
         self.assertEqual("The task 'rand' is invalid.", str(cm.exception))
 
 
 @test_utils.integration
-@test_utils.with_cloud_emulators('datastore', 'pubsub')
+@test_utils.with_cloud_emulators("datastore", "pubsub")
 class GetTaskTest(unittest.TestCase):
     """GetTask tests."""
 
     def setUp(self):
         helpers.patch_environ(self)
-        helpers.patch(self, [
-            'base.persistent_cache.get_value',
-            'base.persistent_cache.set_value',
-            'base.utils.utcnow',
-            'time.sleep',
-        ])
+        helpers.patch(
+            self,
+            [
+                "base.persistent_cache.get_value",
+                "base.persistent_cache.set_value",
+                "base.utils.utcnow",
+                "time.sleep",
+            ],
+        )
 
         self.mock.get_value.return_value = None
         self.mock.sleep.return_value = None
 
         client = pubsub.PubSubClient()
-        topic = pubsub.topic_name('test-clusterfuzz', 'jobs-linux')
+        topic = pubsub.topic_name("test-clusterfuzz", "jobs-linux")
         client.create_topic(topic)
         client.create_subscription(
-            pubsub.subscription_name('test-clusterfuzz', 'jobs-linux'), topic)
+            pubsub.subscription_name("test-clusterfuzz", "jobs-linux"), topic
+        )
 
-        topic = pubsub.topic_name('test-clusterfuzz', 'high-end-jobs-linux')
+        topic = pubsub.topic_name("test-clusterfuzz", "high-end-jobs-linux")
         client.create_topic(topic)
         client.create_subscription(
-            pubsub.subscription_name(
-                'test-clusterfuzz', 'high-end-jobs-linux'),
-            topic)
+            pubsub.subscription_name("test-clusterfuzz", "high-end-jobs-linux"), topic
+        )
 
-        self.mock.utcnow.return_value = test_utils.CURRENT_TIME.replace(
-            microsecond=0)
+        self.mock.utcnow.return_value = test_utils.CURRENT_TIME.replace(microsecond=0)
 
     def test_high_end(self):
         """Test high end tasks."""
-        environment.set_value('THREAD_MULTIPLIER', 4)
-        tasks.add_task(
-            'test', 'high', 'job', queue='high-end-jobs-linux', wait_time=0)
-        tasks.add_task('test', 'normal', 'job',
-                       queue='jobs-linux', wait_time=0)
+        environment.set_value("THREAD_MULTIPLIER", 4)
+        tasks.add_task("test", "high", "job", queue="high-end-jobs-linux", wait_time=0)
+        tasks.add_task("test", "normal", "job", queue="jobs-linux", wait_time=0)
 
         task = tasks.get_task()
-        self.assertEqual('test', task.command)
-        self.assertEqual('high', task.argument)
-        self.assertEqual('job', task.job)
-        self.assertEqual('test high job', task.payload())
+        self.assertEqual("test", task.command)
+        self.assertEqual("high", task.argument)
+        self.assertEqual("job", task.job)
+        self.assertEqual("test high job", task.payload())
 
     def test_regular(self):
         """Test regular tasks."""
-        environment.set_value('THREAD_MULTIPLIER', 1)
-        tasks.add_task(
-            'test', 'high', 'job', queue='high-end-jobs-linux', wait_time=0)
-        tasks.add_task('test', 'normal', 'job',
-                       queue='jobs-linux', wait_time=0)
+        environment.set_value("THREAD_MULTIPLIER", 1)
+        tasks.add_task("test", "high", "job", queue="high-end-jobs-linux", wait_time=0)
+        tasks.add_task("test", "normal", "job", queue="jobs-linux", wait_time=0)
 
         task = tasks.get_task()
-        self.assertEqual('test', task.command)
-        self.assertEqual('normal', task.argument)
-        self.assertEqual('job', task.job)
-        self.assertEqual('test normal job', task.payload())
+        self.assertEqual("test", task.command)
+        self.assertEqual("normal", task.argument)
+        self.assertEqual("job", task.job)
+        self.assertEqual("test normal job", task.payload())
 
     def test_preemptible(self):
         """Test preemptible bot tasks."""
-        environment.set_value('PREEMPTIBLE', True)
-        environment.set_value('THREAD_MULTIPLIER', 1)
-        tasks.add_task(
-            'test', 'high', 'job', queue='high-end-jobs-linux', wait_time=0)
-        tasks.add_task('test', 'normal', 'job',
-                       queue='jobs-linux', wait_time=0)
+        environment.set_value("PREEMPTIBLE", True)
+        environment.set_value("THREAD_MULTIPLIER", 1)
+        tasks.add_task("test", "high", "job", queue="high-end-jobs-linux", wait_time=0)
+        tasks.add_task("test", "normal", "job", queue="jobs-linux", wait_time=0)
 
         task = tasks.get_task()
         self.assertIsNone(task)
 
     def test_defer(self):
         """Test deferring tasks which shouldn't be run yet."""
-        tasks.add_task('test', 'normal1', 'job', wait_time=60)
-        tasks.add_task('test', 'normal2', 'job', wait_time=600)
-        tasks.add_task('test', 'normal3', 'job', wait_time=700)
-        tasks.add_task('test', 'normal4', 'job', wait_time=0)
+        tasks.add_task("test", "normal1", "job", wait_time=60)
+        tasks.add_task("test", "normal2", "job", wait_time=600)
+        tasks.add_task("test", "normal3", "job", wait_time=700)
+        tasks.add_task("test", "normal4", "job", wait_time=0)
 
-        with mock.patch.object(pubsub.ReceivedMessage,
-                               'modify_ack_deadline') as mock_modify:
+        with mock.patch.object(
+            pubsub.ReceivedMessage, "modify_ack_deadline"
+        ) as mock_modify:
             task = tasks.get_task()
-            self.assertEqual('test', task.command)
-            self.assertEqual('normal4', task.argument)
-            self.assertEqual('job', task.job)
-            self.assertEqual('test normal4 job', task.payload())
+            self.assertEqual("test", task.command)
+            self.assertEqual("normal4", task.argument)
+            self.assertEqual("job", task.job)
+            self.assertEqual("test normal4 job", task.payload())
 
             self.assertEqual(3, mock_modify.call_count)
-            mock_modify.assert_has_calls([
-                mock.call(60),
-                mock.call(600),
-                mock.call(600),
-            ])
+            mock_modify.assert_has_calls(
+                [mock.call(60), mock.call(600), mock.call(600),]
+            )
 
     def test_command_override(self):
         """Test command override."""
-        environment.set_value('COMMAND_OVERRIDE', 'test override job')
-        tasks.add_task('test', 'normal', 'job', wait_time=0)
+        environment.set_value("COMMAND_OVERRIDE", "test override job")
+        tasks.add_task("test", "normal", "job", wait_time=0)
 
         task = tasks.get_task()
-        self.assertEqual('test', task.command)
-        self.assertEqual('override', task.argument)
-        self.assertEqual('job', task.job)
-        self.assertEqual('test override job', task.payload())
+        self.assertEqual("test", task.command)
+        self.assertEqual("override", task.argument)
+        self.assertEqual("job", task.job)
+        self.assertEqual("test override job", task.payload())
 
 
 class LeaseTaskTest(unittest.TestCase):
@@ -153,13 +149,10 @@ class LeaseTaskTest(unittest.TestCase):
     def setUp(self):
         helpers.patch_environ(self)
 
-        helpers.patch(self, [
-            'datastore.data_handler.update_heartbeat',
-            'time.time',
-        ])
+        helpers.patch(self, ["datastore.data_handler.update_heartbeat", "time.time",])
 
         self.temp_dir = tempfile.mkdtemp()
-        os.environ['CACHE_DIR'] = self.temp_dir
+        os.environ["CACHE_DIR"] = self.temp_dir
         self.mock.time.return_value = 1337
 
     def tearDown(self):
@@ -169,22 +162,22 @@ class LeaseTaskTest(unittest.TestCase):
         """Test leasing a task and finishing before the latest time."""
         message = mock.MagicMock()
         message.attributes = {
-            'command': 'cmd',
-            'argument': 'arg',
-            'job': 'job',
-            'eta': time.time(),
+            "command": "cmd",
+            "argument": "arg",
+            "job": "job",
+            "eta": time.time(),
         }
 
         task = tasks.PubSubTask(message)
         self.mock.time.side_effect = [0, 0, 0, 600, 1200]
 
         with task.lease() as thread:
-            self.assertEqual('21600', os.environ['TASK_LEASE_SECONDS'])
+            self.assertEqual("21600", os.environ["TASK_LEASE_SECONDS"])
 
         self.assertEqual(1, message.modify_ack_deadline.call_count)
-        message.modify_ack_deadline.assert_has_calls([
-            mock.call(600),
-        ])
+        message.modify_ack_deadline.assert_has_calls(
+            [mock.call(600),]
+        )
 
         self.assertFalse(thread.is_alive())
         self.assertEqual(1, message.ack.call_count)
@@ -193,10 +186,10 @@ class LeaseTaskTest(unittest.TestCase):
         """Test leasing a task and reaching the maximum lease time."""
         message = mock.MagicMock()
         message.attributes = {
-            'command': 'cmd',
-            'argument': 'arg',
-            'job': 'job',
-            'eta': time.time(),
+            "command": "cmd",
+            "argument": "arg",
+            "job": "job",
+            "eta": time.time(),
         }
 
         task = tasks.PubSubTask(message)
@@ -204,20 +197,23 @@ class LeaseTaskTest(unittest.TestCase):
         event = mock.MagicMock()
         event.wait.side_effect = [False, False, False]
         self.mock.time.side_effect = [
-            0, 0, 0, 600, tasks.TASK_LEASE_SECONDS - 30, tasks.TASK_LEASE_SECONDS
+            0,
+            0,
+            0,
+            600,
+            tasks.TASK_LEASE_SECONDS - 30,
+            tasks.TASK_LEASE_SECONDS,
         ]
 
         with task.lease(_event=event) as thread:
-            self.assertEqual('21600', os.environ['TASK_LEASE_SECONDS'])
+            self.assertEqual("21600", os.environ["TASK_LEASE_SECONDS"])
             thread.join()
 
         self.assertEqual(3, message.modify_ack_deadline.call_count)
         # Last extension should be until TASK_LEASE_SECONDS.
-        message.modify_ack_deadline.assert_has_calls([
-            mock.call(600),
-            mock.call(600),
-            mock.call(30),
-        ])
+        message.modify_ack_deadline.assert_has_calls(
+            [mock.call(600), mock.call(600), mock.call(30),]
+        )
 
         self.assertEqual(1, message.ack.call_count)
         self.assertFalse(thread.is_alive())
@@ -226,10 +222,10 @@ class LeaseTaskTest(unittest.TestCase):
         """Test lease with an exception during the task."""
         message = mock.MagicMock()
         message.attributes = {
-            'command': 'cmd',
-            'argument': 'arg',
-            'job': 'job',
-            'eta': time.time(),
+            "command": "cmd",
+            "argument": "arg",
+            "job": "job",
+            "eta": time.time(),
         }
 
         task = tasks.PubSubTask(message)
@@ -245,29 +241,28 @@ class LeaseTaskTest(unittest.TestCase):
         self.assertEqual(0, message.ack.call_count)
 
 
-@test_utils.with_cloud_emulators('datastore')
+@test_utils.with_cloud_emulators("datastore")
 class QueueForTestcaseTest(unittest.TestCase):
     """Tests for queue_for_testcase."""
 
     def setUp(self):
         helpers.patch_environ(self)
 
-        data_types.Job(name='job_linux', platform='LINUX').put()
-        data_types.Job(name='job_project', platform='PROJECT_LINUX_LIB').put()
+        data_types.Job(name="job_linux", platform="LINUX").put()
+        data_types.Job(name="job_project", platform="PROJECT_LINUX_LIB").put()
 
     def test_regular_queue(self):
         """Test testcase with regular queue."""
-        t = data_types.Testcase(job_type='job_linux', queue='old')
-        self.assertEqual('jobs-linux', tasks.queue_for_testcase(t))
+        t = data_types.Testcase(job_type="job_linux", queue="old")
+        self.assertEqual("jobs-linux", tasks.queue_for_testcase(t))
 
-        t = data_types.Testcase(job_type='job_project', queue='old')
-        self.assertEqual('jobs-project-linux-lib', tasks.queue_for_testcase(t))
+        t = data_types.Testcase(job_type="job_project", queue="old")
+        self.assertEqual("jobs-project-linux-lib", tasks.queue_for_testcase(t))
 
     def test_high_end_queue(self):
         """Test testcase with high end queue."""
-        t = data_types.Testcase(job_type='job_linux', queue='high-end-jobs')
-        self.assertEqual('high-end-jobs-linux', tasks.queue_for_testcase(t))
+        t = data_types.Testcase(job_type="job_linux", queue="high-end-jobs")
+        self.assertEqual("high-end-jobs-linux", tasks.queue_for_testcase(t))
 
-        t = data_types.Testcase(job_type='job_project', queue='high-end-jobs')
-        self.assertEqual('high-end-jobs-project-linux-lib',
-                         tasks.queue_for_testcase(t))
+        t = data_types.Testcase(job_type="job_project", queue="high-end-jobs")
+        self.assertEqual("high-end-jobs-project-linux-lib", tasks.queue_for_testcase(t))

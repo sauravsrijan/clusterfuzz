@@ -32,8 +32,8 @@ from metrics import logs
 from system import environment
 
 # Task queue prefixes for various job types.
-JOBS_PREFIX = 'jobs'
-HIGH_END_JOBS_PREFIX = 'high-end-jobs'
+JOBS_PREFIX = "jobs"
+HIGH_END_JOBS_PREFIX = "high-end-jobs"
 
 # Default task queue names for various job types. These will be different for
 # different platforms with the platform name added as suffix later.
@@ -41,7 +41,7 @@ JOBS_TASKQUEUE = JOBS_PREFIX
 HIGH_END_JOBS_TASKQUEUE = HIGH_END_JOBS_PREFIX
 
 # ML job is currently supported on Linux only.
-ML_JOBS_TASKQUEUE = 'ml-jobs-linux'
+ML_JOBS_TASKQUEUE = "ml-jobs-linux"
 
 # Limits on number of tasks leased at once and in total.
 MAX_LEASED_TASKS_LIMIT = 1000
@@ -53,31 +53,31 @@ TASK_CREATION_WAIT_INTERVAL = 2 * 60
 TASK_EXCEPTION_WAIT_INTERVAL = 5 * 60
 TASK_LEASE_SECONDS = 6 * 60 * 60
 TASK_LEASE_SECONDS_BY_COMMAND = {
-    'corpus_pruning': 24 * 60 * 60,
-    'regression': 24 * 60 * 60,
+    "corpus_pruning": 24 * 60 * 60,
+    "regression": 24 * 60 * 60,
 }
 
 TASK_QUEUE_DISPLAY_NAMES = {
-    'LINUX': 'Linux',
-    'LINUX_WITH_GPU': 'Linux (with GPU)',
-    'LINUX_UNTRUSTED': 'Linux (untrusted)',
-    'ANDROID': 'Android',
-    'ANDROID_KERNEL': 'Android Kernel',
-    'ANDROID_X86': 'Android (x86)',
-    'CHROMEOS': 'Chrome OS',
-    'FUCHSIA': 'Fuchsia OS',
-    'MAC': 'Mac',
-    'WINDOWS': 'Windows',
-    'WINDOWS_WITH_GPU': 'Windows (with GPU)',
+    "LINUX": "Linux",
+    "LINUX_WITH_GPU": "Linux (with GPU)",
+    "LINUX_UNTRUSTED": "Linux (untrusted)",
+    "ANDROID": "Android",
+    "ANDROID_KERNEL": "Android Kernel",
+    "ANDROID_X86": "Android (x86)",
+    "CHROMEOS": "Chrome OS",
+    "FUCHSIA": "Fuchsia OS",
+    "MAC": "Mac",
+    "WINDOWS": "Windows",
+    "WINDOWS_WITH_GPU": "Windows (with GPU)",
 }
 
-VALID_REDO_TASKS = ['minimize', 'regression', 'progression', 'impact', 'blame']
+VALID_REDO_TASKS = ["minimize", "regression", "progression", "impact", "blame"]
 
 LEASE_FAIL_WAIT = 10
 LEASE_RETRIES = 5
 
-TASK_PAYLOAD_KEY = 'task_payload'
-TASK_END_TIME_KEY = 'task_end_time'
+TASK_PAYLOAD_KEY = "task_payload"
+TASK_END_TIME_KEY = "task_end_time"
 
 
 class Error(Exception):
@@ -85,20 +85,18 @@ class Error(Exception):
 
 
 class InvalidRedoTask(Error):
-
     def __init__(self, task):
-        super(InvalidRedoTask, self).__init__(
-            "The task '%s' is invalid." % task)
+        super(InvalidRedoTask, self).__init__("The task '%s' is invalid." % task)
 
 
 def queue_suffix_for_platform(platform):
     """Get the queue suffix for a platform."""
-    return '-' + platform.lower().replace('_', '-')
+    return "-" + platform.lower().replace("_", "-")
 
 
 def default_queue_suffix():
     """Get the queue suffix for the current platform."""
-    queue_override = environment.get_value('QUEUE_OVERRIDE')
+    queue_override = environment.get_value("QUEUE_OVERRIDE")
     if queue_override:
         return queue_suffix_for_platform(queue_override)
 
@@ -117,7 +115,7 @@ def high_end_queue():
 
 def default_queue():
     """Get the default jobs queue."""
-    thread_multiplier = environment.get_value('THREAD_MULTIPLIER')
+    thread_multiplier = environment.get_value("THREAD_MULTIPLIER")
     if thread_multiplier and thread_multiplier > 1:
         return high_end_queue()
 
@@ -126,13 +124,13 @@ def default_queue():
 
 def get_command_override():
     """Get command override task."""
-    command_override = environment.get_value('COMMAND_OVERRIDE', '').strip()
+    command_override = environment.get_value("COMMAND_OVERRIDE", "").strip()
     if not command_override:
         return None
 
     parts = command_override.split()
     if len(parts) != 3:
-        raise ValueError('Command override should have 3 components.')
+        raise ValueError("Command override should have 3 components.")
 
     return Task(*parts, is_command_override=True)
 
@@ -143,7 +141,7 @@ def get_fuzz_task():
     if not argument:
         return None
 
-    return Task('fuzz', argument, job)
+    return Task("fuzz", argument, job)
 
 
 def get_high_end_task():
@@ -165,7 +163,8 @@ def get_regular_task(queue=None):
     application_id = utils.get_application_id()
     while True:
         messages = pubsub_client.pull_from_subscription(
-            pubsub.subscription_name(application_id, queue), max_messages=1)
+            pubsub.subscription_name(application_id, queue), max_messages=1
+        )
 
         if not messages:
             return None
@@ -173,7 +172,7 @@ def get_regular_task(queue=None):
         try:
             task = PubSubTask(messages[0])
         except KeyError:
-            logs.log_error('Received an invalid task, discarding...')
+            logs.log_error("Received an invalid task, discarding...")
             messages[0].ack()
             continue
 
@@ -190,13 +189,13 @@ def get_task():
         return task
 
     # TODO(unassigned): Remove this hack.
-    if environment.get_value('ML'):
+    if environment.get_value("ML"):
         return get_regular_task(queue=ML_JOBS_TASKQUEUE)
 
-    allow_all_tasks = not environment.get_value('PREEMPTIBLE')
+    allow_all_tasks = not environment.get_value("PREEMPTIBLE")
     if allow_all_tasks:
         # Check the high-end jobs queue for bots with multiplier greater than 1.
-        thread_multiplier = environment.get_value('THREAD_MULTIPLIER')
+        thread_multiplier = environment.get_value("THREAD_MULTIPLIER")
         if thread_multiplier and thread_multiplier > 1:
             task = get_high_end_task()
             if task:
@@ -208,8 +207,7 @@ def get_task():
 
     task = get_fuzz_task()
     if not task:
-        logs.log_error(
-            'Failed to get any fuzzing tasks. This should not happen.')
+        logs.log_error("Failed to get any fuzzing tasks. This should not happen.")
         time.sleep(TASK_EXCEPTION_WAIT_INTERVAL)
 
     return task
@@ -218,13 +216,15 @@ def get_task():
 class Task(object):
     """Represents a task."""
 
-    def __init__(self,
-                 command,
-                 argument,
-                 job,
-                 eta=None,
-                 is_command_override=False,
-                 high_end=False):
+    def __init__(
+        self,
+        command,
+        argument,
+        job,
+        eta=None,
+        is_command_override=False,
+        high_end=False,
+    ):
         self.command = command
         self.argument = argument
         self.job = job
@@ -237,18 +237,18 @@ class Task(object):
 
     def payload(self):
         """Get the payload."""
-        return ' '.join([self.command, self.argument, self.job])
+        return " ".join([self.command, self.argument, self.job])
 
     def to_pubsub_message(self):
         """Convert the task to a pubsub message."""
         attributes = {
-            'command': self.command,
-            'argument': str(self.argument),
-            'job': self.job,
+            "command": self.command,
+            "argument": str(self.argument),
+            "job": self.job,
         }
 
         if self.eta:
-            attributes['eta'] = str(utils.utc_datetime_to_timestamp(self.eta))
+            attributes["eta"] = str(utils.utc_datetime_to_timestamp(self.eta))
 
         return pubsub.Message(attributes=attributes)
 
@@ -267,11 +267,10 @@ class PubSubTask(Task):
     def __init__(self, pubsub_message):
         self._pubsub_message = pubsub_message
         super(PubSubTask, self).__init__(
-            self.attribute('command'), self.attribute('argument'),
-            self.attribute('job'))
+            self.attribute("command"), self.attribute("argument"), self.attribute("job")
+        )
 
-        self.eta = datetime.datetime.utcfromtimestamp(
-            float(self.attribute('eta')))
+        self.eta = datetime.datetime.utcfromtimestamp(float(self.attribute("eta")))
 
     def attribute(self, key):
         """Return attribute value."""
@@ -287,23 +286,26 @@ class PubSubTask(Task):
         time_until_eta = int((self.eta - now).total_seconds())
         logs.log('Deferring task "%s".' % self.payload())
         self._pubsub_message.modify_ack_deadline(
-            min(pubsub.MAX_ACK_DEADLINE, time_until_eta))
+            min(pubsub.MAX_ACK_DEADLINE, time_until_eta)
+        )
         return True
 
     @contextlib.contextmanager
     def lease(self, _event=None):  # pylint: disable=arguments-differ
         """Maintain a lease for the task."""
         task_lease_timeout = TASK_LEASE_SECONDS_BY_COMMAND.get(
-            self.command, TASK_LEASE_SECONDS)
+            self.command, TASK_LEASE_SECONDS
+        )
 
-        environment.set_value('TASK_LEASE_SECONDS', task_lease_timeout)
+        environment.set_value("TASK_LEASE_SECONDS", task_lease_timeout)
         track_task_start(self, task_lease_timeout)
 
         if _event is None:
             _event = threading.Event()
 
-        leaser_thread = _PubSubLeaserThread(self._pubsub_message, _event,
-                                            task_lease_timeout)
+        leaser_thread = _PubSubLeaserThread(
+            self._pubsub_message, _event, task_lease_timeout
+        )
         leaser_thread.start()
         try:
             yield leaser_thread
@@ -337,14 +339,17 @@ class _PubSubLeaserThread(threading.Thread):
             try:
                 time_left = latest_end_time - time.time()
                 if time_left <= 0:
-                    logs.log('Lease reached maximum lease time of {} seconds, '
-                             'stopping renewal.'.format(self._max_lease_seconds))
+                    logs.log(
+                        "Lease reached maximum lease time of {} seconds, "
+                        "stopping renewal.".format(self._max_lease_seconds)
+                    )
                     break
 
                 extension_seconds = min(self.EXTENSION_TIME_SECONDS, time_left)
 
                 logs.log(
-                    'Renewing lease for task by {} seconds.'.format(extension_seconds))
+                    "Renewing lease for task by {} seconds.".format(extension_seconds)
+                )
                 self._message.modify_ack_deadline(extension_seconds)
 
                 # Schedule renewals earlier than the extension to avoid race conditions
@@ -353,10 +358,10 @@ class _PubSubLeaserThread(threading.Thread):
 
                 # Wait until the next scheduled renewal, or if the task is complete.
                 if self._done_event.wait(wait_seconds):
-                    logs.log('Task complete, stopping renewal.')
+                    logs.log("Task complete, stopping renewal.")
                     break
             except Exception:
-                logs.log_error('Leaser thread failed.')
+                logs.log_error("Leaser thread failed.")
 
 
 def add_task(command, argument, job_type, queue=None, wait_time=None):
@@ -374,16 +379,15 @@ def add_task(command, argument, job_type, queue=None, wait_time=None):
     task = Task(command, argument, job_type, eta=eta)
     pubsub_client = pubsub.PubSubClient()
     pubsub_client.publish(
-        pubsub.topic_name(utils.get_application_id(), queue),
-        [task.to_pubsub_message()])
+        pubsub.topic_name(utils.get_application_id(), queue), [task.to_pubsub_message()]
+    )
 
 
 def get_task_completion_deadline():
     """Return task completion deadline. This gives an additional buffer over the
     task lease deadline."""
     start_time = time.time()
-    task_lease_timeout = environment.get_value('TASK_LEASE_SECONDS',
-                                               TASK_LEASE_SECONDS)
+    task_lease_timeout = environment.get_value("TASK_LEASE_SECONDS", TASK_LEASE_SECONDS)
     return start_time + task_lease_timeout - TASK_COMPLETION_BUFFER
 
 
@@ -403,7 +407,7 @@ def queue_for_job(job_name, is_high_end=False):
     """Queue for job."""
     job = data_types.Job.query(data_types.Job.name == job_name).get()
     if not job:
-        raise Error('Job {} not found.'.format(job_name))
+        raise Error("Job {} not found.".format(job_name))
 
     return queue_for_platform(job.platform, is_high_end)
 
@@ -414,92 +418,110 @@ def redo_testcase(testcase, tasks, user_email):
         if task not in VALID_REDO_TASKS:
             raise InvalidRedoTask(task)
 
-    minimize = 'minimize' in tasks
-    regression = 'regression' in tasks
-    progression = 'progression' in tasks
-    impact = 'impact' in tasks
-    blame = 'blame' in tasks
+    minimize = "minimize" in tasks
+    regression = "regression" in tasks
+    progression = "progression" in tasks
+    impact = "impact" in tasks
+    blame = "blame" in tasks
 
     task_list = []
     testcase_id = testcase.key.id()
 
     # Metadata keys to clear based on which redo tasks were selected.
-    metadata_keys_to_clear = ['potentially_flaky']
+    metadata_keys_to_clear = ["potentially_flaky"]
 
     if minimize:
-        task_list.append('minimize')
-        testcase.minimized_keys = ''
-        testcase.set_metadata('redo_minimize', True, update_testcase=False)
+        task_list.append("minimize")
+        testcase.minimized_keys = ""
+        testcase.set_metadata("redo_minimize", True, update_testcase=False)
         metadata_keys_to_clear += [
-            'env', 'current_minimization_phase_attempts', 'minimization_phase'
+            "env",
+            "current_minimization_phase_attempts",
+            "minimization_phase",
         ]
 
         # If this testcase was archived during minimization, update the state.
         testcase.archive_state &= ~data_types.ArchiveStatus.MINIMIZED
 
     if regression:
-        task_list.append('regression')
-        testcase.regression = ''
-        metadata_keys_to_clear += ['last_regression_min',
-                                   'last_regression_max']
+        task_list.append("regression")
+        testcase.regression = ""
+        metadata_keys_to_clear += ["last_regression_min", "last_regression_max"]
 
     if progression:
-        task_list.append('progression')
-        testcase.fixed = ''
+        task_list.append("progression")
+        testcase.fixed = ""
         testcase.open = True
         testcase.last_tested_crash_stacktrace = None
         testcase.triaged = False
-        testcase.set_metadata('progression_pending',
-                              True, update_testcase=False)
+        testcase.set_metadata("progression_pending", True, update_testcase=False)
         metadata_keys_to_clear += [
-            'last_progression_min', 'last_progression_max', 'last_tested_revision'
+            "last_progression_min",
+            "last_progression_max",
+            "last_tested_revision",
         ]
 
     if impact:
-        task_list.append('impact')
+        task_list.append("impact")
         testcase.is_impact_set_flag = False
 
     if blame:
-        task_list.append('blame')
-        testcase.set_metadata('blame_pending', True, update_testcase=False)
-        testcase.set_metadata('predator_result', None, update_testcase=False)
+        task_list.append("blame")
+        testcase.set_metadata("blame_pending", True, update_testcase=False)
+        testcase.set_metadata("predator_result", None, update_testcase=False)
 
     for key in metadata_keys_to_clear:
         testcase.delete_metadata(key, update_testcase=False)
 
-    testcase.comments += '[%s] %s: Redo task(s): %s\n' % (
-        utils.current_date_time(), user_email, ', '.join(sorted(task_list)))
+    testcase.comments += "[%s] %s: Redo task(s): %s\n" % (
+        utils.current_date_time(),
+        user_email,
+        ", ".join(sorted(task_list)),
+    )
     testcase.one_time_crasher_flag = False
     testcase.put()
 
     # Allow new notifications to be sent for this testcase.
     notifications = ndb_utils.get_all_from_query(
         data_types.Notification.query(
-            data_types.Notification.testcase_id == testcase.key.id()),
-        keys_only=True)
+            data_types.Notification.testcase_id == testcase.key.id()
+        ),
+        keys_only=True,
+    )
     ndb_utils.delete_multi(notifications)
 
     # If we are re-doing minimization, other tasks will be done automatically
     # after minimization completes. So, don't add those tasks.
     if minimize:
-        add_task('minimize', testcase_id, testcase.job_type,
-                 queue_for_testcase(testcase))
+        add_task(
+            "minimize", testcase_id, testcase.job_type, queue_for_testcase(testcase)
+        )
     else:
         if regression:
-            add_task('regression', testcase_id, testcase.job_type,
-                     queue_for_testcase(testcase))
+            add_task(
+                "regression",
+                testcase_id,
+                testcase.job_type,
+                queue_for_testcase(testcase),
+            )
 
         if progression:
-            add_task('progression', testcase_id, testcase.job_type,
-                     queue_for_testcase(testcase))
+            add_task(
+                "progression",
+                testcase_id,
+                testcase.job_type,
+                queue_for_testcase(testcase),
+            )
 
         if impact:
-            add_task('impact', testcase_id, testcase.job_type,
-                     queue_for_testcase(testcase))
+            add_task(
+                "impact", testcase_id, testcase.job_type, queue_for_testcase(testcase)
+            )
 
         if blame:
-            add_task('blame', testcase_id, testcase.job_type,
-                     queue_for_testcase(testcase))
+            add_task(
+                "blame", testcase_id, testcase.job_type, queue_for_testcase(testcase)
+            )
 
 
 def get_task_payload():
@@ -510,7 +532,8 @@ def get_task_payload():
 def get_task_end_time():
     """Return current task end time."""
     return persistent_cache.get_value(
-        TASK_END_TIME_KEY, constructor=datetime.datetime.utcfromtimestamp)
+        TASK_END_TIME_KEY, constructor=datetime.datetime.utcfromtimestamp
+    )
 
 
 def track_task_start(task, task_duration):
@@ -520,6 +543,7 @@ def track_task_start(task, task_duration):
 
     # Don't wait on |run_heartbeat|, update task information as soon as it starts.
     from datastore import data_handler
+
     data_handler.update_heartbeat(force_update=True)
 
 
@@ -530,4 +554,5 @@ def track_task_end():
 
     # Don't wait on |run_heartbeat|, remove task information as soon as it ends.
     from datastore import data_handler
+
     data_handler.update_heartbeat(force_update=True)

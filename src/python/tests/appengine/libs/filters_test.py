@@ -25,43 +25,36 @@ class ExtractKeywordFieldTest(unittest.TestCase):
     """Test extact_keyword_field."""
 
     def _test(self, keyword, expected_rest, expected_value):
-        rest, value = filters.extract_keyword_field(keyword, 'field')
+        rest, value = filters.extract_keyword_field(keyword, "field")
         self.assertEqual(expected_rest, rest)
         self.assertEqual(expected_value, value)
 
     def test_empty(self):
         """Test empty."""
-        self._test('', '', None)
+        self._test("", "", None)
 
     def test_no_field(self):
         """There is no keyword field."""
-        self._test('key1 key2', 'key1 key2', None)
+        self._test("key1 key2", "key1 key2", None)
 
     def test_extract_field(self):
         """There is a field."""
-        self._test('keyfield:value field:value key',
-                   'keyfield:value key', 'value')
-        self._test('keyfield:value field: key', 'keyfield:value key', '')
-        self._test('keyfield:value field:value" key', 'keyfield:value key',
-                   'value"')
-        self._test("keyfield:value field:'value key", 'keyfield:value key',
-                   "'value")
+        self._test("keyfield:value field:value key", "keyfield:value key", "value")
+        self._test("keyfield:value field: key", "keyfield:value key", "")
+        self._test('keyfield:value field:value" key', "keyfield:value key", 'value"')
+        self._test("keyfield:value field:'value key", "keyfield:value key", "'value")
 
     def test_extract_field_single_quote(self):
         """There is a field with single quotes."""
-        self._test("keyfield:value field:'val ue' key", 'keyfield:value key',
-                   'val ue')
-        self._test("keyfield:value field:'' key", 'keyfield:value key', '')
-        self._test("keyfield:value field:' \"a\" ' key", 'keyfield:value key',
-                   ' "a" ')
+        self._test("keyfield:value field:'val ue' key", "keyfield:value key", "val ue")
+        self._test("keyfield:value field:'' key", "keyfield:value key", "")
+        self._test("keyfield:value field:' \"a\" ' key", "keyfield:value key", ' "a" ')
 
     def test_extract_field_double_quote(self):
         """There is a field with double quotes."""
-        self._test('keyfield:value field:"val ue" key', 'keyfield:value key',
-                   'val ue')
-        self._test('keyfield:value field:"" key', 'keyfield:value key', '')
-        self._test('keyfield:value field:" \'a\' " key', 'keyfield:value key',
-                   " \'a\' ")
+        self._test('keyfield:value field:"val ue" key', "keyfield:value key", "val ue")
+        self._test('keyfield:value field:"" key', "keyfield:value key", "")
+        self._test("keyfield:value field:\" 'a' \" key", "keyfield:value key", " 'a' ")
 
 
 class SimpleFilterTest(unittest.TestCase):
@@ -73,17 +66,19 @@ class SimpleFilterTest(unittest.TestCase):
     def test_empty(self):
         """Test empty value."""
         fltr = filters.SimpleFilter(
-            'field', 'param', transformers=[lambda v: '1'], required=False)
-        fltr.add(self.query, {'param': ''})
+            "field", "param", transformers=[lambda v: "1"], required=False
+        )
+        fltr.add(self.query, {"param": ""})
         self.query.filter.assert_not_called()
 
     def test_empty_required(self):
         """Test required value."""
         fltr = filters.SimpleFilter(
-            'field', 'param', transformers=[lambda v: '1'], required=True)
+            "field", "param", transformers=[lambda v: "1"], required=True
+        )
 
         with self.assertRaises(helpers.EarlyExitException) as cm:
-            fltr.add(self.query, {'param': ''})
+            fltr.add(self.query, {"param": ""})
 
         self.assertEqual("'param' is required.", str(cm.exception))
         self.assertEqual(400, cm.exception.status)
@@ -92,16 +87,17 @@ class SimpleFilterTest(unittest.TestCase):
     def test_transform(self):
         """Test transform."""
         fltr = filters.SimpleFilter(
-            'field', 'param', transformers=[lambda v: '1'], required=False)
-        fltr.add(self.query, {'param': 'test'})
-        self.query.filter.assert_called_once_with('field', '1')
+            "field", "param", transformers=[lambda v: "1"], required=False
+        )
+        fltr.add(self.query, {"param": "test"})
+        self.query.filter.assert_called_once_with("field", "1")
 
 
 class StringTest(unittest.TestCase):
     """Test String."""
 
     def setUp(self):
-        self.filter = filters.String('field', 'param')
+        self.filter = filters.String("field", "param")
         self.query = mock.Mock()
 
     def test_empty(self):
@@ -111,8 +107,8 @@ class StringTest(unittest.TestCase):
 
     def test_get(self):
         """Test get stripped string."""
-        self.filter.add(self.query, {'param': ' aAa '})
-        self.query.assert_has_calls([mock.call.filter('field', 'aAa')])
+        self.filter.add(self.query, {"param": " aAa "})
+        self.query.assert_has_calls([mock.call.filter("field", "aAa")])
 
 
 class KeywordTest(unittest.TestCase):
@@ -120,68 +116,69 @@ class KeywordTest(unittest.TestCase):
 
     def setUp(self):
         fltrs = [
-            filters.String('string_field', 'string_param'),
-            filters.Int('int_field', 'int_param')
+            filters.String("string_field", "string_param"),
+            filters.Int("int_field", "int_param"),
         ]
-        self.filter = filters.Keyword(fltrs, 'field', 'param')
+        self.filter = filters.Keyword(fltrs, "field", "param")
         self.query = mock.Mock()
 
     def test_get(self):
         """Test get keyword."""
-        self.filter.add(self.query,
-                        {'param': 'aaa bbb string_param:val int_param:234'})
-        self.query.assert_has_calls([
-            mock.call.filter('string_field', 'val'),
-            mock.call.filter('int_field', 234),
-            mock.call.filter('field', 'aaa'),
-            mock.call.filter('field', 'bbb')
-        ])
+        self.filter.add(self.query, {"param": "aaa bbb string_param:val int_param:234"})
+        self.query.assert_has_calls(
+            [
+                mock.call.filter("string_field", "val"),
+                mock.call.filter("int_field", 234),
+                mock.call.filter("field", "aaa"),
+                mock.call.filter("field", "bbb"),
+            ]
+        )
 
 
 class NegativeBooleanTest(unittest.TestCase):
     """Test Boolean."""
 
     def setUp(self):
-        self.filter = filters.NegativeBoolean('field', 'param')
+        self.filter = filters.NegativeBoolean("field", "param")
         self.query = mock.Mock()
 
     def test_yes(self):
         """Test yes."""
-        self.filter.add(self.query, {'param': 'yes'})
-        self.query.assert_has_calls([mock.call.filter('field', False)])
+        self.filter.add(self.query, {"param": "yes"})
+        self.query.assert_has_calls([mock.call.filter("field", False)])
 
     def test_no(self):
         """Test no."""
-        self.filter.add(self.query, {'param': 'no'})
-        self.query.assert_has_calls([mock.call.filter('field', True)])
+        self.filter.add(self.query, {"param": "no"})
+        self.query.assert_has_calls([mock.call.filter("field", True)])
 
 
 class BooleanTest(unittest.TestCase):
     """Test Boolean."""
 
     def setUp(self):
-        self.filter = filters.Boolean('field', 'param')
+        self.filter = filters.Boolean("field", "param")
         self.query = mock.Mock()
 
     def test_empty(self):
         """Test empty."""
-        self.filter.add(self.query, {'param': ''})
+        self.filter.add(self.query, {"param": ""})
         self.query.assert_not_called()
 
     def test_yes(self):
         """Test yes."""
-        self.filter.add(self.query, {'param': 'yes'})
-        self.query.assert_has_calls([mock.call.filter('field', True)])
+        self.filter.add(self.query, {"param": "yes"})
+        self.query.assert_has_calls([mock.call.filter("field", True)])
 
     def test_no(self):
         """Test no."""
-        self.filter.add(self.query, {'param': 'no'})
-        self.query.assert_has_calls([mock.call.filter('field', False)])
+        self.filter.add(self.query, {"param": "no"})
+        self.query.assert_has_calls([mock.call.filter("field", False)])
 
     def test_exception(self):
         """Test exception."""
         with self.assertRaises(helpers.EarlyExitException):
-            self.filter.add(self.query, {'param': 'wsdljf'})
+            self.filter.add(self.query, {"param": "wsdljf"})
         self.query.assert_not_called()
 
 
@@ -189,30 +186,29 @@ class IntTest(unittest.TestCase):
     """Test String."""
 
     def setUp(self):
-        self.filter = filters.Int('field', 'param')
+        self.filter = filters.Int("field", "param")
         self.query = mock.Mock()
 
     def test_empty(self):
         """Test empty."""
-        self.filter.add(self.query, {'param': ''})
+        self.filter.add(self.query, {"param": ""})
         self.query.assert_not_called()
 
     def test_get(self):
         """Test get int."""
-        self.filter.add(self.query, {'param': '0'})
-        self.query.assert_has_calls([mock.call.filter('field', 0)])
+        self.filter.add(self.query, {"param": "0"})
+        self.query.assert_has_calls([mock.call.filter("field", 0)])
 
     def test_exception(self):
         """Test exception."""
         with self.assertRaises(helpers.EarlyExitException):
-            self.filter.add(self.query, {'param': 'wsdljf'})
+            self.filter.add(self.query, {"param": "wsdljf"})
         self.query.assert_not_called()
 
     def test_operator(self):
-        fltr = filters.Int('field', 'param', operator='>')
-        fltr.add(self.query, {'param': '0'})
-        self.query.assert_has_calls(
-            [mock.call.filter('field', 0, operator='>')])
+        fltr = filters.Int("field", "param", operator=">")
+        fltr.add(self.query, {"param": "0"})
+        self.query.assert_has_calls([mock.call.filter("field", 0, operator=">")])
 
 
 class AddTest(unittest.TestCase):
@@ -222,9 +218,9 @@ class AddTest(unittest.TestCase):
         self.params = {}
         self.query = mock.Mock()
         self.filters = [
-            filters.String('string_field', 'string_param'),
-            filters.Int('int_field', 'int_param'),
-            filters.Boolean('bool_field', 'bool_param'),
+            filters.String("string_field", "string_param"),
+            filters.Int("int_field", "int_param"),
+            filters.Boolean("bool_field", "bool_param"),
         ]
 
     def test_no_field(self):
@@ -234,14 +230,16 @@ class AddTest(unittest.TestCase):
 
     def test_multiple_fields(self):
         """Test add multiple filters."""
-        self.params['string_param'] = 'value'
-        self.params['int_param'] = '123'
-        self.params['bool_param'] = 'yes'
+        self.params["string_param"] = "value"
+        self.params["int_param"] = "123"
+        self.params["bool_param"] = "yes"
 
         filters.add(self.query, self.params, self.filters)
 
-        self.query.assert_has_calls([
-            mock.call.filter('string_field', 'value'),
-            mock.call.filter('int_field', 123),
-            mock.call.filter('bool_field', True),
-        ])
+        self.query.assert_has_calls(
+            [
+                mock.call.filter("string_field", "value"),
+                mock.call.filter("int_field", 123),
+                mock.call.filter("bool_field", True),
+            ]
+        )

@@ -34,15 +34,15 @@ def generate_cert(project_name):
     key.generate_key(crypto.TYPE_RSA, 2048)
 
     cert = crypto.X509()
-    cert.get_subject().C = 'US'
-    cert.get_subject().CN = '*' + untrusted.internal_network_domain()
+    cert.get_subject().C = "US"
+    cert.get_subject().CN = "*" + untrusted.internal_network_domain()
     cert.get_subject().O = project_name
     cert.set_serial_number(9001)
-    cert.set_notBefore(b'20000101000000Z')
-    cert.set_notAfter(b'21000101000000Z')
+    cert.set_notBefore(b"20000101000000Z")
+    cert.set_notAfter(b"21000101000000Z")
     cert.set_issuer(cert.get_subject())
     cert.set_pubkey(key)
-    cert.sign(key, 'sha256')
+    cert.sign(key, "sha256")
 
     cert_contents = crypto.dump_certificate(crypto.FILETYPE_PEM, cert)
     key_contents = crypto.dump_privatekey(crypto.FILETYPE_PEM, key)
@@ -56,7 +56,7 @@ class Handler(base_handler.Handler):
     def get(self):
         """Handles a get request."""
         if sys.version_info.major == 2:
-            raise helpers.EarlyExitException('Unsupported on Python 2.', 500)
+            raise helpers.EarlyExitException("Unsupported on Python 2.", 500)
 
         for project in data_types.OssFuzzProject.query():
             tls_cert_key = ndb.Key(data_types.WorkerTlsCert, project.name)
@@ -64,11 +64,10 @@ class Handler(base_handler.Handler):
                 # Already generated.
                 continue
 
-            logs.log('Generating cert for %s.' % project.name)
+            logs.log("Generating cert for %s." % project.name)
             cert_contents, key_contents = generate_cert(project.name)
 
             tls_cert = data_types.WorkerTlsCert(
-                id=project.name,
-                cert_contents=cert_contents,
-                key_contents=key_contents)
+                id=project.name, cert_contents=cert_contents, key_contents=key_contents
+            )
             tls_cert.put()

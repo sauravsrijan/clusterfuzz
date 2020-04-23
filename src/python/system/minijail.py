@@ -37,8 +37,7 @@ def _get_minijail_path():
     Returns:
       The path to the minijail binary.
     """
-    return os.path.join(environment.get_platform_resources_directory(),
-                        'minijail0')
+    return os.path.join(environment.get_platform_resources_directory(), "minijail0")
 
 
 def _get_minijail_user_namespace_args():
@@ -47,7 +46,7 @@ def _get_minijail_user_namespace_args():
     Returns:
       A list representing arguments to minijail.
     """
-    arguments = ['-U']  # User namespace option
+    arguments = ["-U"]  # User namespace option
 
     # root (uid 0 in namespace) -> USER.
     # The reason for this is that minijail does setresuid(0, 0, 0) before doing a
@@ -59,9 +58,9 @@ def _get_minijail_user_namespace_args():
     # access to things owned by USER (fuzzer binaries, supporting files), and USER
     # can only be mapped once.
     uid_map = [
-        '0 {0} 1'.format(os.getuid()),
+        "0 {0} 1".format(os.getuid()),
     ]
-    arguments.extend(['-m', ','.join(uid_map)])
+    arguments.extend(["-m", ",".join(uid_map)])
 
     return arguments
 
@@ -76,8 +75,7 @@ def _create_tmp_mount(base_dir):
     return tempfile.mkdtemp(dir=base_dir)
 
 
-ChrootBinding = namedtuple('ChrootBinding',
-                           ['src_path', 'dest_path', 'writeable'])
+ChrootBinding = namedtuple("ChrootBinding", ["src_path", "dest_path", "writeable"])
 
 
 class MinijailChroot(object):
@@ -85,11 +83,11 @@ class MinijailChroot(object):
 
     # Default directories to bind from host to chroot. Mostly library directories.
     DEFAULT_BINDINGS = [
-        '/lib',
-        '/lib32',
-        '/lib64',
-        '/usr/lib',
-        '/usr/lib32',
+        "/lib",
+        "/lib32",
+        "/lib64",
+        "/usr/lib",
+        "/usr/lib32",
     ]
 
     def __init__(self, base_dir=None, bindings=None, use_existing_base=False):
@@ -106,13 +104,13 @@ class MinijailChroot(object):
             self._chroot_dir = base_dir
 
         # Create /tmp, /proc directories.
-        os.mkdir(os.path.join(self._chroot_dir, 'tmp'))
-        os.mkdir(os.path.join(self._chroot_dir, 'proc'))
+        os.mkdir(os.path.join(self._chroot_dir, "tmp"))
+        os.mkdir(os.path.join(self._chroot_dir, "proc"))
 
         # Create a /tmp binding.
         self._tmp_mount = _create_tmp_mount(base_dir=base_dir)
         self._bindings = [
-            ChrootBinding(self._tmp_mount, '/tmp', True),
+            ChrootBinding(self._tmp_mount, "/tmp", True),
         ]
 
         self._create_devices()
@@ -139,23 +137,30 @@ class MinijailChroot(object):
             with open(os.devnull) as devnull:
                 subprocess.check_output(
                     [
-                        'sudo', '-S', 'mknod', '-m', '666', path, file_type,
+                        "sudo",
+                        "-S",
+                        "mknod",
+                        "-m",
+                        "666",
+                        path,
+                        file_type,
                         str(major),
-                        str(minor)
+                        str(minor),
                     ],
                     stdin=devnull,
-                    stderr=subprocess.STDOUT)
+                    stderr=subprocess.STDOUT,
+                )
         except subprocess.CalledProcessError as e:
-            logs.log_error('Failed to call mknod.', output=e.output)
+            logs.log_error("Failed to call mknod.", output=e.output)
 
     def _create_devices(self):
         """Create /dev/null, /dev/random, /dev/urandom, and /dev/shm."""
-        dev_dir = os.path.join(self._chroot_dir, 'dev')
+        dev_dir = os.path.join(self._chroot_dir, "dev")
         os.mkdir(dev_dir)
-        self._mknod(os.path.join(dev_dir, 'null'), 'c', 1, 3)
-        self._mknod(os.path.join(dev_dir, 'random'), 'c', 1, 8)
-        self._mknod(os.path.join(dev_dir, 'urandom'), 'c', 1, 9)
-        os.mkdir(os.path.join(dev_dir, 'shm'))
+        self._mknod(os.path.join(dev_dir, "null"), "c", 1, 3)
+        self._mknod(os.path.join(dev_dir, "random"), "c", 1, 8)
+        self._mknod(os.path.join(dev_dir, "urandom"), "c", 1, 9)
+        os.mkdir(os.path.join(dev_dir, "shm"))
 
     def _makedirs(self, directory):
         """Create directories for binding in chroot.
@@ -163,11 +168,12 @@ class MinijailChroot(object):
         Args:
           directory: The absolute path to the directory target in the chroot.
         """
-        if directory[0] == '/':
+        if directory[0] == "/":
             directory = directory[1:]
 
         shell.create_directory(
-            os.path.join(self._chroot_dir, directory), create_intermediates=True)
+            os.path.join(self._chroot_dir, directory), create_intermediates=True
+        )
 
     @property
     def bindings(self):
@@ -202,9 +208,14 @@ class MinijailChroot(object):
         Returns:
           A ChrootBinding with the same src_path.
         """
-        return next((x for x in self._bindings
-                     if os.path.abspath(x.src_path) == os.path.abspath(src_path)),
-                    None)
+        return next(
+            (
+                x
+                for x in self._bindings
+                if os.path.abspath(x.src_path) == os.path.abspath(src_path)
+            ),
+            None,
+        )
 
     def close(self):
         """Cleanup the chroot environment."""
@@ -238,11 +249,12 @@ class ChromeOSChroot(MinijailChroot):
         # Do clean up in case close() was not called.
         self.remove_created_dirs(chroot_dir)
         super(ChromeOSChroot, self).__init__(
-            chroot_dir, bindings, use_existing_base=True)
+            chroot_dir, bindings, use_existing_base=True
+        )
 
     def remove_created_dirs(self, chroot_dir, minijail_created_dirs=None):
         if minijail_created_dirs is None:
-            minijail_created_dirs = ['tmp', 'proc', 'dev']
+            minijail_created_dirs = ["tmp", "proc", "dev"]
 
         for directory in minijail_created_dirs:
             shell.remove_directory(os.path.join(chroot_dir, directory))
@@ -266,10 +278,10 @@ class ChromeOSChroot(MinijailChroot):
 class MinijailChildProcess(new_process.ChildProcess):
     """Minijail child process."""
 
-    def __init__(self, popen, command, max_stdout_len, stdout_file,
-                 jailed_pid_file):
-        super(MinijailChildProcess, self).__init__(popen, command, max_stdout_len,
-                                                   stdout_file)
+    def __init__(self, popen, command, max_stdout_len, stdout_file, jailed_pid_file):
+        super(MinijailChildProcess, self).__init__(
+            popen, command, max_stdout_len, stdout_file
+        )
         self._jailed_pid_file = jailed_pid_file
 
     def terminate(self):
@@ -287,24 +299,25 @@ class MinijailProcessRunner(new_process.ProcessRunner):
     """ProcessRunner wrapper for minijail."""
 
     MINIJAIL_ARGS = [
-        '-T',
-        'static',  # don't use preload.
-        '-c',
-        '0',  # drop all capabilities.
-        '-n',  # no_new_privs
-        '-v',  # mount namespace
-        '-p',  # PID namespace
-        '-l',  # IPC namespace
-        '-I',  # Run jailed process as init.
-        '-k',
-        'proc,/proc,proc,1'  # Mount procfs RO (1 == MS_RDONLY).
+        "-T",
+        "static",  # don't use preload.
+        "-c",
+        "0",  # drop all capabilities.
+        "-n",  # no_new_privs
+        "-v",  # mount namespace
+        "-p",  # PID namespace
+        "-l",  # IPC namespace
+        "-I",  # Run jailed process as init.
+        "-k",
+        "proc,/proc,proc,1",  # Mount procfs RO (1 == MS_RDONLY).
     ]
 
-    PATH_ENVIRONMENT_VALUE = '/bin:/usr/bin'
+    PATH_ENVIRONMENT_VALUE = "/bin:/usr/bin"
 
     def __init__(self, chroot, executable_path, default_args=None):
         super(MinijailProcessRunner, self).__init__(
-            executable_path, default_args=default_args)
+            executable_path, default_args=default_args
+        )
         self._chroot = chroot
 
     @property
@@ -313,31 +326,31 @@ class MinijailProcessRunner(new_process.ProcessRunner):
 
     def get_command(self, additional_args=None):
         """ProcessRunner.get_command override to prepend minijail."""
-        base_command = super(MinijailProcessRunner,
-                             self).get_command(additional_args)
+        base_command = super(MinijailProcessRunner, self).get_command(additional_args)
         command = [_get_minijail_path()]
         command.extend(_get_minijail_user_namespace_args())
         command.extend(self.MINIJAIL_ARGS)
 
         # Change root filesystem to the chroot directory. See pivot_root(2).
-        command.extend(['-P', self._chroot.directory])
+        command.extend(["-P", self._chroot.directory])
 
         # Bind dirs in chroot.
         for (directory, target, writeable) in self._chroot.bindings:
-            command.extend(['-b', '%s,%s,%d' %
-                            (directory, target, int(writeable))])
+            command.extend(["-b", "%s,%s,%d" % (directory, target, int(writeable))])
 
         command.extend(base_command)
         return command
 
-    def run(self,
-            additional_args=None,
-            max_stdout_len=None,
-            extra_env=None,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            **popen_args):
+    def run(
+        self,
+        additional_args=None,
+        max_stdout_len=None,
+        extra_env=None,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        **popen_args
+    ):
         """ProcessRunner.run override."""
 
         pid_file = tempfile.NamedTemporaryFile()
@@ -347,16 +360,17 @@ class MinijailProcessRunner(new_process.ProcessRunner):
             stdout = tempfile.TemporaryFile()
 
         # Insert arguments to write jailed PID to a file.
-        command.insert(1, '-f')
+        command.insert(1, "-f")
         command.insert(2, pid_file.name)
 
-        passed_env = popen_args.pop('env', None)
+        passed_env = popen_args.pop("env", None)
         from bot.untrusted_runner import environment as untrusted_environment
+
         env = untrusted_environment.get_env_for_untrusted_process(passed_env)
         if extra_env is not None:
             env.update(extra_env)
 
-        env['PATH'] = self.PATH_ENVIRONMENT_VALUE
+        env["PATH"] = self.PATH_ENVIRONMENT_VALUE
 
         return MinijailChildProcess(
             subprocess.Popen(
@@ -366,8 +380,10 @@ class MinijailProcessRunner(new_process.ProcessRunner):
                 stderr=stderr,
                 close_fds=True,
                 env=env,
-                **popen_args),
+                **popen_args
+            ),
             command,
             max_stdout_len=max_stdout_len,
             stdout_file=stdout,
-            jailed_pid_file=pid_file)
+            jailed_pid_file=pid_file,
+        )

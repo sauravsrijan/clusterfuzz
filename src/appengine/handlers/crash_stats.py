@@ -37,14 +37,14 @@ class FuzzerFilter(filters.Filter):
 
     def add(self, query, params):
         """Set query according to fuzzer param."""
-        value = params.get('fuzzer', '')
+        value = params.get("fuzzer", "")
         if filters.is_empty(value):
             return
 
         if data_handler.is_fuzzing_engine(value):
-            query.filter('parent_fuzzer_name', value)
+            query.filter("parent_fuzzer_name", value)
         else:
-            query.filter('fuzzer_name', value)
+            query.filter("fuzzer_name", value)
 
 
 class PlatformFilter(filters.Filter):
@@ -52,14 +52,14 @@ class PlatformFilter(filters.Filter):
 
     def add(self, query, params):
         """Set query according to platform param."""
-        value = params.get('platform', '')
+        value = params.get("platform", "")
         if filters.is_empty(value):
             return
 
-        if value == 'android':
-            query.filter('parent_platform', value)
+        if value == "android":
+            query.filter("parent_platform", value)
         else:
-            query.filter('platform', value)
+            query.filter("platform", value)
 
 
 class TimeFilter(filters.Filter):
@@ -67,24 +67,25 @@ class TimeFilter(filters.Filter):
 
     def add(self, query, params):
         """Set query according to end and hours params."""
-        if 'end' in params:
-            end = helpers.cast(params['end'], int, "'end' must be an integer")
+        if "end" in params:
+            end = helpers.cast(params["end"], int, "'end' must be an integer")
         else:
             end = crash_stats_common.get_max_hour()
 
-        block = params.get('block', 'day')
+        block = params.get("block", "day")
 
-        if 'days' in params:
-            days = helpers.cast(params['days'], int,
-                                "'days' must be an integer")
+        if "days" in params:
+            days = helpers.cast(params["days"], int, "'days' must be an integer")
         else:
             days = (
                 DEFAULT_DAYS_FOR_BY_HOURS
-                if block == 'hour' else DEFAULT_DAYS_FOR_BY_DAYS)
+                if block == "hour"
+                else DEFAULT_DAYS_FOR_BY_DAYS
+            )
 
-        params['end'] = str(end)
-        params['days'] = str(days)
-        params['block'] = str(block)
+        params["end"] = str(end)
+        params["days"] = str(days)
+        params["block"] = str(block)
 
         query.set_time_params(end, days, block)
 
@@ -94,48 +95,50 @@ class KeywordFilter(filters.Filter):
 
     def add(self, query, params):
         """Set query according to search param."""
-        value = params.get('q', '')
+        value = params.get("q", "")
         if filters.is_empty(value):
             return
 
-        for keyword in value.split(' '):
+        for keyword in value.split(" "):
             query.raw_filter(
-                '(LOWER(crash_state) LIKE %s OR LOWER(crash_type) LIKE %s)' %
-                (json.dumps('%%%s%%' % keyword.lower()),
-                 json.dumps('%%%s%%' % keyword.lower())))
+                "(LOWER(crash_state) LIKE %s OR LOWER(crash_type) LIKE %s)"
+                % (
+                    json.dumps("%%%s%%" % keyword.lower()),
+                    json.dumps("%%%s%%" % keyword.lower()),
+                )
+            )
 
 
 GROUP_FILTERS = [
-    filters.Boolean('is_new', 'new'),
+    filters.Boolean("is_new", "new"),
 ]
 
 FILTERS = [
     TimeFilter(),
-    filters.Boolean('security_flag', 'security'),
-    filters.Boolean('reproducible_flag', 'reproducible'),
-    filters.String('job_type', 'job'),
-    filters.String('project', 'project'),
+    filters.Boolean("security_flag", "security"),
+    filters.Boolean("reproducible_flag", "reproducible"),
+    filters.String("job_type", "job"),
+    filters.String("project", "project"),
     FuzzerFilter(),
     PlatformFilter(),
     KeywordFilter(),
 ]
 
 
-def query_testcase(project_name, crash_type, crash_state, security_flag,
-                   is_open):
+def query_testcase(project_name, crash_type, crash_state, security_flag, is_open):
     """Start a query for an associated testcase."""
-    return data_types.Testcase.query(
-        data_types.Testcase.project_name == project_name,
-        data_types.Testcase.crash_type == crash_type,
-        data_types.Testcase.crash_state == crash_state,
-        data_types.Testcase.security_flag == security_flag,
-        data_types.Testcase.open == is_open,
-        ndb_utils.is_false(data_types.Testcase.is_a_duplicate_flag)).order(
-            -data_types.Testcase.timestamp).iter(
-                limit=1, projection=[
-                    'bug_information',
-                    'group_bug_information',
-                ])
+    return (
+        data_types.Testcase.query(
+            data_types.Testcase.project_name == project_name,
+            data_types.Testcase.crash_type == crash_type,
+            data_types.Testcase.crash_state == crash_state,
+            data_types.Testcase.security_flag == security_flag,
+            data_types.Testcase.open == is_open,
+            ndb_utils.is_false(data_types.Testcase.is_a_duplicate_flag),
+        )
+        .order(-data_types.Testcase.timestamp)
+        .iter(limit=1, projection=["bug_information", "group_bug_information",])
+    )
 
 
 def attach_testcases(rows):
@@ -143,51 +146,52 @@ def attach_testcases(rows):
     testcases = {}
     for index, row in enumerate(rows):
         testcases[index] = {
-            'open_testcase':
-                query_testcase(
-                    project_name=row['projectName'],
-                    crash_type=row['crashType'],
-                    crash_state=row['crashState'],
-                    security_flag=row['isSecurity'],
-                    is_open=True),
-            'closed_testcase':
-                query_testcase(
-                    project_name=row['projectName'],
-                    crash_type=row['crashType'],
-                    crash_state=row['crashState'],
-                    security_flag=row['isSecurity'],
-                    is_open=False)
+            "open_testcase": query_testcase(
+                project_name=row["projectName"],
+                crash_type=row["crashType"],
+                crash_state=row["crashState"],
+                security_flag=row["isSecurity"],
+                is_open=True,
+            ),
+            "closed_testcase": query_testcase(
+                project_name=row["projectName"],
+                crash_type=row["crashType"],
+                crash_state=row["crashState"],
+                security_flag=row["isSecurity"],
+                is_open=False,
+            ),
         }
 
     for index, row in enumerate(rows):
-        testcase = (list(testcases[index]['open_testcase']) or
-                    list(testcases[index]['closed_testcase']) or [None])[0]
+        testcase = (
+            list(testcases[index]["open_testcase"])
+            or list(testcases[index]["closed_testcase"])
+            or [None]
+        )[0]
         if testcase:
             testcase = {
-                'id': testcase.key.id(),
-                'issueNumber': testcase.bug_information,
-                'groupIssueNumber': testcase.group_bug_information
+                "id": testcase.key.id(),
+                "issueNumber": testcase.bug_information,
+                "groupIssueNumber": testcase.group_bug_information,
             }
-        row['testcase'] = testcase
+        row["testcase"] = testcase
 
 
 def get_result(this):
     """Get the result for the crash stats page."""
     params = {k: v for k, v in this.request.iterparams()}
-    page = helpers.cast(
-        this.request.get('page') or 1, int, "'page' is not an int.")
-    group_by = params.get('group', 'platform')
-    params['group'] = group_by
-    sort_by = params.get('sort', 'total_count')
-    params['sort'] = sort_by
-    params['number'] = params.get('number', 'count')
+    page = helpers.cast(this.request.get("page") or 1, int, "'page' is not an int.")
+    group_by = params.get("group", "platform")
+    params["group"] = group_by
+    sort_by = params.get("sort", "total_count")
+    params["sort"] = sort_by
+    params["number"] = params.get("number", "count")
 
     # Conditions for individual records.
     query = crash_stats.Query()
     query.group_by = group_by
     query.sort_by = sort_by
-    crash_access.add_scope(query, params, 'security_flag', 'job_type',
-                           'fuzzer_name')
+    crash_access.add_scope(query, params, "security_flag", "job_type", "fuzzer_name")
     filters.add(query, params, FILTERS)
 
     # Conditions after grouping.
@@ -198,17 +202,18 @@ def get_result(this):
         query=query,
         group_query=group_query,
         offset=(page - 1) * PAGE_SIZE,
-        limit=PAGE_SIZE)
+        limit=PAGE_SIZE,
+    )
     attach_testcases(rows)
 
-    helpers.log('CrashStats', helpers.VIEW_OPERATION)
+    helpers.log("CrashStats", helpers.VIEW_OPERATION)
 
     result = {
-        'totalPages': (total_count // PAGE_SIZE) + 1,
-        'page': page,
-        'pageSize': PAGE_SIZE,
-        'items': rows,
-        'totalCount': total_count
+        "totalPages": (total_count // PAGE_SIZE) + 1,
+        "page": page,
+        "pageSize": PAGE_SIZE,
+        "items": rows,
+        "totalCount": total_count,
     }
     return result, params
 
@@ -216,12 +221,16 @@ def get_result(this):
 def get_all_platforms():
     """Get all platforms including parent platform."""
     items = data_types.Testcase.query(
-        projection=[data_types.Testcase.platform], distinct=True)
+        projection=[data_types.Testcase.platform], distinct=True
+    )
 
     return sorted(
         list(
-            set([item.platform.lower() for item in items if item.platform] +
-                ['android'])))
+            set(
+                [item.platform.lower() for item in items if item.platform] + ["android"]
+            )
+        )
+    )
 
 
 class Handler(base_handler.Handler):
@@ -233,25 +242,19 @@ class Handler(base_handler.Handler):
         """Get and render the crash stats in HTML."""
         result, params = get_result(self)
         field_values = {
-            'fuzzers':
-                data_handler.get_all_fuzzer_names_including_children(
-                    include_parents=True),
-            'jobs':
-                data_handler.get_all_job_type_names(),
-            'platforms':
-                get_all_platforms(),
-            'projects':
-                data_handler.get_all_project_names(),
-            'minHour':
-                crash_stats_common.get_min_hour(),
-            'maxHour':
-                crash_stats_common.get_max_hour()
+            "fuzzers": data_handler.get_all_fuzzer_names_including_children(
+                include_parents=True
+            ),
+            "jobs": data_handler.get_all_job_type_names(),
+            "platforms": get_all_platforms(),
+            "projects": data_handler.get_all_project_names(),
+            "minHour": crash_stats_common.get_min_hour(),
+            "maxHour": crash_stats_common.get_max_hour(),
         }
-        self.render('crash-stats.html', {
-            'result': result,
-            'fieldValues': field_values,
-            'params': params
-        })
+        self.render(
+            "crash-stats.html",
+            {"result": result, "fieldValues": field_values, "params": params},
+        )
 
 
 class JsonHandler(base_handler.Handler):

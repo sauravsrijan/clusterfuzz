@@ -46,33 +46,33 @@ def do_corpus_pruning(context, last_execution_failed, revision):
             fuzz_target=_fuzz_target_to_proto(cpf.fuzz_target),
             backup_bucket_name=cpf.backup_bucket_name,
             corpus_engine_name=cpf.corpus_engine_name,
-        ) for cpf in context.cross_pollinate_fuzzers
+        )
+        for cpf in context.cross_pollinate_fuzzers
     ]
 
     request = untrusted_runner_pb2.PruneCorpusRequest(
         fuzz_target=_fuzz_target_to_proto(context.fuzz_target),
         cross_pollinate_fuzzers=cross_pollinate_fuzzers,
         last_execution_failed=last_execution_failed,
-        revision=revision)
+        revision=revision,
+    )
 
     response = host.stub().PruneCorpus(request)
 
     project_qualified_name = context.fuzz_target.project_qualified_name()
     today_date = datetime.datetime.utcnow().date()
     coverage_info = data_types.CoverageInformation(
-        fuzzer=project_qualified_name, date=today_date)
+        fuzzer=project_qualified_name, date=today_date
+    )
 
     # Intentionally skip edge and function coverage values as those would come
     # from fuzzer coverage cron task (see src/go/server/cron/coverage.go).
     coverage_info.corpus_size_units = response.coverage_info.corpus_size_units
     coverage_info.corpus_size_bytes = response.coverage_info.corpus_size_bytes
     coverage_info.corpus_location = response.coverage_info.corpus_location
-    coverage_info.corpus_backup_location = (
-        response.coverage_info.corpus_backup_location)
-    coverage_info.quarantine_size_units = (
-        response.coverage_info.quarantine_size_units)
-    coverage_info.quarantine_size_bytes = (
-        response.coverage_info.quarantine_size_bytes)
+    coverage_info.corpus_backup_location = response.coverage_info.corpus_backup_location
+    coverage_info.quarantine_size_units = response.coverage_info.quarantine_size_units
+    coverage_info.quarantine_size_bytes = response.coverage_info.quarantine_size_bytes
     coverage_info.quarantine_location = response.coverage_info.quarantine_location
 
     crashes = [
@@ -83,7 +83,8 @@ def do_corpus_pruning(context, last_execution_failed, revision):
             crash_stacktrace=crash.crash_stacktrace,
             unit_path=crash.unit_path,
             security_flag=crash.security_flag,
-        ) for crash in response.crashes
+        )
+        for crash in response.crashes
     ]
 
     result_stats = response.cross_pollination_stats
@@ -97,20 +98,23 @@ def do_corpus_pruning(context, last_execution_failed, revision):
         initial_edge_coverage=result_stats.initial_edge_coverage,
         edge_coverage=result_stats.edge_coverage,
         initial_feature_coverage=result_stats.initial_feature_coverage,
-        feature_coverage=result_stats.feature_coverage)
+        feature_coverage=result_stats.feature_coverage,
+    )
 
     return corpus_pruning_task.CorpusPruningResult(
         coverage_info=coverage_info,
         crashes=crashes,
         fuzzer_binary_name=response.fuzzer_binary_name,
         revision=response.revision,
-        cross_pollination_stats=pollination_stats)
+        cross_pollination_stats=pollination_stats,
+    )
 
 
-def process_testcase(engine_name, tool_name, target_name, arguments,
-                     testcase_path, output_path, timeout):
+def process_testcase(
+    engine_name, tool_name, target_name, arguments, testcase_path, output_path, timeout
+):
     """Process testcase on untrusted worker."""
-    if tool_name == 'minimize':
+    if tool_name == "minimize":
         operation = untrusted_runner_pb2.ProcessTestcaseRequest.MINIMIZE
     else:
         operation = untrusted_runner_pb2.ProcessTestcaseRequest.CLEANSE
@@ -125,7 +129,8 @@ def process_testcase(engine_name, tool_name, target_name, arguments,
         arguments=arguments,
         testcase_path=file_host.rebase_to_worker_root(testcase_path),
         output_path=file_host.rebase_to_worker_root(output_path),
-        timeout=timeout)
+        timeout=timeout,
+    )
 
     response = host.stub().ProcessTestcase(request)
 
@@ -133,8 +138,11 @@ def process_testcase(engine_name, tool_name, target_name, arguments,
     file_host.copy_file_from_worker(rebased_output_path, output_path)
 
     return engine.ReproduceResult(
-        list(response.command), response.return_code, response.time_executed,
-        response.output)
+        list(response.command),
+        response.return_code,
+        response.time_executed,
+        response.output,
+    )
 
 
 def _unpack_values(values):
@@ -148,7 +156,7 @@ def _unpack_values(values):
         elif packed_value.Is(wrappers_pb2.StringValue.DESCRIPTOR):
             value = wrappers_pb2.StringValue()
         else:
-            raise ValueError('Unknown stat type for ' + key)
+            raise ValueError("Unknown stat type for " + key)
 
         packed_value.Unpack(value)
         unpacked[key] = value.value
@@ -156,15 +164,14 @@ def _unpack_values(values):
     return unpacked
 
 
-def engine_fuzz(engine_impl, target_name, sync_corpus_directory,
-                testcase_directory):
+def engine_fuzz(engine_impl, target_name, sync_corpus_directory, testcase_directory):
     """Run engine fuzzer on untrusted worker."""
     request = untrusted_runner_pb2.EngineFuzzRequest(
         engine=engine_impl.name,
         target_name=target_name,
-        sync_corpus_directory=file_host.rebase_to_worker_root(
-            sync_corpus_directory),
-        testcase_directory=file_host.rebase_to_worker_root(testcase_directory))
+        sync_corpus_directory=file_host.rebase_to_worker_root(sync_corpus_directory),
+        testcase_directory=file_host.rebase_to_worker_root(testcase_directory),
+    )
 
     response = host.stub().EngineFuzz(request)
     crashes = [
@@ -172,7 +179,9 @@ def engine_fuzz(engine_impl, target_name, sync_corpus_directory,
             input_path=file_host.rebase_to_host_root(crash.input_path),
             stacktrace=crash.stacktrace,
             reproduce_args=crash.reproduce_args,
-            crash_time=crash.crash_time) for crash in response.crashes
+            crash_time=crash.crash_time,
+        )
+        for crash in response.crashes
     ]
 
     unpacked_stats = _unpack_values(response.stats)
@@ -183,14 +192,14 @@ def engine_fuzz(engine_impl, target_name, sync_corpus_directory,
         command=list(response.command),
         crashes=crashes,
         stats=unpacked_stats,
-        time_executed=response.time_executed)
+        time_executed=response.time_executed,
+    )
 
     file_host.pull_testcases_from_worker()
     return result, dict(response.fuzzer_metadata), unpacked_strategies
 
 
-def engine_reproduce(engine_impl, target_name, testcase_path, arguments,
-                     timeout):
+def engine_reproduce(engine_impl, target_name, testcase_path, arguments, timeout):
     """Run engine reproduce on untrusted worker."""
     rebased_testcase_path = file_host.rebase_to_worker_root(testcase_path)
     file_host.copy_file_to_worker(testcase_path, rebased_testcase_path)
@@ -200,18 +209,23 @@ def engine_reproduce(engine_impl, target_name, testcase_path, arguments,
         target_name=target_name,
         testcase_path=rebased_testcase_path,
         arguments=arguments,
-        timeout=timeout)
+        timeout=timeout,
+    )
 
     try:
         response = host.stub().EngineReproduce(request)
     except grpc.RpcError as e:
-        if 'TargetNotFoundError' in repr(e):
+        if "TargetNotFoundError" in repr(e):
             # Resurface the right exception.
-            raise testcase_manager.TargetNotFoundError('Failed to find target ' +
-                                                       target_name)
+            raise testcase_manager.TargetNotFoundError(
+                "Failed to find target " + target_name
+            )
         else:
             raise
 
     return engine.ReproduceResult(
-        list(response.command), response.return_code, response.time_executed,
-        response.output)
+        list(response.command),
+        response.return_code,
+        response.time_executed,
+        response.output,
+    )

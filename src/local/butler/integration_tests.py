@@ -21,6 +21,7 @@ import urllib.error
 import time
 import sys
 from future import standard_library
+
 standard_library.install_aliases()
 
 
@@ -30,22 +31,20 @@ RUN_SERVER_TIMEOUT = 120
 def execute(_):
     """Run integration tests."""
     if sys.version_info.major == 2:
-        print('Skipping integration_tests on Python 2.')
+        print("Skipping integration_tests on Python 2.")
         return
 
-    command = 'run_server'
-    indicator = b'Booting worker'
+    command = "run_server"
+    indicator = b"Booting worker"
 
     try:
         lines = []
         server = common.execute_async(
-            'python -u butler.py {} --skip-install-deps'.format(command))
+            "python -u butler.py {} --skip-install-deps".format(command)
+        )
         test_utils.wait_for_emulator_ready(
-            server,
-            command,
-            indicator,
-            timeout=RUN_SERVER_TIMEOUT,
-            output_lines=lines)
+            server, command, indicator, timeout=RUN_SERVER_TIMEOUT, output_lines=lines
+        )
 
         # Sleep a small amount of time to ensure the server is definitely ready.
         time.sleep(1)
@@ -54,21 +53,22 @@ def execute(_):
         # when that finishes.
         # TODO(ochang): Make bootstrap a separate butler command and just call that.
         common.execute(
-            ('python butler.py run setup '
-             '--non-dry-run --local --config-dir={config_dir}'
-             ).format(config_dir=constants.TEST_CONFIG_DIR),
-            exit_on_error=False)
+            (
+                "python butler.py run setup "
+                "--non-dry-run --local --config-dir={config_dir}"
+            ).format(config_dir=constants.TEST_CONFIG_DIR),
+            exit_on_error=False,
+        )
 
-        request = urllib.request.urlopen(
-            'http://' + constants.DEV_APPSERVER_HOST)
+        request = urllib.request.urlopen("http://" + constants.DEV_APPSERVER_HOST)
         request.read()  # Raises exception on error
     except Exception:
-        print('Error occurred:')
-        print(b''.join(lines))
+        print("Error occurred:")
+        print(b"".join(lines))
         raise
     finally:
         server.terminate()
 
     # TODO(ochang): Test that bot runs, and do a basic fuzzing session to ensure
     # things work end to end.
-    print('All end-to-end integration tests passed.')
+    print("All end-to-end integration tests passed.")

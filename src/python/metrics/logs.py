@@ -35,40 +35,44 @@ _default_extras = {}
 def _increment_error_count():
     """"Increment the error count metric."""
     if _is_running_on_app_engine():
-        task_name = 'appengine'
+        task_name = "appengine"
     else:
-        task_name = os.getenv('TASK_NAME', 'unknown')
+        task_name = os.getenv("TASK_NAME", "unknown")
 
     from metrics import monitoring_metrics
-    monitoring_metrics.LOG_ERROR_COUNT.increment({'task_name': task_name})
+
+    monitoring_metrics.LOG_ERROR_COUNT.increment({"task_name": task_name})
 
 
 def _is_local():
     """Return whether or not in a local development environment."""
-    return (bool(os.getenv('LOCAL_DEVELOPMENT')) or
-            os.getenv('SERVER_SOFTWARE', '').startswith('Development/'))
+    return bool(os.getenv("LOCAL_DEVELOPMENT")) or os.getenv(
+        "SERVER_SOFTWARE", ""
+    ).startswith("Development/")
 
 
 def _is_running_on_app_engine():
     """Return whether or not we're running on App Engine (production or
     development)."""
-    return os.getenv('GAE_ENV') or (
-        os.getenv('SERVER_SOFTWARE') and
-        (os.getenv('SERVER_SOFTWARE').startswith('Development/') or
-         os.getenv('SERVER_SOFTWARE').startswith('Google App Engine/')))
+    return os.getenv("GAE_ENV") or (
+        os.getenv("SERVER_SOFTWARE")
+        and (
+            os.getenv("SERVER_SOFTWARE").startswith("Development/")
+            or os.getenv("SERVER_SOFTWARE").startswith("Google App Engine/")
+        )
+    )
 
 
 def _console_logging_enabled():
     """Return bool on where console logging is enabled, usually for tests and
     reproduce tool."""
-    return bool(os.getenv('LOG_TO_CONSOLE'))
+    return bool(os.getenv("LOG_TO_CONSOLE"))
 
 
 def suppress_unwanted_warnings():
     """Suppress unwanted warnings."""
     # See https://github.com/googleapis/google-api-python-client/issues/299
-    logging.getLogger(
-        'googleapiclient.discovery_cache').setLevel(logging.ERROR)
+    logging.getLogger("googleapiclient.discovery_cache").setLevel(logging.ERROR)
 
 
 def set_logger(logger):
@@ -79,58 +83,51 @@ def set_logger(logger):
 
 def get_handler_config(filename, backup_count):
     """Get handler config."""
-    root_directory = os.getenv('ROOT_DIR')
+    root_directory = os.getenv("ROOT_DIR")
     file_path = os.path.join(root_directory, filename)
     max_bytes = 0 if _is_local() else LOCAL_LOG_LIMIT
 
     return {
-        'class': 'logging.handlers.RotatingFileHandler',
-        'level': logging.INFO,
-        'formatter': 'simple',
-        'filename': file_path,
-        'maxBytes': max_bytes,
-        'backupCount': backup_count,
-        'encoding': 'utf8',
+        "class": "logging.handlers.RotatingFileHandler",
+        "level": logging.INFO,
+        "formatter": "simple",
+        "filename": file_path,
+        "maxBytes": max_bytes,
+        "backupCount": backup_count,
+        "encoding": "utf8",
     }
 
 
 def get_logging_config_dict(name):
     """Get config dict for the logger `name`."""
     logging_handler = {
-        'run_bot': get_handler_config('bot/logs/bot.log', 3),
-        'run': get_handler_config('bot/logs/run.log', 1),
-        'run_heartbeat': get_handler_config('bot/logs/run_heartbeat.log', 1),
-        'heartbeat': get_handler_config('bot/logs/heartbeat.log', 1),
-        'run_fuzzer': get_handler_config('bot/logs/run_fuzzer.log', 1),
-        'run_testcase': get_handler_config('bot/logs/run_testcase.log', 1),
+        "run_bot": get_handler_config("bot/logs/bot.log", 3),
+        "run": get_handler_config("bot/logs/run.log", 1),
+        "run_heartbeat": get_handler_config("bot/logs/run_heartbeat.log", 1),
+        "heartbeat": get_handler_config("bot/logs/heartbeat.log", 1),
+        "run_fuzzer": get_handler_config("bot/logs/run_fuzzer.log", 1),
+        "run_testcase": get_handler_config("bot/logs/run_testcase.log", 1),
     }
 
     return {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'formatters': {
-            'simple': {
-                'format': ('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "simple": {
+                "format": ("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
             }
         },
-        'handlers': {
-            'handler': logging_handler[name],
-            'fluentd': {
-                'class': 'metrics.logs.JsonSocketHandler',
-                'level': logging.INFO,
-                'host': '127.0.0.1',
-                'port': 5170,
-            }
+        "handlers": {
+            "handler": logging_handler[name],
+            "fluentd": {
+                "class": "metrics.logs.JsonSocketHandler",
+                "level": logging.INFO,
+                "host": "127.0.0.1",
+                "port": 5170,
+            },
         },
-        'loggers': {
-            name: {
-                'handlers': ['handler']
-            }
-        },
-        'root': {
-            'level': logging.INFO,
-            'handlers': ['fluentd']
-        }
+        "loggers": {name: {"handlers": ["handler"]}},
+        "root": {"level": logging.INFO, "handlers": ["fluentd"]},
     }
 
 
@@ -140,48 +137,45 @@ def truncate(msg, limit):
         return msg
 
     half = limit // 2
-    return '\n'.join([
-        msg[:half],
-        '...%d characters truncated...' % (len(msg) - limit), msg[-half:]
-    ])
+    return "\n".join(
+        [msg[:half], "...%d characters truncated..." % (len(msg) - limit), msg[-half:]]
+    )
 
 
 def format_record(record):
     """Format LogEntry into JSON string."""
     entry = {
-        'message':
-            truncate(record.getMessage(), STACKDRIVER_LOG_MESSAGE_LIMIT),
-        'created': (
-            datetime.datetime.utcfromtimestamp(record.created).isoformat() + 'Z'),
-        'severity':
-            record.levelname,
-        'bot_name':
-            os.getenv('BOT_NAME'),
-        'task_payload':
-            os.getenv('TASK_PAYLOAD'),
-        'name':
-            record.name,
+        "message": truncate(record.getMessage(), STACKDRIVER_LOG_MESSAGE_LIMIT),
+        "created": (
+            datetime.datetime.utcfromtimestamp(record.created).isoformat() + "Z"
+        ),
+        "severity": record.levelname,
+        "bot_name": os.getenv("BOT_NAME"),
+        "task_payload": os.getenv("TASK_PAYLOAD"),
+        "name": record.name,
     }
 
-    entry['location'] = getattr(record, 'location', {'error': True})
-    entry['extras'] = getattr(record, 'extras', {})
+    entry["location"] = getattr(record, "location", {"error": True})
+    entry["extras"] = getattr(record, "extras", {})
     update_entry_with_exc(entry, record.exc_info)
 
-    if not entry['extras']:
-        del entry['extras']
+    if not entry["extras"]:
+        del entry["extras"]
 
-    worker_bot_name = os.environ.get('WORKER_BOT_NAME')
+    worker_bot_name = os.environ.get("WORKER_BOT_NAME")
     if worker_bot_name:
-        entry['worker_bot_name'] = worker_bot_name
+        entry["worker_bot_name"] = worker_bot_name
 
-    fuzz_target = os.getenv('FUZZ_TARGET')
+    fuzz_target = os.getenv("FUZZ_TARGET")
     if fuzz_target:
-        entry['fuzz_target'] = fuzz_target
+        entry["fuzz_target"] = fuzz_target
 
     # Log bot shutdown cases as WARNINGs since this is expected for preemptibles.
-    if (entry['severity'] in ['ERROR', 'CRITICAL'] and
-            'IOError: [Errno 4] Interrupted function call' in entry['message']):
-        entry['severity'] = 'WARNING'
+    if (
+        entry["severity"] in ["ERROR", "CRITICAL"]
+        and "IOError: [Errno 4] Interrupted function call" in entry["message"]
+    ):
+        entry["severity"] = "WARNING"
 
     return json.dumps(entry)
 
@@ -192,28 +186,30 @@ def update_entry_with_exc(entry, exc_info):
         return
 
     error = exc_info[1]
-    error_extras = getattr(error, 'extras', {})
-    entry['task_payload'] = (
-        entry.get('task_payload') or error_extras.pop('task_payload', None))
-    entry['extras'].update(error_extras)
-    entry['serviceContext'] = {'service': 'bots'}
+    error_extras = getattr(error, "extras", {})
+    entry["task_payload"] = entry.get("task_payload") or error_extras.pop(
+        "task_payload", None
+    )
+    entry["extras"].update(error_extras)
+    entry["serviceContext"] = {"service": "bots"}
 
     # Reference:
     # https://cloud.google.com/error-reporting/docs/formatting-error-messages,
     if exc_info[0]:
         # we need to set the result of traceback.format_exception to the field
         # `message`. And we move our
-        entry['message'] += '\n' + ''.join(
-            traceback.format_exception(exc_info[0], exc_info[1], exc_info[2]))
+        entry["message"] += "\n" + "".join(
+            traceback.format_exception(exc_info[0], exc_info[1], exc_info[2])
+        )
     else:
         # If we log error without exception, we need to set
         # `context.reportLocation`.
-        location = entry.get('location', {})
-        entry['context'] = {
-            'reportLocation': {
-                'filePath': location.get('path', ''),
-                'lineNumber': location.get('line', 0),
-                'functionName': location.get('method', '')
+        location = entry.get("location", {})
+        entry["context"] = {
+            "reportLocation": {
+                "filePath": location.get("path", ""),
+                "lineNumber": location.get("line", 0),
+                "functionName": location.get("method", ""),
             }
         }
 
@@ -225,11 +221,10 @@ class JsonSocketHandler(logging.handlers.SocketHandler):
     def makePickle(self, record):
         """Format LogEntry into JSON string."""
         # \n is the recognized delimiter by fluentd's in_tcp. Don't remove.
-        return (format_record(record) + '\n').encode('utf-8')
+        return (format_record(record) + "\n").encode("utf-8")
 
 
-def uncaught_exception_handler(exception_type, exception_value,
-                               exception_traceback):
+def uncaught_exception_handler(exception_type, exception_value, exception_traceback):
     """Handles any exception that are uncaught by logging an error and calling
     the sys.__excepthook__."""
     # Ensure that we are not calling ourself. This shouldn't be needed since we
@@ -238,7 +233,7 @@ def uncaught_exception_handler(exception_type, exception_value,
     # quite bad.
     global _is_already_handling_uncaught
     if _is_already_handling_uncaught:
-        raise Exception('Loop in uncaught_exception_handler')
+        raise Exception("Loop in uncaught_exception_handler")
     _is_already_handling_uncaught = True
 
     # Use emit since log_error needs sys.exc_info() to return this function's
@@ -247,8 +242,9 @@ def uncaught_exception_handler(exception_type, exception_value,
     # about that exception as well as the original one.
     emit(
         logging.ERROR,
-        'Uncaught exception',
-        exc_info=(exception_type, exception_value, exception_traceback))
+        "Uncaught exception",
+        exc_info=(exception_type, exception_value, exception_traceback),
+    )
 
     sys.__excepthook__(exception_type, exception_value, exception_traceback)
 
@@ -257,11 +253,12 @@ def configure_appengine():
     """Configure logging for App Engine."""
     logging.getLogger().setLevel(logging.INFO)
 
-    if os.getenv('LOCAL_DEVELOPMENT') or sys.version_info.major == 2:
+    if os.getenv("LOCAL_DEVELOPMENT") or sys.version_info.major == 2:
         # TODO(ochang): Remove Python 2 check once all migrated to Python 3.
         return
 
     import google.cloud.logging
+
     client = google.cloud.logging.Client()
     handler = client.get_default_handler()
     logging.getLogger().addHandler(handler)
@@ -308,7 +305,7 @@ def get_logger():
 
     elif _console_logging_enabled():
         # Force a logger when console logging is enabled.
-        configure('root')
+        configure("root")
 
     return _logger
 
@@ -324,12 +321,12 @@ def get_source_location():
         # https://github.com/python/cpython/blob/2.7/Lib/logging/__init__.py#L1244
         frame = sys.exc_info()[2].tb_frame.f_back
 
-        while frame and hasattr(frame, 'f_code'):
-            if not frame.f_code.co_filename.endswith('logs.py'):
+        while frame and hasattr(frame, "f_code"):
+            if not frame.f_code.co_filename.endswith("logs.py"):
                 return frame.f_code.co_filename, frame.f_lineno, frame.f_code.co_name
             frame = frame.f_back
 
-    return 'Unknown', '-1', 'Unknown'
+    return "Unknown", "-1", "Unknown"
 
 
 def _add_appengine_trace(extras):
@@ -349,15 +346,15 @@ def _add_appengine_trace(extras):
         # otherwise, we hit an exception "Request global variable is not set".
         return
 
-    trace_header = request.headers.get('X-Cloud-Trace-Context')
+    trace_header = request.headers.get("X-Cloud-Trace-Context")
     if not trace_header:
         return
 
-    project_id = os.getenv('APPLICATION_ID')
-    trace_id = trace_header.split('/')[0]
-    extras['logging.googleapis.com/trace'] = (
-        'projects/{project_id}/traces/{trace_id}').format(
-            project_id=project_id, trace_id=trace_id)
+    project_id = os.getenv("APPLICATION_ID")
+    trace_id = trace_header.split("/")[0]
+    extras["logging.googleapis.com/trace"] = (
+        "projects/{project_id}/traces/{trace_id}"
+    ).format(project_id=project_id, trace_id=trace_id)
 
 
 def emit(level, message, exc_info=None, **extras):
@@ -385,8 +382,13 @@ def emit(level, message, exc_info=None, **extras):
             # the stacktrace to exclude emit() and the logging function below it (e.g.
             # log_error).
             message = (
-                message + '\n' + 'Traceback (most recent call last):\n' + ''.join(
-                    traceback.format_stack()[:-2]) + 'LogError: ' + message)
+                message
+                + "\n"
+                + "Traceback (most recent call last):\n"
+                + "".join(traceback.format_stack()[:-2])
+                + "LogError: "
+                + message
+            )
 
         _add_appengine_trace(all_extras)
 
@@ -398,13 +400,10 @@ def emit(level, message, exc_info=None, **extras):
         truncate(message, LOCAL_LOG_MESSAGE_LIMIT),
         exc_info=exc_info,
         extra={
-            'extras': all_extras,
-            'location': {
-                'path': path_name,
-                'line': line_number,
-                'method': method_name
-            }
-        })
+            "extras": all_extras,
+            "location": {"path": path_name, "line": line_number, "method": method_name},
+        },
+    )
 
 
 def log(message, level=logging.INFO, **extras):
@@ -419,7 +418,7 @@ def log_warn(message, **extras):
 
 def log_error(message, **extras):
     """Logs the error in the error log file."""
-    exception = extras.pop('exception', None)
+    exception = extras.pop("exception", None)
     if exception:
         try:
             raise exception
@@ -432,10 +431,10 @@ def log_error(message, **extras):
 
 def log_fatal_and_exit(message, **extras):
     """Logs a fatal error and exits."""
-    wait_before_exit = extras.pop('wait_before_exit', None)
+    wait_before_exit = extras.pop("wait_before_exit", None)
     emit(logging.CRITICAL, message, exc_info=sys.exc_info(), **extras)
     _increment_error_count()
     if wait_before_exit:
-        log('Waiting for %d seconds before exit.' % wait_before_exit)
+        log("Waiting for %d seconds before exit." % wait_before_exit)
         time.sleep(wait_before_exit)
     sys.exit(-1)

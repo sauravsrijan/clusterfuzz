@@ -43,7 +43,9 @@ class IssueTrackerManager(issue_tracker_manager.IssueTrackerManager):
         issue.itm = self
         return issue
 
-    def save(self, issue, *args, **kwargs):  # pylint: disable=unused-argument,arguments-differ
+    def save(
+        self, issue, *args, **kwargs
+    ):  # pylint: disable=unused-argument,arguments-differ
         self.last_issue = issue
 
 
@@ -51,37 +53,40 @@ class MonorailTests(unittest.TestCase):
     """Tests for the monorail issue tracker."""
 
     def setUp(self):
-        helpers.patch(self, [
-            'libs.issue_management.monorail.issue_tracker_manager.'
-            'IssueTrackerManager.get_issues',
-        ])
+        helpers.patch(
+            self,
+            [
+                "libs.issue_management.monorail.issue_tracker_manager."
+                "IssueTrackerManager.get_issues",
+            ],
+        )
 
         mock_issue = MonorailIssue()
         mock_issue.id = 1337
-        mock_issue.summary = 'summary'
-        mock_issue.body = 'body'
-        mock_issue.owner = 'owner'
-        mock_issue.reporter = 'reporter'
-        mock_issue.status = 'New'
-        mock_issue.add_label('label1')
-        mock_issue.add_label('label2')
-        mock_issue.add_component('A>B')
-        mock_issue.add_component('C>D')
-        mock_issue.add_cc('cc@cc.com')
+        mock_issue.summary = "summary"
+        mock_issue.body = "body"
+        mock_issue.owner = "owner"
+        mock_issue.reporter = "reporter"
+        mock_issue.status = "New"
+        mock_issue.add_label("label1")
+        mock_issue.add_label("label2")
+        mock_issue.add_component("A>B")
+        mock_issue.add_component("C>D")
+        mock_issue.add_cc("cc@cc.com")
 
         mock_comment0 = MonorailComment()
-        mock_comment0.author = 'author'
-        mock_comment0.cc = ['-removed@cc.com', 'cc@cc.com']
-        mock_comment0.labels = ['-label0', 'label1']
-        mock_comment0.components = ['-E>F', 'A>B']
-        mock_comment0.comment = 'comment'
-        mock_comment0.summary = 'summary'
-        mock_comment0.status = 'status'
-        mock_comment0.owner = 'owner'
+        mock_comment0.author = "author"
+        mock_comment0.cc = ["-removed@cc.com", "cc@cc.com"]
+        mock_comment0.labels = ["-label0", "label1"]
+        mock_comment0.components = ["-E>F", "A>B"]
+        mock_comment0.comment = "comment"
+        mock_comment0.summary = "summary"
+        mock_comment0.status = "status"
+        mock_comment0.owner = "owner"
 
         mock_comment1 = MonorailComment()
-        mock_comment1.author = 'author'
-        mock_comment1.comment = 'comment'
+        mock_comment1.author = "author"
+        mock_comment1.comment = "comment"
 
         mock_issue.comments = [
             mock_comment0,
@@ -91,13 +96,13 @@ class MonorailTests(unittest.TestCase):
         mock_issue_merged = MonorailIssue()
         mock_issue_merged.id = 1338
         mock_issue_merged.merged_into = 1337
-        mock_issue_merged.merged_into_project = 'project'
+        mock_issue_merged.merged_into_project = "project"
         mock_issue_merged.closed = datetime.datetime(2019, 1, 1)
 
         mock_issue_merged_another_project = MonorailIssue()
         mock_issue_merged_another_project.id = 1339
         mock_issue_merged_another_project.merged_into = 1
-        mock_issue_merged_another_project.merged_into_project = 'different-project'
+        mock_issue_merged_another_project.merged_into_project = "different-project"
 
         mock_issues = {
             1337: mock_issue,
@@ -105,7 +110,7 @@ class MonorailTests(unittest.TestCase):
             1339: mock_issue_merged_another_project,
         }
 
-        self.itm = IssueTrackerManager('project', mock_issues)
+        self.itm = IssueTrackerManager("project", mock_issues)
         self.issue_tracker = monorail.IssueTracker(self.itm)
 
     def test_get_issue(self):
@@ -114,24 +119,16 @@ class MonorailTests(unittest.TestCase):
 
         issue = self.issue_tracker.get_issue(1337)
         self.assertEqual(1337, issue.id)
-        self.assertEqual('summary', issue.title)
-        self.assertEqual('body', issue.body)
-        self.assertEqual('owner', issue.assignee)
-        self.assertEqual('reporter', issue.reporter)
-        self.assertEqual('New', issue.status)
+        self.assertEqual("summary", issue.title)
+        self.assertEqual("body", issue.body)
+        self.assertEqual("owner", issue.assignee)
+        self.assertEqual("reporter", issue.reporter)
+        self.assertEqual("New", issue.status)
         self.assertIsNone(issue.merged_into)
 
-        six.assertCountEqual(self, [
-            'label1',
-            'label2',
-        ], issue.labels)
-        six.assertCountEqual(self, [
-            'A>B',
-            'C>D',
-        ], issue.components)
-        six.assertCountEqual(self, [
-            'cc@cc.com',
-        ], issue.ccs)
+        six.assertCountEqual(self, ["label1", "label2",], issue.labels)
+        six.assertCountEqual(self, ["A>B", "C>D",], issue.components)
+        six.assertCountEqual(self, ["cc@cc.com",], issue.ccs)
 
         issue = self.issue_tracker.get_issue(1338)
         self.assertEqual(1338, issue.id)
@@ -140,39 +137,31 @@ class MonorailTests(unittest.TestCase):
     def test_new_issue(self):
         """Test new_issue."""
         issue = self.issue_tracker.new_issue()
-        issue.assignee = 'owner'
-        issue.title = 'summary'
-        issue.body = 'body'
-        issue.assignee = 'owner'
-        issue.reporter = 'reporter'
-        issue.status = 'New'
-        issue.labels.add('label1')
-        issue.labels.add('label2')
-        issue.components.add('A>B')
-        issue.components.add('C>D')
-        issue.ccs.add('cc@cc.com')
-        issue.save(new_comment='comment')
+        issue.assignee = "owner"
+        issue.title = "summary"
+        issue.body = "body"
+        issue.assignee = "owner"
+        issue.reporter = "reporter"
+        issue.status = "New"
+        issue.labels.add("label1")
+        issue.labels.add("label2")
+        issue.components.add("A>B")
+        issue.components.add("C>D")
+        issue.ccs.add("cc@cc.com")
+        issue.save(new_comment="comment")
 
         monorail_issue = self.itm.last_issue
 
-        self.assertEqual('summary', monorail_issue.summary)
-        self.assertEqual('body', monorail_issue.body)
-        self.assertEqual('owner', monorail_issue.owner)
-        self.assertEqual('reporter', monorail_issue.reporter)
-        self.assertEqual('New', monorail_issue.status)
-        self.assertEqual('comment', monorail_issue.comment)
+        self.assertEqual("summary", monorail_issue.summary)
+        self.assertEqual("body", monorail_issue.body)
+        self.assertEqual("owner", monorail_issue.owner)
+        self.assertEqual("reporter", monorail_issue.reporter)
+        self.assertEqual("New", monorail_issue.status)
+        self.assertEqual("comment", monorail_issue.comment)
 
-        six.assertCountEqual(self, [
-            'label1',
-            'label2',
-        ], monorail_issue.labels)
-        six.assertCountEqual(self, [
-            'A>B',
-            'C>D',
-        ], monorail_issue.components)
-        six.assertCountEqual(self, [
-            'cc@cc.com',
-        ], monorail_issue.cc)
+        six.assertCountEqual(self, ["label1", "label2",], monorail_issue.labels)
+        six.assertCountEqual(self, ["A>B", "C>D",], monorail_issue.components)
+        six.assertCountEqual(self, ["cc@cc.com",], monorail_issue.cc)
 
     def test_actions(self):
         """Test actions."""
@@ -180,19 +169,19 @@ class MonorailTests(unittest.TestCase):
         actions = list(issue.actions)
         self.assertEqual(2, len(actions))
 
-        self.assertEqual('summary', actions[0].title)
-        self.assertEqual('comment', actions[0].comment)
-        self.assertEqual('owner', actions[0].assignee)
-        self.assertEqual('status', actions[0].status)
-        six.assertCountEqual(self, ['cc@cc.com'], actions[0].ccs.added)
-        six.assertCountEqual(self, ['removed@cc.com'], actions[0].ccs.removed)
-        six.assertCountEqual(self, ['label1'], actions[0].labels.added)
-        six.assertCountEqual(self, ['label0'], actions[0].labels.removed)
-        six.assertCountEqual(self, ['A>B'], actions[0].components.added)
-        six.assertCountEqual(self, ['E>F'], actions[0].components.removed)
+        self.assertEqual("summary", actions[0].title)
+        self.assertEqual("comment", actions[0].comment)
+        self.assertEqual("owner", actions[0].assignee)
+        self.assertEqual("status", actions[0].status)
+        six.assertCountEqual(self, ["cc@cc.com"], actions[0].ccs.added)
+        six.assertCountEqual(self, ["removed@cc.com"], actions[0].ccs.removed)
+        six.assertCountEqual(self, ["label1"], actions[0].labels.added)
+        six.assertCountEqual(self, ["label0"], actions[0].labels.removed)
+        six.assertCountEqual(self, ["A>B"], actions[0].components.added)
+        six.assertCountEqual(self, ["E>F"], actions[0].components.removed)
 
         self.assertIsNone(actions[1].title)
-        self.assertEqual('comment', actions[1].comment)
+        self.assertEqual("comment", actions[1].comment)
         self.assertIsNone(actions[1].assignee)
         self.assertIsNone(actions[1].status)
         six.assertCountEqual(self, [], actions[1].ccs.added)
@@ -205,24 +194,26 @@ class MonorailTests(unittest.TestCase):
     def test_modify_labels(self):
         """Test modifying labels."""
         issue = self.issue_tracker.get_issue(1337)
-        issue.labels.add('Label3')
-        issue.labels.remove('laBel1')
-        six.assertCountEqual(self, ['label2', 'Label3'], issue.labels)
+        issue.labels.add("Label3")
+        issue.labels.remove("laBel1")
+        six.assertCountEqual(self, ["label2", "Label3"], issue.labels)
         issue.save()
 
-        six.assertCountEqual(self, ['label2', 'Label3', '-laBel1'],
-                             self.itm.last_issue.labels)
+        six.assertCountEqual(
+            self, ["label2", "Label3", "-laBel1"], self.itm.last_issue.labels
+        )
 
     def test_modify_components(self):
         """Test modifying labels."""
         issue = self.issue_tracker.get_issue(1337)
-        issue.components.add('Y>Z')
-        issue.components.remove('a>B')
-        six.assertCountEqual(self, ['C>D', 'Y>Z'], issue.components)
+        issue.components.add("Y>Z")
+        issue.components.remove("a>B")
+        six.assertCountEqual(self, ["C>D", "Y>Z"], issue.components)
         issue.save()
 
-        six.assertCountEqual(self, ['-a>B', 'C>D', 'Y>Z'],
-                             self.itm.last_issue.components)
+        six.assertCountEqual(
+            self, ["-a>B", "C>D", "Y>Z"], self.itm.last_issue.components
+        )
 
     def test_get_original_issue(self):
         """Test get_original_issue."""
@@ -240,41 +231,48 @@ class MonorailTests(unittest.TestCase):
             issue0,
             issue1,
         ]
-        issues = self.issue_tracker.find_issues(
-            keywords=['one', 'two'], only_open=True)
+        issues = self.issue_tracker.find_issues(keywords=["one", "two"], only_open=True)
         six.assertCountEqual(self, [1, 2], [issue.id for issue in issues])
 
-        self.mock.get_issues.assert_has_calls([
-            mock.call(mock.ANY, '"one" "two"', can='open'),
-        ])
+        self.mock.get_issues.assert_has_calls(
+            [mock.call(mock.ANY, '"one" "two"', can="open"),]
+        )
 
         issues = self.issue_tracker.find_issues(
-            keywords=['one', 'two'], only_open=False)
+            keywords=["one", "two"], only_open=False
+        )
         six.assertCountEqual(self, [1, 2], [issue.id for issue in issues])
 
-        self.mock.get_issues.assert_has_calls([
-            mock.call(mock.ANY, '"one" "two"', can='all'),
-        ])
+        self.mock.get_issues.assert_has_calls(
+            [mock.call(mock.ANY, '"one" "two"', can="all"),]
+        )
 
     def test_find_issues_url(self):
         """Test find_issues_url."""
         url = self.issue_tracker.find_issues_url(
-            keywords=['one', 'two'], only_open=False)
+            keywords=["one", "two"], only_open=False
+        )
         self.assertEqual(
-            'https://bugs.chromium.org/p/project/issues/list'
-            '?can_id=1&q=%22one%22+%22two%22', url)
+            "https://bugs.chromium.org/p/project/issues/list"
+            "?can_id=1&q=%22one%22+%22two%22",
+            url,
+        )
 
         url = self.issue_tracker.find_issues_url(
-            keywords=['one', 'two'], only_open=True)
+            keywords=["one", "two"], only_open=True
+        )
         self.assertEqual(
-            'https://bugs.chromium.org/p/project/issues/list'
-            '?can_id=2&q=%22one%22+%22two%22', url)
+            "https://bugs.chromium.org/p/project/issues/list"
+            "?can_id=2&q=%22one%22+%22two%22",
+            url,
+        )
 
     def test_issue_url(self):
         """Test issue_url."""
         issue_url = self.issue_tracker.issue_url(1337)
         self.assertEqual(
-            'https://bugs.chromium.org/p/project/issues/detail?id=1337', issue_url)
+            "https://bugs.chromium.org/p/project/issues/detail?id=1337", issue_url
+        )
 
     def test_merged_into_different_project(self):
         """Test merged_into for a different issue tracker project."""

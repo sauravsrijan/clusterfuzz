@@ -20,44 +20,44 @@ defined in this function that end with the suffix "_FLAG" should contain
 """
 
 # libFuzzer flags.
-ARTIFACT_PREFIX_FLAG = '-artifact_prefix='
+ARTIFACT_PREFIX_FLAG = "-artifact_prefix="
 
-DATA_FLOW_TRACE_FLAG = '-data_flow_trace='
+DATA_FLOW_TRACE_FLAG = "-data_flow_trace="
 
-DICT_FLAG = '-dict='
+DICT_FLAG = "-dict="
 
-FOCUS_FUNCTION_FLAG = '-focus_function='
+FOCUS_FUNCTION_FLAG = "-focus_function="
 
-FORK_FLAG = '-fork='
+FORK_FLAG = "-fork="
 
-MAX_LEN_FLAG = '-max_len='
+MAX_LEN_FLAG = "-max_len="
 
-MAX_TOTAL_TIME_FLAG = '-max_total_time='
+MAX_TOTAL_TIME_FLAG = "-max_total_time="
 
-RSS_LIMIT_FLAG = '-rss_limit_mb='
+RSS_LIMIT_FLAG = "-rss_limit_mb="
 
-RUNS_FLAG = '-runs='
+RUNS_FLAG = "-runs="
 
-TIMEOUT_FLAG = '-timeout='
+TIMEOUT_FLAG = "-timeout="
 
-EXACT_ARTIFACT_PATH_FLAG = '-exact_artifact_path='
+EXACT_ARTIFACT_PATH_FLAG = "-exact_artifact_path="
 
 # libFuzzer arguments.
-ANALYZE_DICT_ARGUMENT = '-analyze_dict=1'
+ANALYZE_DICT_ARGUMENT = "-analyze_dict=1"
 
-CLEANSE_CRASH_ARGUMENT = '-cleanse_crash=1'
+CLEANSE_CRASH_ARGUMENT = "-cleanse_crash=1"
 
-MERGE_ARGUMENT = '-merge=1'
+MERGE_ARGUMENT = "-merge=1"
 
-MERGE_CONTROL_FILE_ARGUMENT = '-merge_control_file='
+MERGE_CONTROL_FILE_ARGUMENT = "-merge_control_file="
 
-MINIMIZE_CRASH_ARGUMENT = '-minimize_crash=1'
+MINIMIZE_CRASH_ARGUMENT = "-minimize_crash=1"
 
-PRINT_FINAL_STATS_ARGUMENT = '-print_final_stats=1'
+PRINT_FINAL_STATS_ARGUMENT = "-print_final_stats=1"
 
-TMP_ARTIFACT_PREFIX_ARGUMENT = '/tmp/'
+TMP_ARTIFACT_PREFIX_ARGUMENT = "/tmp/"
 
-VALUE_PROFILE_ARGUMENT = '-use_value_profile=1'
+VALUE_PROFILE_ARGUMENT = "-use_value_profile=1"
 
 # Value for RSS_LIMIT_FLAG to catch OOM.
 DEFAULT_RSS_LIMIT_MB = 2560

@@ -1,4 +1,5 @@
 from __future__ import print_function
+
 # Copyright 2019 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,14 +14,14 @@ from __future__ import print_function
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#===- lib/asan/scripts/asan_symbolize.py -----------------------------------===#
+# ===- lib/asan/scripts/asan_symbolize.py -----------------------------------===#
 #
 #                     The LLVM Compiler Infrastructure
 #
 # This file is distributed under the University of Illinois Open Source
 # License. See LICENSE.TXT for details.
 #
-#===------------------------------------------------------------------------===#
+# ===------------------------------------------------------------------------===#
 
 #
 # This file has local modifications needed for ClusterFuzz project.
@@ -56,8 +57,8 @@ except ImportError:
     # Applies only on unix platforms.
     pass
 
-stack_inlining = 'false'
-llvm_symbolizer_path = ''
+stack_inlining = "false"
+llvm_symbolizer_path = ""
 pipes = []
 symbolizers = {}
 
@@ -70,7 +71,7 @@ class LineBuffered(object):
 
     def write(self, data):
         self.stream.write(data)
-        if '\n' in data:
+        if "\n" in data:
             self.stream.flush()
 
     def __getattr__(self, attr):
@@ -107,9 +108,9 @@ def chrome_dsym_hints(binary):
     app_positions = []
     framework_positions = []
     for index, part in enumerate(path_parts):
-        if part.endswith('.app'):
+        if part.endswith(".app"):
             app_positions.append(index)
-        elif part.endswith('.framework'):
+        elif part.endswith(".framework"):
             framework_positions.append(index)
 
     bundle_positions = app_positions + framework_positions
@@ -125,17 +126,16 @@ def chrome_dsym_hints(binary):
     # In case 2 this is the same as |outermost_bundle|.
     innermost_bundle = bundle_positions[-1]
     innermost_bundle_dir = path_parts[innermost_bundle]
-    innermost_bundle_dir = utils.strip_from_right(innermost_bundle_dir, '.app')
-    innermost_bundle_dir = utils.strip_from_right(innermost_bundle_dir,
-                                                  '.framework')
+    innermost_bundle_dir = utils.strip_from_right(innermost_bundle_dir, ".app")
+    innermost_bundle_dir = utils.strip_from_right(innermost_bundle_dir, ".framework")
     dsym_path = product_dir + [innermost_bundle_dir]
-    result = '%s.dSYM' % os.path.sep.join(dsym_path)
+    result = "%s.dSYM" % os.path.sep.join(dsym_path)
     return [result]
 
 
 def disable_buffering():
     """Make this process and child processes stdout unbuffered."""
-    os.environ['PYTHONUNBUFFERED'] = '1'
+    os.environ["PYTHONUNBUFFERED"] = "1"
 
     if not isinstance(sys.stdout, LineBuffered):
         # Don't wrap sys.stdout if it is already wrapped.
@@ -147,21 +147,21 @@ def disable_buffering():
 
 def fix_filename(file_name):
     """Clean up the filename, nulls out tool specific ones."""
-    file_name = re.sub('.*asan_[a-z_]*.cc:[0-9]*', '_asan_rtl_', file_name)
-    file_name = re.sub('.*crtstuff.c:0', '', file_name)
-    file_name = re.sub(':0$', '', file_name)
+    file_name = re.sub(".*asan_[a-z_]*.cc:[0-9]*", "_asan_rtl_", file_name)
+    file_name = re.sub(".*crtstuff.c:0", "", file_name)
+    file_name = re.sub(":0$", "", file_name)
 
     # If we don't have a file name, just bail out.
-    if not file_name or file_name.startswith('??'):
-        return ''
+    if not file_name or file_name.startswith("??"):
+        return ""
 
     return os.path.normpath(file_name)
 
 
 def fix_function_name(function_name):
     """Clean up function name."""
-    if function_name.startswith('??'):
-        return ''
+    if function_name.startswith("??"):
+        return ""
 
     return function_name
 
@@ -175,23 +175,34 @@ def get_stack_frame(binary, addr, function_name, file_name):
     # Check if we don't have any symbols at all. If yes, this is probably
     # a system library. In this case, just return the binary name.
     if not function_name and not file_name:
-        return '%s in %s' % (addr, os.path.basename(binary))
+        return "%s in %s" % (addr, os.path.basename(binary))
 
     # We just have a file name. Probably running in global context.
     if not function_name:
         # Filter the filename to act as a function name.
         filtered_file_name = os.path.basename(file_name)
-        return '%s in %s %s' % (addr, filtered_file_name, file_name)
+        return "%s in %s %s" % (addr, filtered_file_name, file_name)
 
     # Regular stack frame.
-    return '%s in %s %s' % (addr, function_name, file_name)
+    return "%s in %s %s" % (addr, function_name, file_name)
 
 
 def is_valid_arch(s):
     """Check if this is a valid supported architecture."""
     return s in [
-        "i386", "x86_64", "x86_64h", "arm", "armv6", "armv7", "armv7s", "armv7k",
-        "arm64", "powerpc64", "powerpc64le", "s390x", "s390"
+        "i386",
+        "x86_64",
+        "x86_64h",
+        "arm",
+        "armv6",
+        "armv7",
+        "armv7s",
+        "armv7k",
+        "arm64",
+        "powerpc64",
+        "powerpc64le",
+        "s390x",
+        "s390",
     ]
 
 
@@ -199,13 +210,12 @@ def guess_arch(address):
     """Guess which architecture we're running on (32/64).
     10 = len('0x') + 8 hex digits."""
     if len(address) > 10:
-        return 'x86_64'
+        return "x86_64"
     else:
-        return 'i386'
+        return "i386"
 
 
 class Symbolizer(object):
-
     def __init__(self):
         pass
 
@@ -226,7 +236,6 @@ class Symbolizer(object):
 
 
 class LLVMSymbolizer(Symbolizer):
-
     def __init__(self, symbolizer_path, default_arch, system, dsym_hints=[]):
         super(LLVMSymbolizer, self).__init__()
         self.symbolizer_path = symbolizer_path
@@ -242,27 +251,29 @@ class LLVMSymbolizer(Symbolizer):
         # Setup symbolizer command line.
         cmd = [
             self.symbolizer_path,
-            '--default-arch=%s' % self.default_arch, '--demangle=true',
-            '--functions=linkage',
-            '--inlining=%s' % stack_inlining, '--use-symbol-table=true'
+            "--default-arch=%s" % self.default_arch,
+            "--demangle=true",
+            "--functions=linkage",
+            "--inlining=%s" % stack_inlining,
+            "--use-symbol-table=true",
         ]
-        if self.system == 'darwin':
+        if self.system == "darwin":
             for hint in self.dsym_hints:
-                cmd.append('--dsym-hint=%s' % hint)
+                cmd.append("--dsym-hint=%s" % hint)
 
         # Set LD_LIBRARY_PATH to use the right libstdc++.
         env_copy = environment.copy()
-        env_copy['LD_LIBRARY_PATH'] = os.path.dirname(self.symbolizer_path)
+        env_copy["LD_LIBRARY_PATH"] = os.path.dirname(self.symbolizer_path)
 
         # FIXME: Since we are not using process_handler.run_process here, we can run
         # into issues with unicode environment variable and values. Add this
         # explicit hack to convert these into strings.
-        env_copy = {str(key): str(value)
-                    for key, value in six.iteritems(env_copy)}
+        env_copy = {str(key): str(value) for key, value in six.iteritems(env_copy)}
 
         # Run the symbolizer.
         pipe = subprocess.Popen(
-            cmd, env=env_copy, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            cmd, env=env_copy, stdin=subprocess.PIPE, stdout=subprocess.PIPE
+        )
 
         global pipes
         pipes.append(pipe)
@@ -272,25 +283,26 @@ class LLVMSymbolizer(Symbolizer):
     def symbolize(self, addr, binary, offset):
         """Overrides Symbolizer.symbolize."""
         if not binary.strip():
-            return ['%s in' % addr]
+            return ["%s in" % addr]
 
         result = []
         try:
             symbolizer_input = '"%s" %s' % (binary, offset)
-            self.pipe.stdin.write(symbolizer_input.encode('utf-8') + b'\n')
+            self.pipe.stdin.write(symbolizer_input.encode("utf-8") + b"\n")
             self.pipe.stdin.flush()
             while True:
-                function_name = self.pipe.stdout.readline().rstrip().decode('utf-8')
+                function_name = self.pipe.stdout.readline().rstrip().decode("utf-8")
                 if not function_name:
                     break
 
-                file_name = self.pipe.stdout.readline().rstrip().decode('utf-8')
-                result.append(get_stack_frame(
-                    binary, addr, function_name, file_name))
+                file_name = self.pipe.stdout.readline().rstrip().decode("utf-8")
+                result.append(get_stack_frame(binary, addr, function_name, file_name))
 
         except Exception:
-            logs.log_error('Symbolization using llvm-symbolizer failed for: "%s".' %
-                           symbolizer_input)
+            logs.log_error(
+                'Symbolization using llvm-symbolizer failed for: "%s".'
+                % symbolizer_input
+            )
             result = []
         if not result:
             result = None
@@ -302,16 +314,14 @@ def LLVMSymbolizerFactory(system, default_arch, dsym_hints=[]):
 
 
 class Addr2LineSymbolizer(Symbolizer):
-
     def __init__(self, binary):
         super(Addr2LineSymbolizer, self).__init__()
         self.binary = binary
         self.pipe = self.open_addr2line()
 
     def open_addr2line(self):
-        cmd = ['addr2line', '--demangle', '-f', '-e', self.binary]
-        pipe = subprocess.Popen(
-            cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        cmd = ["addr2line", "--demangle", "-f", "-e", self.binary]
+        pipe = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         global pipes
         pipes.append(pipe)
         return pipe
@@ -321,19 +331,21 @@ class Addr2LineSymbolizer(Symbolizer):
         if self.binary != binary:
             return None
         if not binary.strip():
-            return ['%s in' % addr]
+            return ["%s in" % addr]
 
         try:
-            symbolizer_input = str(offset).encode('utf-8')
-            self.pipe.stdin.write(symbolizer_input + b'\n')
+            symbolizer_input = str(offset).encode("utf-8")
+            self.pipe.stdin.write(symbolizer_input + b"\n")
             self.pipe.stdin.flush()
-            function_name = self.pipe.stdout.readline().rstrip().decode('utf-8')
-            file_name = self.pipe.stdout.readline().rstrip().decode('utf-8')
+            function_name = self.pipe.stdout.readline().rstrip().decode("utf-8")
+            file_name = self.pipe.stdout.readline().rstrip().decode("utf-8")
         except Exception:
-            logs.log_error('Symbolization using addr2line failed for: "%s %s".' %
-                           (binary, str(offset)))
-            function_name = ''
-            file_name = ''
+            logs.log_error(
+                'Symbolization using addr2line failed for: "%s %s".'
+                % (binary, str(offset))
+            )
+            function_name = ""
+            file_name = ""
 
         return [get_stack_frame(binary, addr, function_name, file_name)]
 
@@ -349,7 +361,7 @@ class UnbufferedLineConverter(object):
         if pid == 0:
             # We're the child. Transfer control to command.
             if close_stderr:
-                dev_null = os.open('/dev/null', 0)
+                dev_null = os.open("/dev/null", 0)
                 os.dup2(dev_null, 2)
             os.execvp(args[0], args)
         else:
@@ -358,11 +370,11 @@ class UnbufferedLineConverter(object):
             attr[3] = attr[3] & ~termios.ECHO
             termios.tcsetattr(fd, termios.TCSANOW, attr)
             # Set up a file()-like interface to the child process
-            self.r = os.fdopen(fd, 'r', 1)
-            self.w = os.fdopen(os.dup(fd), 'w', 1)
+            self.r = os.fdopen(fd, "r", 1)
+            self.w = os.fdopen(os.dup(fd), "w", 1)
 
     def convert(self, line):
-        self.w.write(line + '\n')
+        self.w.write(line + "\n")
         return self.readline()
 
     def readline(self):
@@ -370,7 +382,6 @@ class UnbufferedLineConverter(object):
 
 
 class DarwinSymbolizer(Symbolizer):
-
     def __init__(self, addr, binary, arch):
         super(DarwinSymbolizer, self).__init__()
         self.binary = binary
@@ -378,7 +389,7 @@ class DarwinSymbolizer(Symbolizer):
         self.open_atos()
 
     def open_atos(self):
-        cmdline = ['atos', '-o', self.binary, '-arch', self.arch]
+        cmdline = ["atos", "-o", self.binary, "-arch", self.arch]
         self.atos = UnbufferedLineConverter(cmdline, close_stderr=True)
 
     def symbolize(self, addr, binary, offset):
@@ -387,29 +398,29 @@ class DarwinSymbolizer(Symbolizer):
             return None
 
         try:
-            atos_line = self.atos.convert('0x%x' % int(offset, 16))
-            while 'got symbolicator for' in atos_line:
+            atos_line = self.atos.convert("0x%x" % int(offset, 16))
+            while "got symbolicator for" in atos_line:
                 atos_line = self.atos.readline()
             # A well-formed atos response looks like this:
             #   foo(type1, type2) (in object.name) (filename.cc:80)
-            match = re.match('^(.*) \(in (.*)\) \((.*:\d*)\)$', atos_line)
+            match = re.match("^(.*) \(in (.*)\) \((.*:\d*)\)$", atos_line)
             if match:
                 function_name = match.group(1)
-                function_name = re.sub('\(.*?\)', '', function_name)
+                function_name = re.sub("\(.*?\)", "", function_name)
                 file_name = match.group(3)
                 return [get_stack_frame(binary, addr, function_name, file_name)]
             else:
-                return ['%s in %s' % (addr, atos_line)]
+                return ["%s in %s" % (addr, atos_line)]
         except Exception:
-            logs.log_error('Symbolization using atos failed for: "%s %s".' %
-                           (binary, str(offset)))
-            return ['{} ({}:{}+{})'.format(addr, binary, self.arch, offset)]
+            logs.log_error(
+                'Symbolization using atos failed for: "%s %s".' % (binary, str(offset))
+            )
+            return ["{} ({}:{}+{})".format(addr, binary, self.arch, offset)]
 
 
 # Chain several symbolizers so that if one symbolizer fails, we fall back
 # to the next symbolizer in chain.
 class ChainSymbolizer(Symbolizer):
-
     def __init__(self, symbolizer_list):
         super(ChainSymbolizer, self).__init__()
         self.symbolizer_list = symbolizer_list
@@ -428,14 +439,13 @@ class ChainSymbolizer(Symbolizer):
 
 
 def SystemSymbolizerFactory(system, addr, binary, arch):
-    if system == 'darwin':
+    if system == "darwin":
         return DarwinSymbolizer(addr, binary, arch)
-    elif system.startswith('linux'):
+    elif system.startswith("linux"):
         return Addr2LineSymbolizer(binary)
 
 
 class SymbolizationLoop(object):
-
     def __init__(self, binary_path_filter=None, dsym_hint_producer=None):
         # Used by clients who may want to supply a different binary name.
         # E.g. in Chrome several binaries may share a single .dSYM.
@@ -460,29 +470,29 @@ class SymbolizationLoop(object):
         #     .dSYM hints to it.
         if not binary in self.llvm_symbolizers:
             use_new_symbolizer = True
-            if self.system == 'darwin' and self.dsym_hint_producer:
+            if self.system == "darwin" and self.dsym_hint_producer:
                 dsym_hints_for_binary = set(self.dsym_hint_producer(binary))
-                use_new_symbolizer = bool(
-                    dsym_hints_for_binary - self.dsym_hints)
+                use_new_symbolizer = bool(dsym_hints_for_binary - self.dsym_hints)
                 self.dsym_hints |= dsym_hints_for_binary
             if self.last_llvm_symbolizer and not use_new_symbolizer:
                 self.llvm_symbolizers[binary] = self.last_llvm_symbolizer
             else:
                 self.last_llvm_symbolizer = LLVMSymbolizerFactory(
-                    self.system, arch, self.dsym_hints)
+                    self.system, arch, self.dsym_hints
+                )
                 self.llvm_symbolizers[binary] = self.last_llvm_symbolizer
 
         # Use the chain of symbolizers:
         # LLVM symbolizer -> addr2line/atos
         # (fall back to next symbolizer if the previous one fails).
         if not binary in symbolizers:
-            symbolizers[binary] = ChainSymbolizer(
-                [self.llvm_symbolizers[binary]])
+            symbolizers[binary] = ChainSymbolizer([self.llvm_symbolizers[binary]])
         result = symbolizers[binary].symbolize(addr, binary, offset)
         if result is None:
             # Initialize system symbolizer only if other symbolizers failed.
             symbolizers[binary].append_symbolizer(
-                SystemSymbolizerFactory(self.system, addr, binary, arch))
+                SystemSymbolizerFactory(self.system, addr, binary, arch)
+            )
             result = symbolizers[binary].symbolize(addr, binary, offset)
         # The system symbolizer must produce some result.
         assert result
@@ -490,46 +500,48 @@ class SymbolizationLoop(object):
 
     def process_stacktrace(self, unsymbolized_crash_stacktrace):
         self.frame_no = 0
-        symbolized_crash_stacktrace = u''
+        symbolized_crash_stacktrace = u""
         for line in unsymbolized_crash_stacktrace.splitlines():
             self.current_line = utils.decode_to_unicode(line.rstrip())
             # 0 0x7f6e35cf2e45  (/blah/foo.so+0x11fe45)
             stack_trace_line_format = (
-                '^( *#([0-9]+) *)(0x[0-9a-f]+) *\(([^+]*)\+(0x[0-9a-f]+)\)')
+                "^( *#([0-9]+) *)(0x[0-9a-f]+) *\(([^+]*)\+(0x[0-9a-f]+)\)"
+            )
             match = re.match(stack_trace_line_format, line)
             if not match:
-                symbolized_crash_stacktrace += u'%s\n' % self.current_line
+                symbolized_crash_stacktrace += u"%s\n" % self.current_line
                 continue
             _, frameno_str, addr, binary, offset = match.groups()
             arch = ""
             # Arch can be embedded in the filename, e.g.: "libabc.dylib:x86_64h"
             colon_pos = binary.rfind(":")
             if colon_pos != -1:
-                maybe_arch = binary[colon_pos + 1:]
+                maybe_arch = binary[colon_pos + 1 :]
                 if is_valid_arch(maybe_arch):
                     arch = maybe_arch
                     binary = binary[0:colon_pos]
             if arch == "":
                 arch = guess_arch(addr)
-            if frameno_str == '0':
+            if frameno_str == "0":
                 # Assume that frame #0 is the first frame of new stack trace.
                 self.frame_no = 0
             original_binary = binary
             if self.binary_path_filter:
                 binary = self.binary_path_filter(binary)
-            symbolized_line = self.symbolize_address(
-                addr, binary, offset, arch)
+            symbolized_line = self.symbolize_address(addr, binary, offset, arch)
             if not symbolized_line:
                 if original_binary != binary:
-                    symbolized_line = self.symbolize_address(addr, original_binary,
-                                                             offset, arch)
+                    symbolized_line = self.symbolize_address(
+                        addr, original_binary, offset, arch
+                    )
 
             if not symbolized_line:
-                symbolized_crash_stacktrace += u'%s\n' % self.current_line
+                symbolized_crash_stacktrace += u"%s\n" % self.current_line
             else:
                 for symbolized_frame in symbolized_line:
-                    symbolized_crash_stacktrace += u'%s\n' % (
-                        '    #' + str(self.frame_no) + ' ' + symbolized_frame.rstrip())
+                    symbolized_crash_stacktrace += u"%s\n" % (
+                        "    #" + str(self.frame_no) + " " + symbolized_frame.rstrip()
+                    )
                     self.frame_no += 1
 
         # Close any left-over open pipes.
@@ -545,43 +557,40 @@ def filter_binary_path(binary_path):
     """Filters binary path to provide a local copy."""
     platform = environment.platform()
 
-    if platform == 'ANDROID':
+    if platform == "ANDROID":
         # Skip symbolization when running it on bad entries like [stack:XYZ].
-        if not binary_path.startswith('/') or '(deleted)' in binary_path:
-            return ''
+        if not binary_path.startswith("/") or "(deleted)" in binary_path:
+            return ""
 
         # Initialize some helper variables.
         binary_filename = os.path.basename(binary_path)
-        build_directory = environment.get_value('BUILD_DIR')
-        symbols_directory = environment.get_value('SYMBOLS_DIR')
+        build_directory = environment.get_value("BUILD_DIR")
+        symbols_directory = environment.get_value("SYMBOLS_DIR")
 
         # Try to find the library in the build directory first.
-        local_binary_path = utils.find_binary_path(
-            build_directory, binary_path)
+        local_binary_path = utils.find_binary_path(build_directory, binary_path)
         if local_binary_path:
             return local_binary_path
 
         # We didn't find the library locally in the build directory.
         # Try finding the library in the local system library cache.
         download_system_symbols_if_needed(symbols_directory)
-        local_binary_path = utils.find_binary_path(
-            symbols_directory, binary_path)
+        local_binary_path = utils.find_binary_path(symbols_directory, binary_path)
         if local_binary_path:
             return local_binary_path
 
         # Try pulling in the binary directly from the device into the
         # system library cache directory.
         local_binary_path = os.path.join(symbols_directory, binary_filename)
-        adb.run_command('pull %s %s' % (binary_path, local_binary_path))
+        adb.run_command("pull %s %s" % (binary_path, local_binary_path))
         if os.path.exists(local_binary_path):
             return local_binary_path
 
         # Unable to find library.
-        logs.log_error(
-            'Unable to find library %s for symbolization.' % binary_path)
-        return ''
+        logs.log_error("Unable to find library %s for symbolization." % binary_path)
+        return ""
 
-    if platform == 'CHROMEOS':
+    if platform == "CHROMEOS":
         # FIXME: Add code to pull binaries from ChromeOS device.
         return binary_path
 
@@ -589,7 +598,7 @@ def filter_binary_path(binary_path):
         # This conditional is True for ChromeOS system fuzzers that are running on
         # Linux. Ensure that the binary is always looked for in the chroot and not
         # in system directories.
-        build_dir = environment.get_value('BUILD_DIR')
+        build_dir = environment.get_value("BUILD_DIR")
         if not binary_path.startswith(build_dir):
             # Fixup path so |binary_path| points to a binary in the chroot (probably
             # a system library).
@@ -600,25 +609,26 @@ def filter_binary_path(binary_path):
     return binary_path
 
 
-def symbolize_stacktrace(unsymbolized_crash_stacktrace,
-                         enable_inline_frames=True):
+def symbolize_stacktrace(unsymbolized_crash_stacktrace, enable_inline_frames=True):
     """Symbolize a crash stacktrace."""
     if environment.is_trusted_host():
         from bot.untrusted_runner import symbolize_host
-        return symbolize_host.symbolize_stacktrace(unsymbolized_crash_stacktrace,
-                                                   enable_inline_frames)
+
+        return symbolize_host.symbolize_stacktrace(
+            unsymbolized_crash_stacktrace, enable_inline_frames
+        )
 
     platform = environment.platform()
-    if platform == 'WINDOWS':
+    if platform == "WINDOWS":
         # Windows Clang ASAN provides symbolized stacktraces anyway.
         return unsymbolized_crash_stacktrace
 
-    if platform == 'FUCHSIA':
+    if platform == "FUCHSIA":
         # Fuchsia Clang ASAN provides symbolized stacktraces anyway.
         return unsymbolized_crash_stacktrace
 
     # FIXME: Support symbolization on ChromeOS device.
-    if platform == 'CHROMEOS':
+    if platform == "CHROMEOS":
         return unsymbolized_crash_stacktrace
 
     # Initialize variables.
@@ -639,10 +649,9 @@ def symbolize_stacktrace(unsymbolized_crash_stacktrace,
     disable_buffering()
 
     loop = SymbolizationLoop(
-        binary_path_filter=filter_binary_path,
-        dsym_hint_producer=chrome_dsym_hints)
-    symbolized_crash_stacktrace = loop.process_stacktrace(
-        unsymbolized_crash_stacktrace)
+        binary_path_filter=filter_binary_path, dsym_hint_producer=chrome_dsym_hints
+    )
+    symbolized_crash_stacktrace = loop.process_stacktrace(unsymbolized_crash_stacktrace)
 
     return symbolized_crash_stacktrace
 
@@ -651,12 +660,12 @@ def download_system_symbols_if_needed(symbols_directory):
     """Download system libraries from |SYMBOLS_URL| and cache locally."""
     # For local testing, we do not have access to the cloud storage bucket with
     # the symbols. In this case, just bail out.
-    if environment.get_value('LOCAL_DEVELOPMENT'):
+    if environment.get_value("LOCAL_DEVELOPMENT"):
         return
 
     # When running reproduce tool locally, we do not have access to the cloud
     # storage bucket with the symbols. In this case, just bail out.
-    if environment.get_value('REPRODUCE_TOOL'):
+    if environment.get_value("REPRODUCE_TOOL"):
         return
 
     # We have archived symbols for google builds only.
@@ -666,48 +675,51 @@ def download_system_symbols_if_needed(symbols_directory):
     # Get the build fingerprint parameters.
     build_params = settings.get_build_parameters()
     if not build_params:
-        logs.log_error('Unable to determine build parameters.')
+        logs.log_error("Unable to determine build parameters.")
         return
-    build_id = build_params.get('build_id')
-    target = build_params.get('target')
-    type = build_params.get('type')
+    build_id = build_params.get("build_id")
+    target = build_params.get("target")
+    type = build_params.get("type")
     if not build_id or not target or not type:
-        logs.log_error('Null build parameters found, exiting.')
+        logs.log_error("Null build parameters found, exiting.")
         return
 
     # Check if we already have the symbols in cache.
-    build_params_check_path = os.path.join(symbols_directory,
-                                           '.cached_build_params')
+    build_params_check_path = os.path.join(symbols_directory, ".cached_build_params")
     cached_build_params = utils.read_data_from_file(
-        build_params_check_path, eval_data=True)
+        build_params_check_path, eval_data=True
+    )
     if cached_build_params and cmp(cached_build_params, build_params) == 0:
         # No work to do, same system symbols already in cache.
         return
 
-    symbols_archive_filename = '%s-symbols-%s.zip' % (target, build_id)
-    symbols_archive_path = os.path.join(symbols_directory,
-                                        symbols_archive_filename)
+    symbols_archive_filename = "%s-symbols-%s.zip" % (target, build_id)
+    symbols_archive_path = os.path.join(symbols_directory, symbols_archive_filename)
 
     # Delete existing symbols directory first.
     shell.remove_directory(symbols_directory, recreate=True)
 
     # Fetch symbol file from cloud storage cache (if available).
     found_in_cache = storage.get_file_from_cache_if_exists(
-        symbols_archive_path, update_modification_time_on_access=False)
+        symbols_archive_path, update_modification_time_on_access=False
+    )
     if not found_in_cache:
         # Include type and sanitizer information in the target.
-        target_with_type_and_san = '%s-%s' % (target, type)
-        tool_suffix = environment.get_value('SANITIZER_TOOL_NAME')
+        target_with_type_and_san = "%s-%s" % (target, type)
+        tool_suffix = environment.get_value("SANITIZER_TOOL_NAME")
         if tool_suffix and not tool_suffix in target_with_type_and_san:
-            target_with_type_and_san += '_%s' % tool_suffix
+            target_with_type_and_san += "_%s" % tool_suffix
 
         # Fetch the artifact now.
-        fetch_artifact.get(build_id, target_with_type_and_san,
-                           symbols_archive_filename, symbols_directory)
+        fetch_artifact.get(
+            build_id,
+            target_with_type_and_san,
+            symbols_archive_filename,
+            symbols_directory,
+        )
 
     if not os.path.exists(symbols_archive_path):
-        logs.log_error(
-            'Unable to locate symbols archive %s.' % symbols_archive_path)
+        logs.log_error("Unable to locate symbols archive %s." % symbols_archive_path)
         return
 
     # Store the artifact for later use or for use by other bots.

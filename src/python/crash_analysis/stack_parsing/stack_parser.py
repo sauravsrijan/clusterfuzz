@@ -24,7 +24,7 @@ from protos import process_state_pb2
 
 def unsigned_to_signed(address):
     """Convert unsigned address to signed int64 (as defined in the proto)."""
-    return (address - 2**64) if address >= 2**63 else address
+    return (address - 2 ** 64) if address >= 2 ** 63 else address
 
 
 def format_address_to_dec(address, base=16):
@@ -33,7 +33,7 @@ def format_address_to_dec(address, base=16):
     if address is None:
         return None
 
-    address = str(address).replace('`', '').strip()
+    address = str(address).replace("`", "").strip()
     if not address:
         return None
 
@@ -46,24 +46,28 @@ def format_address_to_dec(address, base=16):
         except Exception:
             continue
 
-    logs.log_warn('Error formatting address %s to decimal int64 in bases %s.' %
-                  (str(address), str(try_bases)))
+    logs.log_warn(
+        "Error formatting address %s to decimal int64 in bases %s."
+        % (str(address), str(try_bases))
+    )
     return None
 
 
 class StackFrameStructure(object):
     """IR for fields a stackframe may contain/expect."""
 
-    def __init__(self,
-                 address=None,
-                 function_name=None,
-                 function_base=None,
-                 function_offset=None,
-                 filename=None,
-                 fileline=None,
-                 module_name=None,
-                 module_base=None,
-                 module_offset=None):
+    def __init__(
+        self,
+        address=None,
+        function_name=None,
+        function_base=None,
+        function_offset=None,
+        filename=None,
+        fileline=None,
+        module_name=None,
+        module_base=None,
+        module_offset=None,
+    ):
         self._address = address
         self._function_name = function_name
         self._function_base = function_base
@@ -152,8 +156,7 @@ class StackFrameStructure(object):
         if self.address is not None:
             frame_proto.instruction = unsigned_to_signed(self.address)
         if self.module_base is not None:
-            frame_proto.module.base_address = unsigned_to_signed(
-                int(self.module_base))
+            frame_proto.module.base_address = unsigned_to_signed(int(self.module_base))
         if self.module_name is not None:
             frame_proto.module.code_file = self.module_name
         if self.function_name is not None:
@@ -171,17 +174,19 @@ class StackFrameStructure(object):
 class StackFrame(StackFrameStructure):
     """IR for canonicalizing stackframe strings."""
 
-    def __init__(self,
-                 address=None,
-                 function_name=None,
-                 function_base=None,
-                 function_offset=None,
-                 filename=None,
-                 fileline=None,
-                 module_name=None,
-                 module_base=None,
-                 module_offset=None,
-                 base=16):
+    def __init__(
+        self,
+        address=None,
+        function_name=None,
+        function_base=None,
+        function_offset=None,
+        filename=None,
+        fileline=None,
+        module_name=None,
+        module_base=None,
+        module_offset=None,
+        base=16,
+    ):
         super(StackFrame, self).__init__(
             address=format_address_to_dec(address),
             function_name=function_name,
@@ -191,23 +196,24 @@ class StackFrame(StackFrameStructure):
             fileline=fileline,
             module_name=module_name,
             module_base=format_address_to_dec(module_base),
-            module_offset=format_address_to_dec(module_offset))
+            module_offset=format_address_to_dec(module_offset),
+        )
 
         # Base for converting addresses set in frame. Most will be in hex.
         self._base = base
 
     def __setattr__(self, field_name, field_value):
         """Set attributes, performing conversions as needed for address fields."""
-        if field_name == 'base':
+        if field_name == "base":
             self._base = field_value
             return
 
         address_fields = [
-            'address',
-            'function_base',
-            'function_offset',
-            'module_base',
-            'module_offset',
+            "address",
+            "function_base",
+            "function_offset",
+            "module_base",
+            "module_offset",
         ]
         if field_name in address_fields:
             address = format_address_to_dec(field_value, self._base)
@@ -221,25 +227,27 @@ class StackFrame(StackFrameStructure):
         for name, member in inspect.getmembers(StackFrame):
             if not isinstance(member, property):
                 continue
-            s += ['%s: %s' % (name, str(getattr(self, name)))]
-        return ', '.join(s)
+            s += ["%s: %s" % (name, str(getattr(self, name)))]
+        return ", ".join(s)
 
 
 class StackFrameSpec(StackFrameStructure):
     """Representation paralleling that of StackFrames for pulling out the correct
        groups in a *_STACK_FRAME_REGEX match."""
 
-    def __init__(self,
-                 address=None,
-                 function_name=None,
-                 function_base=None,
-                 function_offset=None,
-                 filename=None,
-                 fileline=None,
-                 module_name=None,
-                 module_base=None,
-                 module_offset=None,
-                 base=16):
+    def __init__(
+        self,
+        address=None,
+        function_name=None,
+        function_base=None,
+        function_offset=None,
+        filename=None,
+        fileline=None,
+        module_name=None,
+        module_base=None,
+        module_offset=None,
+        base=16,
+    ):
         """Specify a stackframe format. Each field should be an index into a match.
            See comments inline *_STACK_FRAME_REGEX for appropriate indices."""
         address = address if address is not None else []
@@ -260,7 +268,8 @@ class StackFrameSpec(StackFrameStructure):
             fileline=fileline,
             module_name=module_name,
             module_base=module_base,
-            module_offset=module_offset)
+            module_offset=module_offset,
+        )
 
         # Base for converting addresses processed by this spec. Most will be in hex.
         self._base = base
@@ -289,7 +298,7 @@ class StackFrameSpec(StackFrameStructure):
                 continue
 
             # We've already set the base (which we need to do first); skip.
-            if name == 'base':
+            if name == "base":
                 continue
 
             # Populate the stackframe field. Try all provided lookup groups.

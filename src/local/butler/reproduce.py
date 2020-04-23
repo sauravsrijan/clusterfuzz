@@ -40,18 +40,18 @@ import os
 from python.base import modules
 from builtins import object
 from future import standard_library
+
 standard_library.install_aliases()
 
 modules.fix_module_search_paths()
 
 
-CONFIG_DIRECTORY = os.path.join(
-    os.path.expanduser('~'), '.config', 'clusterfuzz')
-DISPLAY = ':99'
+CONFIG_DIRECTORY = os.path.join(os.path.expanduser("~"), ".config", "clusterfuzz")
+DISPLAY = ":99"
 PROCESS_START_WAIT_SECONDS = 2
-SUPPORTED_PLATFORMS = ['android', 'fuchsia', 'linux', 'mac']
+SUPPORTED_PLATFORMS = ["android", "fuchsia", "linux", "mac"]
 
-FILENAME_RESPONSE_HEADER = 'x-goog-meta-filename'
+FILENAME_RESPONSE_HEADER = "x-goog-meta-filename"
 
 
 class SerializedTestcase(object):
@@ -84,22 +84,25 @@ class SerializedTestcase(object):
             return None
 
         fuzz_target = data_types.FuzzTarget(
-            engine=self.serialized_fuzz_target['engine'],
-            project=self.serialized_fuzz_target['project'],
-            binary=self.serialized_fuzz_target['binary'])
+            engine=self.serialized_fuzz_target["engine"],
+            project=self.serialized_fuzz_target["project"],
+            binary=self.serialized_fuzz_target["binary"],
+        )
         return fuzz_target
 
 
 def _get_testcase(testcase_id, configuration):
     """Retrieve the json representation of the test case with the given id."""
     response, content = http_utils.request(
-        configuration.get('testcase_info_url'),
-        body={'testcaseId': testcase_id},
-        configuration=configuration)
+        configuration.get("testcase_info_url"),
+        body={"testcaseId": testcase_id},
+        configuration=configuration,
+    )
 
     if response.status != 200:
         raise errors.ReproduceToolUnrecoverableError(
-            'Unable to fetch test case information.')
+            "Unable to fetch test case information."
+        )
 
     testcase_map = json_utils.loads(content)
     return SerializedTestcase(testcase_map)
@@ -107,31 +110,31 @@ def _get_testcase(testcase_id, configuration):
 
 def _download_testcase(testcase_id, testcase, configuration):
     """Download the test case and return its path."""
-    print('Downloading testcase...')
-    testcase_download_url = '{url}?id={id}'.format(
-        url=configuration.get('testcase_download_url'), id=testcase_id)
+    print("Downloading testcase...")
+    testcase_download_url = "{url}?id={id}".format(
+        url=configuration.get("testcase_download_url"), id=testcase_id
+    )
     response, content = http_utils.request(
-        testcase_download_url,
-        method=http_utils.GET_METHOD,
-        configuration=configuration)
+        testcase_download_url, method=http_utils.GET_METHOD, configuration=configuration
+    )
 
     if response.status != 200:
-        raise errors.ReproduceToolUnrecoverableError(
-            'Unable to download test case.')
+        raise errors.ReproduceToolUnrecoverableError("Unable to download test case.")
 
     bot_absolute_filename = response[FILENAME_RESPONSE_HEADER]
     # Store the test case in the config directory for debuggability.
-    testcase_directory = os.path.join(CONFIG_DIRECTORY, 'current-testcase')
+    testcase_directory = os.path.join(CONFIG_DIRECTORY, "current-testcase")
     shell.remove_directory(testcase_directory, recreate=True)
-    environment.set_value('FUZZ_INPUTS', testcase_directory)
-    testcase_path = os.path.join(testcase_directory,
-                                 os.path.basename(bot_absolute_filename))
+    environment.set_value("FUZZ_INPUTS", testcase_directory)
+    testcase_path = os.path.join(
+        testcase_directory, os.path.basename(bot_absolute_filename)
+    )
 
     utils.write_data_to_file(content, testcase_path)
 
     # Unpack the test case if it's archived.
     # TODO(mbarbella): Rewrite setup.unpack_testcase and share this code.
-    if testcase.minimized_keys and testcase.minimized_keys != 'NA':
+    if testcase.minimized_keys and testcase.minimized_keys != "NA":
         mask = data_types.ArchiveStatus.MINIMIZED
     else:
         mask = data_types.ArchiveStatus.FUZZED
@@ -142,24 +145,25 @@ def _download_testcase(testcase_id, testcase, configuration):
 
         testcase_path = None
         for file_name in file_list:
-            if os.path.basename(file_name) == os.path.basename(
-                    testcase.absolute_path):
+            if os.path.basename(file_name) == os.path.basename(testcase.absolute_path):
                 testcase_path = os.path.join(testcase_directory, file_name)
                 break
 
         if not testcase_path:
             raise errors.ReproduceToolUnrecoverableError(
-                'Test case file was not found in archive.\n'
-                'Original filename: {absolute_path}.\n'
-                'Archive contents: {file_list}'.format(
-                    absolute_path=testcase.absolute_path, file_list=file_list))
+                "Test case file was not found in archive.\n"
+                "Original filename: {absolute_path}.\n"
+                "Archive contents: {file_list}".format(
+                    absolute_path=testcase.absolute_path, file_list=file_list
+                )
+            )
 
     return testcase_path
 
 
 def _setup_x():
     """Start Xvfb and blackbox before running the test application."""
-    if environment.platform() != 'LINUX':
+    if environment.platform() != "LINUX":
         return []
 
     if environment.is_engine_fuzzer_job():
@@ -167,16 +171,24 @@ def _setup_x():
         # those fuzz targets do not needed a UI.
         return []
 
-    environment.set_value('DISPLAY', DISPLAY)
+    environment.set_value("DISPLAY", DISPLAY)
 
-    print('Creating virtual display...')
-    xvfb_runner = new_process.ProcessRunner('/usr/bin/Xvfb')
-    xvfb_process = xvfb_runner.run(additional_args=[
-        DISPLAY, '-screen', '0', '1280x1024x24', '-ac', '-nolisten', 'tcp'
-    ])
+    print("Creating virtual display...")
+    xvfb_runner = new_process.ProcessRunner("/usr/bin/Xvfb")
+    xvfb_process = xvfb_runner.run(
+        additional_args=[
+            DISPLAY,
+            "-screen",
+            "0",
+            "1280x1024x24",
+            "-ac",
+            "-nolisten",
+            "tcp",
+        ]
+    )
     time.sleep(PROCESS_START_WAIT_SECONDS)
 
-    blackbox_runner = new_process.ProcessRunner('/usr/bin/blackbox')
+    blackbox_runner = new_process.ProcessRunner("/usr/bin/blackbox")
     blackbox_process = blackbox_runner.run()
     time.sleep(PROCESS_START_WAIT_SECONDS)
 
@@ -188,9 +200,9 @@ def _prepare_initial_environment(build_directory, iterations, verbose):
     """Prepare common environment variables that don't depend on the job."""
     # Create a temporary directory to use as ROOT_DIR with a copy of the default
     # bot and configuration directories nested under it.
-    root_dir = environment.get_value('ROOT_DIR')
+    root_dir = environment.get_value("ROOT_DIR")
     temp_root_dir = tempfile.mkdtemp()
-    environment.set_value('ROOT_DIR', temp_root_dir)
+    environment.set_value("ROOT_DIR", temp_root_dir)
 
     def _update_directory(directory_name, ignore_paths=None):
         """Copy a subdirectory from a checkout to a temp directory."""
@@ -200,49 +212,54 @@ def _prepare_initial_environment(build_directory, iterations, verbose):
         shutil.copytree(
             os.path.join(root_dir, directory_name),
             os.path.join(temp_root_dir, directory_name),
-            ignore=lambda directory, contents:
-            contents if directory in ignore_paths else [])
+            ignore=lambda directory, contents: contents
+            if directory in ignore_paths
+            else [],
+        )
 
-    _update_directory('bot')
-    _update_directory('configs')
-    _update_directory('resources')
+    _update_directory("bot")
+    _update_directory("configs")
+    _update_directory("resources")
     _update_directory(
-        'src',
+        "src",
         ignore_paths=[
-            os.path.join(root_dir, 'src', 'appengine'),
-            os.path.join(root_dir, 'src', 'bazel-bin'),
-            os.path.join(root_dir, 'src', 'bazel-genfiles'),
-            os.path.join(root_dir, 'src', 'bazel-out'),
-            os.path.join(root_dir, 'src', 'bazel-src'),
-            os.path.join(root_dir, 'src', 'python', 'tests'),
-        ])
+            os.path.join(root_dir, "src", "appengine"),
+            os.path.join(root_dir, "src", "bazel-bin"),
+            os.path.join(root_dir, "src", "bazel-genfiles"),
+            os.path.join(root_dir, "src", "bazel-out"),
+            os.path.join(root_dir, "src", "bazel-src"),
+            os.path.join(root_dir, "src", "python", "tests"),
+        ],
+    )
 
-    environment.set_value('CONFIG_DIR_OVERRIDE',
-                          os.path.join(temp_root_dir, 'configs', 'test'))
     environment.set_value(
-        'PYTHONPATH',
+        "CONFIG_DIR_OVERRIDE", os.path.join(temp_root_dir, "configs", "test")
+    )
+    environment.set_value(
+        "PYTHONPATH",
         os.pathsep.join(
-            [os.path.join(temp_root_dir, 'src'),
-             appengine.find_sdk_path()]))
+            [os.path.join(temp_root_dir, "src"), appengine.find_sdk_path()]
+        ),
+    )
 
     environment.set_bot_environment()
 
     # Overrides that should not be set to the default values.
-    environment.set_value('APP_DIR', build_directory)
-    environment.set_value('BUILD_DIR', build_directory)
-    environment.set_value('BUILDS_DIR', build_directory)
+    environment.set_value("APP_DIR", build_directory)
+    environment.set_value("BUILD_DIR", build_directory)
+    environment.set_value("BUILDS_DIR", build_directory)
 
     # Some functionality must be disabled when running the tool.
-    environment.set_value('REPRODUCE_TOOL', True)
+    environment.set_value("REPRODUCE_TOOL", True)
 
-    environment.set_value('TASK_NAME', 'reproduce')
+    environment.set_value("TASK_NAME", "reproduce")
 
     # Force logging to console for this process and child processes.
     if verbose:
-        environment.set_value('LOG_TO_CONSOLE', True)
+        environment.set_value("LOG_TO_CONSOLE", True)
 
     if iterations:
-        environment.set_value('CRASH_RETRIES', iterations)
+        environment.set_value("CRASH_RETRIES", iterations)
 
 
 def _verify_target_exists(build_directory):
@@ -251,29 +268,30 @@ def _verify_target_exists(build_directory):
     Separated into its own function to simplify test behavior."""
     if not build_manager.check_app_path():
         raise errors.ReproduceToolUnrecoverableError(
-            'Unable to locate app binary in {build_directory}.'.format(
-                build_directory=build_directory))
+            "Unable to locate app binary in {build_directory}.".format(
+                build_directory=build_directory
+            )
+        )
 
 
-def _update_environment_for_testcase(testcase, build_directory,
-                                     application_override):
+def _update_environment_for_testcase(testcase, build_directory, application_override):
     """Update environment variables that depend on the test case."""
     commands.update_environment_for_job(testcase.job_definition)
-    environment.set_value('JOB_NAME', testcase.job_type)
+    environment.set_value("JOB_NAME", testcase.job_type)
 
     # Override app name if explicitly specified.
     if application_override:
-        environment.set_value('APP_NAME', application_override)
+        environment.set_value("APP_NAME", application_override)
 
     fuzzer_directory = setup.get_fuzzer_directory(testcase.fuzzer_name)
-    environment.set_value('FUZZER_DIR', fuzzer_directory)
+    environment.set_value("FUZZER_DIR", fuzzer_directory)
 
-    task_name = environment.get_value('TASK_NAME')
-    setup.prepare_environment_for_testcase(
-        testcase, testcase.job_type, task_name)
+    task_name = environment.get_value("TASK_NAME")
+    setup.prepare_environment_for_testcase(testcase, testcase.job_type, task_name)
 
     build_manager.set_environment_vars(
-        [environment.get_value('FUZZER_DIR'), build_directory])
+        [environment.get_value("FUZZER_DIR"), build_directory]
+    )
 
     _verify_target_exists(build_directory)
 
@@ -283,7 +301,7 @@ def _get_testcase_id_from_url(testcase_url):
     url_parts = parse.urlparse(testcase_url)
     # Testcase urls have paths like "/testcase-detail/1234567890", where the
     # number is the testcase ID.
-    path_parts = url_parts.path.split('/')
+    path_parts = url_parts.path.split("/")
 
     try:
         testcase_id = int(path_parts[-1])
@@ -291,26 +309,39 @@ def _get_testcase_id_from_url(testcase_url):
         testcase_id = 0
 
     # Validate that the URL is correct.
-    if (len(path_parts) != 3 or path_parts[0] or
-            path_parts[1] != 'testcase-detail' or not testcase_id):
+    if (
+        len(path_parts) != 3
+        or path_parts[0]
+        or path_parts[1] != "testcase-detail"
+        or not testcase_id
+    ):
         raise errors.ReproduceToolUnrecoverableError(
-            'Invalid testcase URL {url}. Expected format: '
-            'https://clusterfuzz-domain/testcase-detail/1234567890'.format(
-                url=testcase_url))
+            "Invalid testcase URL {url}. Expected format: "
+            "https://clusterfuzz-domain/testcase-detail/1234567890".format(
+                url=testcase_url
+            )
+        )
 
     return testcase_id
 
 
 def _print_stacktrace(result):
     """Display the output from a test case run."""
-    print('#' * 80)
+    print("#" * 80)
     print(result.get_stacktrace())
-    print('#' * 80)
+    print("#" * 80)
     print()
 
 
-def _reproduce_crash(testcase_url, build_directory, iterations, disable_xvfb,
-                     verbose, disable_android_setup, application):
+def _reproduce_crash(
+    testcase_url,
+    build_directory,
+    iterations,
+    disable_xvfb,
+    verbose,
+    disable_android_setup,
+    application,
+):
     """Reproduce a crash."""
     _prepare_initial_environment(build_directory, iterations, verbose)
 
@@ -322,65 +353,78 @@ def _reproduce_crash(testcase_url, build_directory, iterations, disable_xvfb,
     # For new user uploads, we'll fail without the metadata set by analyze task.
     if not testcase.platform:
         raise errors.ReproduceToolUnrecoverableError(
-            'This test case has not yet been processed. Please try again later.')
+            "This test case has not yet been processed. Please try again later."
+        )
 
     # Ensure that we support this test case's platform.
     if testcase.platform not in SUPPORTED_PLATFORMS:
         raise errors.ReproduceToolUnrecoverableError(
-            'The reproduce tool is not yet supported on {platform}.'.format(
-                platform=testcase.platform))
+            "The reproduce tool is not yet supported on {platform}.".format(
+                platform=testcase.platform
+            )
+        )
 
     # Print warnings for this test case.
     if testcase.one_time_crasher_flag:
-        print('Warning: this test case was a one-time crash. It may not be '
-              'reproducible.')
+        print(
+            "Warning: this test case was a one-time crash. It may not be "
+            "reproducible."
+        )
     if testcase.flaky_stack:
-        print('Warning: this test case is known to crash with different stack '
-              'traces.')
+        print(
+            "Warning: this test case is known to crash with different stack " "traces."
+        )
 
     testcase_path = _download_testcase(testcase_id, testcase, configuration)
     _update_environment_for_testcase(testcase, build_directory, application)
 
     # Validate that we're running on the right platform for this test case.
     platform = environment.platform().lower()
-    if testcase.platform == 'android' and platform == 'linux':
+    if testcase.platform == "android" and platform == "linux":
         android.prepare_environment(disable_android_setup)
-    elif testcase.platform == 'android' and platform != 'linux':
+    elif testcase.platform == "android" and platform != "linux":
         raise errors.ReproduceToolUnrecoverableError(
-            'The ClusterFuzz environment only supports running Android test cases '
-            'on Linux host machines. Unable to reproduce the test case on '
-            '{current_platform}.'.format(current_platform=platform))
+            "The ClusterFuzz environment only supports running Android test cases "
+            "on Linux host machines. Unable to reproduce the test case on "
+            "{current_platform}.".format(current_platform=platform)
+        )
     elif testcase.platform != platform:
         raise errors.ReproduceToolUnrecoverableError(
-            'The specified test case was discovered on {testcase_platform}. '
-            'Unable to attempt to reproduce it on {current_platform}.'.format(
-                testcase_platform=testcase.platform, current_platform=platform))
+            "The specified test case was discovered on {testcase_platform}. "
+            "Unable to attempt to reproduce it on {current_platform}.".format(
+                testcase_platform=testcase.platform, current_platform=platform
+            )
+        )
 
     x_processes = []
     if not disable_xvfb:
         _setup_x()
-    timeout = environment.get_value('TEST_TIMEOUT')
+    timeout = environment.get_value("TEST_TIMEOUT")
 
-    print('Running testcase...')
+    print("Running testcase...")
     try:
         result = testcase_manager.test_for_crash_with_retries(
-            testcase, testcase_path, timeout, crash_retries=1)
+            testcase, testcase_path, timeout, crash_retries=1
+        )
 
         # If we can't reproduce the crash, prompt the user to try again.
         if not result.is_crash():
             _print_stacktrace(result)
             result = None
             use_default_retries = prompts.get_boolean(
-                'Failed to find the desired crash on first run. Re-run '
-                '{crash_retries} times?'.format(
-                    crash_retries=environment.get_value('CRASH_RETRIES')))
+                "Failed to find the desired crash on first run. Re-run "
+                "{crash_retries} times?".format(
+                    crash_retries=environment.get_value("CRASH_RETRIES")
+                )
+            )
             if use_default_retries:
-                print('Attempting to reproduce test case. This may take a while...')
+                print("Attempting to reproduce test case. This may take a while...")
                 result = testcase_manager.test_for_crash_with_retries(
-                    testcase, testcase_path, timeout)
+                    testcase, testcase_path, timeout
+                )
 
     except KeyboardInterrupt:
-        print('Aborting...')
+        print("Aborting...")
         result = None
 
     # Terminate Xvfb and blackbox.
@@ -392,8 +436,8 @@ def _reproduce_crash(testcase_url, build_directory, iterations, disable_xvfb,
 
 def _cleanup():
     """Clean up after running the tool."""
-    temp_directory = environment.get_value('ROOT_DIR')
-    assert 'tmp' in temp_directory
+    temp_directory = environment.get_value("ROOT_DIR")
+    assert "tmp" in temp_directory
     shell.remove_directory(temp_directory)
 
 
@@ -405,15 +449,21 @@ def execute(args):
     # Prepare the emulator if needed.
     emulator_process = None
     if args.emulator:
-        print('Starting emulator...')
+        print("Starting emulator...")
         emulator_process = android.start_emulator()
 
     # The current working directory may change while we're running.
     absolute_build_dir = os.path.abspath(args.build_dir)
     try:
-        result = _reproduce_crash(args.testcase, absolute_build_dir,
-                                  args.iterations, args.disable_xvfb, args.verbose,
-                                  args.disable_android_setup, args.application)
+        result = _reproduce_crash(
+            args.testcase,
+            absolute_build_dir,
+            args.iterations,
+            args.disable_xvfb,
+            args.verbose,
+            args.disable_android_setup,
+            args.application,
+        )
     except errors.ReproduceToolUnrecoverableError as exception:
         print(exception)
         return
@@ -427,9 +477,9 @@ def execute(args):
     _print_stacktrace(result)
 
     if result.is_crash():
-        status_message = 'Test case reproduced successfully.'
+        status_message = "Test case reproduced successfully."
     else:
-        status_message = 'Unable to reproduce the desired crash.'
+        status_message = "Unable to reproduce the desired crash."
     print(status_message)
 
     _cleanup()

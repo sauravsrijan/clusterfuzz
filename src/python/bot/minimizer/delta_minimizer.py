@@ -47,7 +47,7 @@ class DeltaMinimizer(minimizer.Minimizer):
         """Prepare tests for delta minimization and process."""
         testcase = DeltaTestcase(data, self)
         if not self.validate_tokenizer(data, testcase):
-            raise errors.TokenizationFailureError('Delta Minimizer')
+            raise errors.TokenizationFailureError("Delta Minimizer")
 
         tokens = testcase.tokens
 
@@ -61,8 +61,9 @@ class DeltaMinimizer(minimizer.Minimizer):
         return testcase
 
     @staticmethod
-    def run(data, thread_count=minimizer.DEFAULT_THREAD_COUNT, file_extension=''):
+    def run(data, thread_count=minimizer.DEFAULT_THREAD_COUNT, file_extension=""):
         """Try to minimize |data| using a simple line tokenizer."""
         delta_minimizer = DeltaMinimizer(
-            utils.test, max_threads=thread_count, file_extension=file_extension)
+            utils.test, max_threads=thread_count, file_extension=file_extension
+        )
         return delta_minimizer.minimize(data)

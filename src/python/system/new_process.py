@@ -44,16 +44,18 @@ def _end_process(terminate_function, process_result):
     try:
         terminate_function()
     except OSError:
-        logs.log('Process already killed.')
+        logs.log("Process already killed.")
 
     process_result.timed_out = True
 
 
-def _wait_process(process,
-                  timeout,
-                  input_data=None,
-                  terminate_before_kill=False,
-                  terminate_wait_time=None):
+def _wait_process(
+    process,
+    timeout,
+    input_data=None,
+    terminate_before_kill=False,
+    terminate_wait_time=None,
+):
     """Waits until either the process exits or times out.
 
     Args:
@@ -69,7 +71,7 @@ def _wait_process(process,
       A ProcessResult.
     """
     result = ProcessResult()
-    is_windows = environment.platform() == 'WINDOWS'
+    is_windows = environment.platform() == "WINDOWS"
 
     # On Windows, terminate() just calls Win32 API function TerminateProcess()
     # which is equivalent to process kill. So, skip terminate_before_kill.
@@ -77,14 +79,16 @@ def _wait_process(process,
         first_timeout_function = process.terminate
 
         # Use a second timer to send the process kill.
-        second_timer = threading.Timer(timeout + terminate_wait_time, _end_process,
-                                       [process.kill, result])
+        second_timer = threading.Timer(
+            timeout + terminate_wait_time, _end_process, [process.kill, result]
+        )
     else:
         first_timeout_function = process.kill
         second_timer = None
 
-    first_timer = threading.Timer(timeout, _end_process,
-                                  [first_timeout_function, result])
+    first_timer = threading.Timer(
+        timeout, _end_process, [first_timeout_function, result]
+    )
 
     output = None
     start_time = time.time()
@@ -113,19 +117,19 @@ def kill_process_tree(root_pid):
         parent = psutil.Process(root_pid)
         children = parent.children(recursive=True)
     except (psutil.AccessDenied, psutil.NoSuchProcess, OSError):
-        logs.log_warn('Failed to find or access process.')
+        logs.log_warn("Failed to find or access process.")
         return
 
     for child in children:
         try:
             child.kill()
         except (psutil.AccessDenied, psutil.NoSuchProcess, OSError):
-            logs.log_warn('Failed to kill process child.')
+            logs.log_warn("Failed to kill process child.")
 
     try:
         parent.kill()
     except (psutil.AccessDenied, psutil.NoSuchProcess, OSError):
-        logs.log_warn('Failed to kill process.')
+        logs.log_warn("Failed to kill process.")
 
 
 class ChildProcess(object):
@@ -152,8 +156,12 @@ class ChildProcess(object):
             return stdout, stderr
 
         with self._stdout_file:
-            return utils.read_from_handle_truncated(self._stdout_file,
-                                                    self._max_stdout_len), stderr
+            return (
+                utils.read_from_handle_truncated(
+                    self._stdout_file, self._max_stdout_len
+                ),
+                stderr,
+            )
 
     def poll(self):
         """subprocess.Popen.poll."""
@@ -168,7 +176,7 @@ class ChildProcess(object):
         try:
             self._popen.terminate()
         except OSError:
-            logs.log_warn('Failed to terminate process.')
+            logs.log_warn("Failed to terminate process.")
 
 
 class ProcessResult(object):
@@ -184,12 +192,14 @@ class ProcessResult(object):
       timed_out: Whether or not the process timed out.
     """
 
-    def __init__(self,
-                 command=None,
-                 return_code=None,
-                 output=None,
-                 time_executed=None,
-                 timed_out=False):
+    def __init__(
+        self,
+        command=None,
+        return_code=None,
+        output=None,
+        time_executed=None,
+        timed_out=False,
+    ):
         """Inits the ProcessResult."""
         self.command = command
         self.return_code = return_code
@@ -241,14 +251,16 @@ class ProcessRunner(object):
 
         return command
 
-    def run(self,
-            additional_args=None,
-            max_stdout_len=None,
-            extra_env=None,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            **popen_args):
+    def run(
+        self,
+        additional_args=None,
+        max_stdout_len=None,
+        extra_env=None,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        **popen_args
+    ):
         """Runs the executable.
 
         Does not block the caller.
@@ -273,7 +285,7 @@ class ProcessRunner(object):
         if stdout == subprocess.PIPE and max_stdout_len:
             stdout = tempfile.TemporaryFile()
 
-        env = popen_args.pop('env', os.environ.copy())
+        env = popen_args.pop("env", os.environ.copy())
         if extra_env is not None:
             env.update(extra_env)
 
@@ -292,25 +304,29 @@ class ProcessRunner(object):
                 stdin=stdin,
                 stdout=stdout,
                 stderr=stderr,
-                **popen_args),
+                **popen_args
+            ),
             command,
             max_stdout_len=max_stdout_len,
-            stdout_file=stdout)
+            stdout_file=stdout,
+        )
 
     # Note: changes to this function may require changes to
     # untrusted_runner.proto.
-    def run_and_wait(self,
-                     additional_args=None,
-                     timeout=None,
-                     terminate_before_kill=False,
-                     terminate_wait_time=None,
-                     input_data=None,
-                     max_stdout_len=None,
-                     extra_env=None,
-                     stdin=subprocess.PIPE,
-                     stdout=subprocess.PIPE,
-                     stderr=subprocess.STDOUT,
-                     **popen_args):
+    def run_and_wait(
+        self,
+        additional_args=None,
+        timeout=None,
+        terminate_before_kill=False,
+        terminate_wait_time=None,
+        input_data=None,
+        max_stdout_len=None,
+        extra_env=None,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        **popen_args
+    ):
         """Runs the executable.
 
         Blocks the caller until the process exits.
@@ -343,21 +359,24 @@ class ProcessRunner(object):
             stdin=stdin,
             stdout=stdout,
             stderr=stderr,
-            **popen_args)
+            **popen_args
+        )
 
         start_time = time.time()
 
         if not timeout:
             output = process.communicate(input_data)[0]
-            return ProcessResult(process.command, process.poll(), output,
-                                 time.time() - start_time, False)
+            return ProcessResult(
+                process.command, process.poll(), output, time.time() - start_time, False
+            )
 
         result = _wait_process(
             process,
             timeout=timeout,
             input_data=input_data,
             terminate_before_kill=terminate_before_kill,
-            terminate_wait_time=terminate_wait_time)
+            terminate_wait_time=terminate_wait_time,
+        )
         result.command = process.command
 
         return result
@@ -384,17 +403,17 @@ class UnshareProcessRunnerMixin(object):
 
     def get_command(self, additional_args=None):
         """Overridden get_command."""
-        if environment.platform() != 'LINUX':
-            raise RuntimeError('UnshareProcessRunner only supported on Linux')
+        if environment.platform() != "LINUX":
+            raise RuntimeError("UnshareProcessRunner only supported on Linux")
 
-        unshare_path = spawn.find_executable('unshare')
+        unshare_path = spawn.find_executable("unshare")
         if not unshare_path:
-            raise RuntimeError('unshare not found')
+            raise RuntimeError("unshare not found")
 
         command = [unshare_path]
-        command.extend([
-            '-n',  # Enter network namespace.
-        ])
+        command.extend(
+            ["-n",]  # Enter network namespace.
+        )
 
         command.append(self._executable_path)
         command.extend(self._default_args)

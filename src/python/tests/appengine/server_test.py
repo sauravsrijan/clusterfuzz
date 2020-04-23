@@ -21,14 +21,15 @@ class ServerTest(unittest.TestCase):
     """Test server module is loaded."""
 
     def setUp(self):
-        helpers.patch(self, [
-            'metrics.logs._is_running_on_app_engine',
-        ])
-        self.mock._is_running_on_app_engine.return_value = True  # pylint: disable=protected-access
+        helpers.patch(self, ["metrics.logs._is_running_on_app_engine",])
+        self.mock._is_running_on_app_engine.return_value = (
+            True  # pylint: disable=protected-access
+        )
 
     # pylint: disable=protected-access
     def test(self):
         import server
+
         self.assertIsNotNone(server._ROUTES)
         self.assertIsNotNone(server._CRON_ROUTES)
         self.assertIsNotNone(server._DOMAIN_ROUTES)

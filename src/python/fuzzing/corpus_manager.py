@@ -28,6 +28,7 @@ from system import shell
 
 try:
     from google_cloud_utils import gsutil
+
     # Disable "invalid-name" because fixing the issue will cause pylint to
     # complain the None assignment is incorrectly named.
     DEFAULT_GSUTIL_RUNNER = gsutil.GSUtilRunner  # pylint: disable=invalid-name
@@ -36,14 +37,15 @@ except:
     gsutil = None
     DEFAULT_GSUTIL_RUNNER = None
 
-BACKUP_ARCHIVE_FORMAT = 'zip'
+BACKUP_ARCHIVE_FORMAT = "zip"
 CORPUS_FILES_SYNC_TIMEOUT = 60 * 60
-LATEST_BACKUP_TIMESTAMP = 'latest'
-PUBLIC_BACKUP_TIMESTAMP = 'public'
-STATIC_CORPUS_GCS_PATH_SUFFIX = '_static'
+LATEST_BACKUP_TIMESTAMP = "latest"
+PUBLIC_BACKUP_TIMESTAMP = "public"
+STATIC_CORPUS_GCS_PATH_SUFFIX = "_static"
 
-RSYNC_ERROR_REGEX = (br'CommandException:\s*(\d+)\s*files?/objects? '
-                     br'could not be copied/removed')
+RSYNC_ERROR_REGEX = (
+    br"CommandException:\s*(\d+)\s*files?/objects? " br"could not be copied/removed"
+)
 
 MAX_SYNC_ERRORS = 10
 
@@ -58,8 +60,8 @@ def _rsync_errors_below_threshold(gsutil_result, max_errors):
 
     # Ignore NotFoundException(s) since they can happen when files can get deleted
     # e.g. when pruning task is updating corpus.
-    error_count -= gsutil_result.output.count(b'NotFoundException')
-    error_count -= gsutil_result.output.count(b'No such file or directory')
+    error_count -= gsutil_result.output.count(b"NotFoundException")
+    error_count -= gsutil_result.output.count(b"No such file or directory")
 
     return error_count <= max_errors
 
@@ -70,11 +72,11 @@ def _handle_rsync_result(gsutil_result, max_errors):
         sync_succeeded = True
     else:
         logs.log_warn(
-            'gsutil rsync got non-zero:\n'
-            'Command: %s\n'
-            'Output: %s\n' % (gsutil_result.command, gsutil_result.output))
-        sync_succeeded = _rsync_errors_below_threshold(
-            gsutil_result, max_errors)
+            "gsutil rsync got non-zero:\n"
+            "Command: %s\n"
+            "Output: %s\n" % (gsutil_result.command, gsutil_result.output)
+        )
+        sync_succeeded = _rsync_errors_below_threshold(gsutil_result, max_errors)
 
     return sync_succeeded and not gsutil_result.timed_out
 
@@ -96,7 +98,7 @@ def backup_corpus(backup_bucket_name, corpus, directory):
       The backup GCS url, or None on failure.
     """
     if not backup_bucket_name:
-        logs.log('No backup bucket provided, skipping corpus backup.')
+        logs.log("No backup bucket provided, skipping corpus backup.")
         return None
 
     dated_backup_url = None
@@ -104,30 +106,40 @@ def backup_corpus(backup_bucket_name, corpus, directory):
 
     # The archive path for shutil.make_archive should be without an extension.
     backup_archive_path = os.path.join(
-        os.path.dirname(os.path.normpath(directory)), timestamp)
+        os.path.dirname(os.path.normpath(directory)), timestamp
+    )
     try:
-        backup_archive_path = shutil.make_archive(backup_archive_path,
-                                                  BACKUP_ARCHIVE_FORMAT, directory)
+        backup_archive_path = shutil.make_archive(
+            backup_archive_path, BACKUP_ARCHIVE_FORMAT, directory
+        )
         dated_backup_url = gcs_url_for_backup_file(
-            backup_bucket_name, corpus.engine, corpus.project_qualified_target_name,
-            timestamp)
+            backup_bucket_name,
+            corpus.engine,
+            corpus.project_qualified_target_name,
+            timestamp,
+        )
 
         if not storage.copy_file_to(backup_archive_path, dated_backup_url):
             return None
 
         latest_backup_url = gcs_url_for_backup_file(
-            backup_bucket_name, corpus.engine, corpus.project_qualified_target_name,
-            LATEST_BACKUP_TIMESTAMP)
+            backup_bucket_name,
+            corpus.engine,
+            corpus.project_qualified_target_name,
+            LATEST_BACKUP_TIMESTAMP,
+        )
 
         if not storage.copy_blob(dated_backup_url, latest_backup_url):
             logs.log_error(
-                'Failed to update latest corpus backup at "%s"' % latest_backup_url)
+                'Failed to update latest corpus backup at "%s"' % latest_backup_url
+            )
     except Exception as ex:
         logs.log_error(
-            'backup_corpus failed: %s\n' % str(ex),
+            "backup_corpus failed: %s\n" % str(ex),
             backup_bucket_name=backup_bucket_name,
             directory=directory,
-            backup_archive_path=backup_archive_path)
+            backup_archive_path=backup_archive_path,
+        )
 
     finally:
         # Remove backup archive.
@@ -136,28 +148,34 @@ def backup_corpus(backup_bucket_name, corpus, directory):
     return dated_backup_url
 
 
-def gcs_url_for_backup_directory(backup_bucket_name, fuzzer_name,
-                                 project_qualified_target_name):
+def gcs_url_for_backup_directory(
+    backup_bucket_name, fuzzer_name, project_qualified_target_name
+):
     """Build GCS URL for corpus backup directory.
 
     Returns:
       A string giving the GCS URL.
     """
-    return 'gs://%s/corpus/%s/%s/' % (backup_bucket_name, fuzzer_name,
-                                      project_qualified_target_name)
+    return "gs://%s/corpus/%s/%s/" % (
+        backup_bucket_name,
+        fuzzer_name,
+        project_qualified_target_name,
+    )
 
 
-def gcs_url_for_backup_file(backup_bucket_name, fuzzer_name,
-                            project_qualified_target_name, date):
+def gcs_url_for_backup_file(
+    backup_bucket_name, fuzzer_name, project_qualified_target_name, date
+):
     """Build GCS URL for corpus backup file for the given date.
 
     Returns:
       A string giving the GCS url.
     """
-    backup_dir = gcs_url_for_backup_directory(backup_bucket_name, fuzzer_name,
-                                              project_qualified_target_name)
+    backup_dir = gcs_url_for_backup_directory(
+        backup_bucket_name, fuzzer_name, project_qualified_target_name
+    )
     backup_file = str(date) + os.extsep + BACKUP_ARCHIVE_FORMAT
-    return '%s/%s' % (backup_dir.rstrip('/'), backup_file)
+    return "%s/%s" % (backup_dir.rstrip("/"), backup_file)
 
 
 def legalize_filenames(file_paths):
@@ -170,7 +188,7 @@ def legalize_filenames(file_paths):
     if environment.is_trusted_host():
         return file_paths
 
-    illegal_chars = {'<', '>', ':', '\\', '|', '?', '*'}
+    illegal_chars = {"<", ">", ":", "\\", "|", "?", "*"}
     failed_to_move_files = []
     legally_named = []
     for file_path in file_paths:
@@ -191,7 +209,8 @@ def legalize_filenames(file_paths):
             failed_to_move_files.append((file_path, new_file_path))
     if failed_to_move_files:
         logs.log_error(
-            'Failed to rename files.', failed_to_move_files=failed_to_move_files)
+            "Failed to rename files.", failed_to_move_files=failed_to_move_files
+        )
 
     return legally_named
 
@@ -208,11 +227,13 @@ def legalize_corpus_files(directory):
 class GcsCorpus(object):
     """Google Cloud Storage corpus."""
 
-    def __init__(self,
-                 bucket_name,
-                 bucket_path='/',
-                 log_results=True,
-                 _gsutil_runner=DEFAULT_GSUTIL_RUNNER):
+    def __init__(
+        self,
+        bucket_name,
+        bucket_path="/",
+        log_results=True,
+        _gsutil_runner=DEFAULT_GSUTIL_RUNNER,
+    ):
         """Inits the GcsCorpus.
 
         Args:
@@ -237,19 +258,18 @@ class GcsCorpus(object):
         Returns:
           A string giving the GCS URL.
         """
-        url = 'gs://%s' % self.bucket_name + self.bucket_path
-        if not url.endswith('/'):
+        url = "gs://%s" % self.bucket_name + self.bucket_path
+        if not url.endswith("/"):
             # Ensure that the bucket path is '/' terminated. Without this, when a
             # single file is being uploaded, it is renamed to the trailing non-/
             # terminated directory name instead.
-            url += '/'
+            url += "/"
 
         return url
 
-    def rsync_from_disk(self,
-                        directory,
-                        timeout=CORPUS_FILES_SYNC_TIMEOUT,
-                        delete=True):
+    def rsync_from_disk(
+        self, directory, timeout=CORPUS_FILES_SYNC_TIMEOUT, delete=True
+    ):
         """Upload local files to GCS and remove files which do not exist locally.
 
         Args:
@@ -262,16 +282,12 @@ class GcsCorpus(object):
         """
         corpus_gcs_url = self.get_gcs_url()
         legalize_corpus_files(directory)
-        result = self._gsutil_runner.rsync(directory, corpus_gcs_url, timeout,
-                                           delete)
+        result = self._gsutil_runner.rsync(directory, corpus_gcs_url, timeout, delete)
 
         # Allow a small number of files to fail to be synced.
         return _handle_rsync_result(result, max_errors=MAX_SYNC_ERRORS)
 
-    def rsync_to_disk(self,
-                      directory,
-                      timeout=CORPUS_FILES_SYNC_TIMEOUT,
-                      delete=True):
+    def rsync_to_disk(self, directory, timeout=CORPUS_FILES_SYNC_TIMEOUT, delete=True):
         """Run gsutil to download corpus files from GCS.
 
         Args:
@@ -285,8 +301,7 @@ class GcsCorpus(object):
         shell.create_directory(directory, create_intermediates=True)
 
         corpus_gcs_url = self.get_gcs_url()
-        result = self._gsutil_runner.rsync(corpus_gcs_url, directory, timeout,
-                                           delete)
+        result = self._gsutil_runner.rsync(corpus_gcs_url, directory, timeout, delete)
 
         # Allow a small number of files to fail to be synced.
         return _handle_rsync_result(result, max_errors=MAX_SYNC_ERRORS)
@@ -308,18 +323,21 @@ class GcsCorpus(object):
         file_paths = legalize_filenames(file_paths)
         gcs_url = self.get_gcs_url()
         return self._gsutil_runner.upload_files_to_url(
-            file_paths, gcs_url, timeout=timeout)
+            file_paths, gcs_url, timeout=timeout
+        )
 
 
 class FuzzTargetCorpus(GcsCorpus):
     """Engine fuzzer (libFuzzer, AFL) specific corpus."""
 
-    def __init__(self,
-                 engine,
-                 project_qualified_target_name,
-                 quarantine=False,
-                 log_results=True,
-                 _gsutil_runner=DEFAULT_GSUTIL_RUNNER):
+    def __init__(
+        self,
+        engine,
+        project_qualified_target_name,
+        quarantine=False,
+        log_results=True,
+        _gsutil_runner=DEFAULT_GSUTIL_RUNNER,
+    ):
         """Inits the FuzzTargetCorpus.
 
         Args:
@@ -334,32 +352,36 @@ class FuzzTargetCorpus(GcsCorpus):
         """
 
         # This is used to let AFL share corpora with libFuzzer.
-        self._engine = os.getenv('CORPUS_FUZZER_NAME_OVERRIDE', engine)
+        self._engine = os.getenv("CORPUS_FUZZER_NAME_OVERRIDE", engine)
         self._project_qualified_target_name = project_qualified_target_name
 
         if quarantine:
-            sync_corpus_bucket_name = environment.get_value(
-                'QUARANTINE_BUCKET')
+            sync_corpus_bucket_name = environment.get_value("QUARANTINE_BUCKET")
         else:
-            sync_corpus_bucket_name = environment.get_value('CORPUS_BUCKET')
+            sync_corpus_bucket_name = environment.get_value("CORPUS_BUCKET")
 
         if not sync_corpus_bucket_name:
-            raise RuntimeError('No corpus bucket specified.')
+            raise RuntimeError("No corpus bucket specified.")
 
         GcsCorpus.__init__(
             self,
             sync_corpus_bucket_name,
-            '/%s/%s' % (self._engine, self._project_qualified_target_name),
+            "/%s/%s" % (self._engine, self._project_qualified_target_name),
             log_results=log_results,
             _gsutil_runner=_gsutil_runner,
         )
 
         self._static_corpus = GcsCorpus(
             sync_corpus_bucket_name,
-            '/%s/%s%s' % (self._engine, self._project_qualified_target_name,
-                          STATIC_CORPUS_GCS_PATH_SUFFIX),
+            "/%s/%s%s"
+            % (
+                self._engine,
+                self._project_qualified_target_name,
+                STATIC_CORPUS_GCS_PATH_SUFFIX,
+            ),
             log_results=log_results,
-            _gsutil_runner=_gsutil_runner)
+            _gsutil_runner=_gsutil_runner,
+        )
 
     @property
     def engine(self):
@@ -369,10 +391,9 @@ class FuzzTargetCorpus(GcsCorpus):
     def project_qualified_target_name(self):
         return self._project_qualified_target_name
 
-    def rsync_from_disk(self,
-                        directory,
-                        timeout=CORPUS_FILES_SYNC_TIMEOUT,
-                        delete=True):
+    def rsync_from_disk(
+        self, directory, timeout=CORPUS_FILES_SYNC_TIMEOUT, delete=True
+    ):
         """Upload local files to GCS and remove files which do not exist locally.
 
         Overridden to have additional logging.
@@ -386,19 +407,19 @@ class FuzzTargetCorpus(GcsCorpus):
           A bool indicating whether or not the command succeeded.
         """
         result = GcsCorpus.rsync_from_disk(
-            self, directory, timeout=timeout, delete=delete)
+            self, directory, timeout=timeout, delete=delete
+        )
 
         num_files = _count_corpus_files(directory)
         if self._log_results:
-            logs.log('%d corpus files uploaded for %s.' %
-                     (num_files, self._project_qualified_target_name))
+            logs.log(
+                "%d corpus files uploaded for %s."
+                % (num_files, self._project_qualified_target_name)
+            )
 
         return result
 
-    def rsync_to_disk(self,
-                      directory,
-                      timeout=CORPUS_FILES_SYNC_TIMEOUT,
-                      delete=True):
+    def rsync_to_disk(self, directory, timeout=CORPUS_FILES_SYNC_TIMEOUT, delete=True):
         """Run gsutil to download corpus files from GCS.
 
         Overridden to have additional logging.
@@ -412,18 +433,20 @@ class FuzzTargetCorpus(GcsCorpus):
           A bool indicating whether or not the command succeeded.
         """
         result = GcsCorpus.rsync_to_disk(
-            self, directory, timeout=timeout, delete=delete)
+            self, directory, timeout=timeout, delete=delete
+        )
         if not result:
             return False
 
         # Try to checkout additional '_static' corpus and ignore the result. Don't
         # delete existing files from syncing main corpus.
-        self._static_corpus.rsync_to_disk(
-            directory, timeout=timeout, delete=False)
+        self._static_corpus.rsync_to_disk(directory, timeout=timeout, delete=False)
 
         num_files = _count_corpus_files(directory)
         if self._log_results:
-            logs.log('%d corpus files downloaded for %s.' %
-                     (num_files, self._project_qualified_target_name))
+            logs.log(
+                "%d corpus files downloaded for %s."
+                % (num_files, self._project_qualified_target_name)
+            )
 
         return result

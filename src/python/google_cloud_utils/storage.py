@@ -54,13 +54,13 @@ AUTH_TOKEN_EXPIRY_TIME = 10 * 60
 CACHE_COPY_WAIT_TIME = 10
 
 # Cache directory name.
-CACHE_DIRNAME = 'cache'
+CACHE_DIRNAME = "cache"
 
 # Time to hold the cache lock for.
 CACHE_LOCK_TIMEOUT = 30 * 60
 
 # File extension for tmp cache files.
-CACHE_METADATA_FILE_EXTENSION = '.metadata'
+CACHE_METADATA_FILE_EXTENSION = ".metadata"
 
 # Maximum size of file to allow in cache.
 CACHE_SIZE_LIMIT = 5 * 1024 * 1024 * 1024  # 5 GB
@@ -75,7 +75,7 @@ DEFAULT_FAIL_RETRIES = 8
 DEFAULT_FAIL_WAIT = 2
 
 # Prefix for GCS urls.
-GS_PREFIX = 'gs:/'
+GS_PREFIX = "gs:/"
 
 # Maximum number of cached files per directory.
 MAX_CACHED_FILES_PER_DIRECTORY = 15
@@ -85,14 +85,14 @@ MAX_CACHED_FILES_PER_DIRECTORY = 15
 CREATE_BUCKET_DELAY = 4
 
 # GCS blob metadata key for filename.
-BLOB_FILENAME_METADATA_KEY = 'filename'
+BLOB_FILENAME_METADATA_KEY = "filename"
 
 # Thread local globals.
 _local = threading.local()
 
 # Urls for web viewer.
-OBJECT_URL = 'https://storage.cloud.google.com'
-DIRECTORY_URL = 'https://console.cloud.google.com/storage'
+OBJECT_URL = "https://storage.cloud.google.com"
+DIRECTORY_URL = "https://console.cloud.google.com/storage"
 
 
 class StorageProvider(object):
@@ -152,18 +152,18 @@ class GcsProvider(StorageProvider):
     def create_bucket(self, name, object_lifecycle, cors):
         """Create a new bucket."""
         project_id = utils.get_application_id()
-        request_body = {'name': name}
+        request_body = {"name": name}
         if object_lifecycle:
-            request_body['lifecycle'] = object_lifecycle
+            request_body["lifecycle"] = object_lifecycle
 
         if cors:
-            request_body['cors'] = cors
+            request_body["cors"] = cors
 
         client = create_discovery_storage_client()
         try:
             client.buckets().insert(project=project_id, body=request_body).execute()
         except HttpError as e:
-            logs.log_warn('Failed to create bucket %s: %s' % (name, e))
+            logs.log_warn("Failed to create bucket %s: %s" % (name, e))
             raise
 
         return True
@@ -183,8 +183,8 @@ class GcsProvider(StorageProvider):
         """List the blobs under the remote path."""
         bucket_name, path = get_bucket_name_and_path(remote_path)
 
-        if path and not path.endswith('/'):
-            path += '/'
+        if path and not path.endswith("/"):
+            path += "/"
 
         client = _storage_client()
         bucket = client.bucket(bucket_name)
@@ -193,22 +193,22 @@ class GcsProvider(StorageProvider):
         if recursive:
             delimiter = None
         else:
-            delimiter = '/'
+            delimiter = "/"
 
         iterator = bucket.list_blobs(prefix=path, delimiter=delimiter)
         for blob in iterator:
-            properties['bucket'] = bucket_name
-            properties['name'] = blob.name
-            properties['updated'] = blob.updated
-            properties['size'] = blob.size
+            properties["bucket"] = bucket_name
+            properties["name"] = blob.name
+            properties["updated"] = blob.updated
+            properties["size"] = blob.size
 
             yield properties
 
         if not recursive:
             # When doing delimeter listings, the "directories" will be in `prefixes`.
             for prefix in iterator.prefixes:
-                properties['bucket'] = bucket_name
-                properties['name'] = prefix
+                properties["bucket"] = bucket_name
+                properties["name"] = prefix
                 yield properties
 
     def copy_file_from(self, remote_path, local_path):
@@ -221,8 +221,10 @@ class GcsProvider(StorageProvider):
             blob = bucket.blob(path, chunk_size=self._chunk_size())
             blob.download_to_filename(local_path)
         except google.cloud.exceptions.GoogleCloudError:
-            logs.log_warn('Failed to copy cloud storage file %s to local file %s.' %
-                          (remote_path, local_path))
+            logs.log_warn(
+                "Failed to copy cloud storage file %s to local file %s."
+                % (remote_path, local_path)
+            )
             raise
 
         return True
@@ -244,18 +246,18 @@ class GcsProvider(StorageProvider):
                 blob.upload_from_file(local_path_or_handle, rewind=True)
 
         except google.cloud.exceptions.GoogleCloudError:
-            logs.log_warn('Failed to copy local file %s to cloud storage file %s.' %
-                          (local_path_or_handle, remote_path))
+            logs.log_warn(
+                "Failed to copy local file %s to cloud storage file %s."
+                % (local_path_or_handle, remote_path)
+            )
             raise
 
         return True
 
     def copy_blob(self, remote_source, remote_target):
         """Copy a remote file to another remote location."""
-        source_bucket_name, source_path = get_bucket_name_and_path(
-            remote_source)
-        target_bucket_name, target_path = get_bucket_name_and_path(
-            remote_target)
+        source_bucket_name, source_path = get_bucket_name_and_path(remote_source)
+        target_bucket_name, target_path = get_bucket_name_and_path(remote_target)
 
         client = _storage_client()
         try:
@@ -264,8 +266,10 @@ class GcsProvider(StorageProvider):
             target_bucket = client.bucket(target_bucket_name)
             source_bucket.copy_blob(source_blob, target_bucket, target_path)
         except google.cloud.exceptions.GoogleCloudError:
-            logs.log_warn('Failed to copy cloud storage file %s to cloud storage '
-                          'file %s.' % (remote_source, remote_target))
+            logs.log_warn(
+                "Failed to copy cloud storage file %s to cloud storage "
+                "file %s." % (remote_source, remote_target)
+            )
             raise
 
         return True
@@ -283,8 +287,7 @@ class GcsProvider(StorageProvider):
             if e.code == 404:
                 return None
 
-            logs.log_warn('Failed to read cloud storage file %s.' %
-                          remote_path)
+            logs.log_warn("Failed to read cloud storage file %s." % remote_path)
             raise
 
     def write_data(self, data, remote_path, metadata=None):
@@ -299,8 +302,7 @@ class GcsProvider(StorageProvider):
                 blob.metadata = metadata
             blob.upload_from_string(data)
         except google.cloud.exceptions.GoogleCloudError:
-            logs.log_warn('Failed to write cloud storage file %s.' %
-                          remote_path)
+            logs.log_warn("Failed to write cloud storage file %s." % remote_path)
             raise
 
         return True
@@ -327,8 +329,7 @@ class GcsProvider(StorageProvider):
             bucket = client.bucket(bucket_name)
             bucket.delete_blob(path)
         except google.cloud.exceptions.GoogleCloudError:
-            logs.log_warn(
-                'Failed to delete cloud storage file %s.' % remote_path)
+            logs.log_warn("Failed to delete cloud storage file %s." % remote_path)
             raise
 
         return True
@@ -337,8 +338,8 @@ class GcsProvider(StorageProvider):
 class FileSystemProvider(StorageProvider):
     """File system backed storage provider."""
 
-    OBJECTS_DIR = 'objects'
-    METADATA_DIR = 'metadata'
+    OBJECTS_DIR = "objects"
+    METADATA_DIR = "metadata"
 
     def __init__(self, filesystem_dir):
         self.filesystem_dir = os.path.abspath(filesystem_dir)
@@ -349,21 +350,21 @@ class FileSystemProvider(StorageProvider):
         fs_path = self.convert_path(remote_path)
 
         data = {
-            'bucket': bucket,
-            'name': path,
+            "bucket": bucket,
+            "name": path,
         }
 
         if not os.path.isdir(fs_path):
             # These attributes only apply to objects, not directories.
-            data.update({
-                'updated':
-                    datetime.datetime.utcfromtimestamp(
-                        os.stat(fs_path).st_mtime),
-                'size':
-                    os.path.getsize(fs_path),
-                'metadata':
-                    self._get_metadata(bucket, path),
-            })
+            data.update(
+                {
+                    "updated": datetime.datetime.utcfromtimestamp(
+                        os.stat(fs_path).st_mtime
+                    ),
+                    "size": os.path.getsize(fs_path),
+                    "metadata": self._get_metadata(bucket, path),
+                }
+            )
 
         return data
 
@@ -393,9 +394,8 @@ class FileSystemProvider(StorageProvider):
         if not metadata:
             return
 
-        fs_metadata_path = self.convert_path_for_write(remote_path,
-                                                       self.METADATA_DIR)
-        with open(fs_metadata_path, 'w') as f:
+        fs_metadata_path = self.convert_path_for_write(remote_path, self.METADATA_DIR)
+        with open(fs_metadata_path, "w") as f:
             json.dump(metadata, f)
 
     def convert_path(self, remote_path, directory=OBJECTS_DIR):
@@ -409,12 +409,10 @@ class FileSystemProvider(StorageProvider):
         directory)."""
         bucket, path = get_bucket_name_and_path(remote_path)
         if not os.path.exists(self._fs_bucket_path(bucket)):
-            raise RuntimeError(
-                'Bucket {bucket} does not exist.'.format(bucket=bucket))
+            raise RuntimeError("Bucket {bucket} does not exist.".format(bucket=bucket))
 
         fs_path = self._fs_path(bucket, path, directory)
-        shell.create_directory(os.path.dirname(
-            fs_path), create_intermediates=True)
+        shell.create_directory(os.path.dirname(fs_path), create_intermediates=True)
 
         return fs_path
 
@@ -434,7 +432,7 @@ class FileSystemProvider(StorageProvider):
             return None
 
         return {
-            'name': name,
+            "name": name,
         }
 
     def _list_files_recursive(self, fs_path):
@@ -461,8 +459,7 @@ class FileSystemProvider(StorageProvider):
         for fs_path in file_paths:
             path = os.path.relpath(fs_path, self._fs_objects_dir(bucket))
 
-            yield self._get_object_properties(
-                get_cloud_storage_file_path(bucket, path))
+            yield self._get_object_properties(get_cloud_storage_file_path(bucket, path))
 
     def copy_file_from(self, remote_path, local_path):
         """Copy file from a remote path to a local path."""
@@ -477,7 +474,7 @@ class FileSystemProvider(StorageProvider):
             if not shell.copy_file(local_path_or_handle, fs_path):
                 return False
         else:
-            with open(fs_path, 'wb') as f:
+            with open(fs_path, "wb") as f:
                 shutil.copyfileobj(local_path_or_handle, f)
 
         self._write_metadata(remote_path, metadata)
@@ -501,7 +498,7 @@ class FileSystemProvider(StorageProvider):
     def write_data(self, data, remote_path, metadata=None):
         """Write the data of a remote file."""
         fs_path = self.convert_path_for_write(remote_path)
-        with open(fs_path, 'wb') as f:
+        with open(fs_path, "wb") as f:
             f.write(data)
 
         self._write_metadata(remote_path, metadata)
@@ -528,12 +525,7 @@ class FileSystemProvider(StorageProvider):
 class GcsBlobInfo(object):
     """GCS blob info."""
 
-    def __init__(self,
-                 bucket,
-                 object_path,
-                 filename=None,
-                 size=None,
-                 legacy_key=None):
+    def __init__(self, bucket, object_path, filename=None, size=None, legacy_key=None):
         self.bucket = bucket
         self.object_path = object_path
 
@@ -543,9 +535,8 @@ class GcsBlobInfo(object):
         else:
             gcs_object = get(get_cloud_storage_file_path(bucket, object_path))
 
-            self.filename = gcs_object['metadata'].get(
-                BLOB_FILENAME_METADATA_KEY)
-            self.size = int(gcs_object['size'])
+            self.filename = gcs_object["metadata"].get(BLOB_FILENAME_METADATA_KEY)
+            self.size = int(gcs_object["size"])
 
         self.legacy_key = legacy_key
 
@@ -557,26 +548,27 @@ class GcsBlobInfo(object):
 
     @property
     def gcs_path(self):
-        return '/%s/%s' % (self.bucket, self.object_path)
+        return "/%s/%s" % (self.bucket, self.object_path)
 
     @staticmethod
     def from_key(key):
         try:
             return GcsBlobInfo(blobs_bucket(), key)
         except Exception:
-            logs.log_error('Failed to get blob from key %s.' % key)
+            logs.log_error("Failed to get blob from key %s." % key)
             return None
 
     @staticmethod
     def from_legacy_blob_info(blob_info):
         bucket, path = get_bucket_name_and_path(blob_info.gs_object_name)
-        return GcsBlobInfo(bucket, path, blob_info.filename, blob_info.size,
-                           blob_info.key.id())
+        return GcsBlobInfo(
+            bucket, path, blob_info.filename, blob_info.size, blob_info.key.id()
+        )
 
 
 def _provider():
     """Get the current storage provider."""
-    local_buckets_path = environment.get_value('LOCAL_GCS_BUCKETS_PATH')
+    local_buckets_path = environment.get_value("LOCAL_GCS_BUCKETS_PATH")
     if local_buckets_path:
         return FileSystemProvider(local_buckets_path)
 
@@ -594,7 +586,7 @@ def _create_storage_client_new():
 
 def _storage_client():
     """Get the storage client, creating it if it does not exist."""
-    if hasattr(_local, 'client'):
+    if hasattr(_local, "client"):
         return _local.client
 
     _local.client = _create_storage_client_new()
@@ -604,30 +596,29 @@ def _storage_client():
 def get_bucket_name_and_path(cloud_storage_file_path):
     """Return bucket name and path given a full cloud storage path."""
     filtered_path = utils.strip_from_left(cloud_storage_file_path, GS_PREFIX)
-    _, bucket_name_and_path = filtered_path.split('/', 1)
+    _, bucket_name_and_path = filtered_path.split("/", 1)
 
-    if '/' in bucket_name_and_path:
-        bucket_name, path = bucket_name_and_path.split('/', 1)
+    if "/" in bucket_name_and_path:
+        bucket_name, path = bucket_name_and_path.split("/", 1)
     else:
         bucket_name = bucket_name_and_path
-        path = ''
+        path = ""
 
     return bucket_name, path
 
 
 def get_cloud_storage_file_path(bucket, path):
     """Get the full GCS file path."""
-    return GS_PREFIX + '/' + bucket + '/' + path
+    return GS_PREFIX + "/" + bucket + "/" + path
 
 
 def _get_error_reason(http_error):
     """Get error reason from googleapiclient.errors.HttpError."""
     try:
-        data = json.loads(http_error.content.decode('utf-8'))
-        return data['error']['message']
+        data = json.loads(http_error.content.decode("utf-8"))
+        return data["error"]["message"]
     except (ValueError, KeyError):
-        logs.log_error('Failed to decode error content: %s' %
-                       http_error.content)
+        logs.log_error("Failed to decode error content: %s" % http_error.content)
 
     return None
 
@@ -637,20 +628,20 @@ def add_single_bucket_iam(storage, iam_policy, role, bucket_name, member):
     """Attempt to add a single bucket IAM. Returns the modified iam policy, or
     None on failure."""
     binding = get_bucket_iam_binding(iam_policy, role)
-    binding['members'].append(member)
+    binding["members"].append(member)
 
     result = set_bucket_iam_policy(storage, bucket_name, iam_policy)
 
-    binding['members'].pop()
+    binding["members"].pop()
     return result
 
 
 @environment.local_noop
 def get_bucket_iam_binding(iam_policy, role):
     """Get the binding matching a role, or None."""
-    return next((
-        binding for binding in iam_policy['bindings'] if binding['role'] == role),
-        None)
+    return next(
+        (binding for binding in iam_policy["bindings"] if binding["role"] == role), None
+    )
 
 
 @environment.local_noop
@@ -658,8 +649,8 @@ def get_or_create_bucket_iam_binding(iam_policy, role):
     """Get or create the binding matching a role."""
     binding = get_bucket_iam_binding(iam_policy, role)
     if not binding:
-        binding = {'role': role, 'members': []}
-        iam_policy['bindings'].append(binding)
+        binding = {"role": role, "members": []}
+        iam_policy["bindings"].append(binding)
 
     return binding
 
@@ -667,8 +658,8 @@ def get_or_create_bucket_iam_binding(iam_policy, role):
 @environment.local_noop
 def remove_bucket_iam_binding(iam_policy, role):
     """Remove existing binding matching the role."""
-    iam_policy['bindings'] = [
-        binding for binding in iam_policy['bindings'] if binding['role'] != role
+    iam_policy["bindings"] = [
+        binding for binding in iam_policy["bindings"] if binding["role"] != role
     ]
 
 
@@ -678,8 +669,7 @@ def get_bucket_iam_policy(storage, bucket_name):
     try:
         iam_policy = storage.buckets().getIamPolicy(bucket=bucket_name).execute()
     except HttpError as e:
-        logs.log_error('Failed to get IAM policies for %s: %s' %
-                       (bucket_name, e))
+        logs.log_error("Failed to get IAM policies for %s: %s" % (bucket_name, e))
         return None
 
     return iam_policy
@@ -692,30 +682,35 @@ def set_bucket_iam_policy(client, bucket_name, iam_policy):
 
     # Bindings returned by getIamPolicy can have duplicates. Remove them or
     # otherwise, setIamPolicy operation fails.
-    for binding in filtered_iam_policy['bindings']:
-        binding['members'] = sorted(list(set(binding['members'])))
+    for binding in filtered_iam_policy["bindings"]:
+        binding["members"] = sorted(list(set(binding["members"])))
 
     # Filtering members can cause a binding to have no members. Remove binding
     # or otherwise, setIamPolicy operation fails.
-    filtered_iam_policy['bindings'] = [
-        b for b in filtered_iam_policy['bindings'] if b['members']
+    filtered_iam_policy["bindings"] = [
+        b for b in filtered_iam_policy["bindings"] if b["members"]
     ]
 
     try:
-        return client.buckets().setIamPolicy(
-            bucket=bucket_name, body=filtered_iam_policy).execute()
+        return (
+            client.buckets()
+            .setIamPolicy(bucket=bucket_name, body=filtered_iam_policy)
+            .execute()
+        )
     except HttpError as e:
         error_reason = _get_error_reason(e)
-        if error_reason == 'Invalid argument':
+        if error_reason == "Invalid argument":
             # Expected error for non-Google emails or groups. Warn about these.
-            logs.log_warn('Invalid Google email or group being added to bucket %s.' %
-                          bucket_name)
+            logs.log_warn(
+                "Invalid Google email or group being added to bucket %s." % bucket_name
+            )
         elif error_reason and 'is of type "group"' in error_reason:
-            logs.log_warn('Failed to set IAM policy for %s bucket for a group: %s.' %
-                          (bucket_name, error_reason))
+            logs.log_warn(
+                "Failed to set IAM policy for %s bucket for a group: %s."
+                % (bucket_name, error_reason)
+            )
         else:
-            logs.log_error(
-                'Failed to set IAM policies for bucket %s.' % bucket_name)
+            logs.log_error("Failed to set IAM policies for bucket %s." % bucket_name)
 
     return None
 
@@ -736,7 +731,7 @@ def create_bucket_if_needed(bucket_name, object_lifecycle=None, cors=None):
 @environment.local_noop
 def create_discovery_storage_client():
     """Create a storage client using discovery APIs."""
-    return build('storage', 'v1', cache_discovery=False)
+    return build("storage", "v1", cache_discovery=False)
 
 
 def generate_life_cycle_config(action, age=None, num_newer_versions=None):
@@ -746,25 +741,26 @@ def generate_life_cycle_config(action, age=None, num_newer_versions=None):
     https://cloud.google.com/storage/docs/managing-lifecycles.
     """
     rule = {}
-    rule['action'] = {'type': action}
-    rule['condition'] = {}
+    rule["action"] = {"type": action}
+    rule["condition"] = {}
     if age is not None:
-        rule['condition']['age'] = age
+        rule["condition"]["age"] = age
     if num_newer_versions is not None:
-        rule['condition']['numNewerVersions'] = num_newer_versions
+        rule["condition"]["numNewerVersions"] = num_newer_versions
 
-    config = {'rule': [rule]}
+    config = {"rule": [rule]}
     return config
 
 
 @retry.wrap(
     retries=DEFAULT_FAIL_RETRIES,
     delay=DEFAULT_FAIL_WAIT,
-    function='google_cloud_utils.storage.copy_file_from')
+    function="google_cloud_utils.storage.copy_file_from",
+)
 def copy_file_from(cloud_storage_file_path, local_file_path, use_cache=False):
     """Saves a cloud storage file locally."""
     if use_cache and get_file_from_cache_if_exists(local_file_path):
-        logs.log('Copied file %s from local cache.' % cloud_storage_file_path)
+        logs.log("Copied file %s from local cache." % cloud_storage_file_path)
         return True
 
     if not _provider().copy_file_from(cloud_storage_file_path, local_file_path):
@@ -779,34 +775,36 @@ def copy_file_from(cloud_storage_file_path, local_file_path, use_cache=False):
 @retry.wrap(
     retries=DEFAULT_FAIL_RETRIES,
     delay=DEFAULT_FAIL_WAIT,
-    function='google_cloud_utils.storage.copy_file_to')
-def copy_file_to(local_file_path_or_handle,
-                 cloud_storage_file_path,
-                 metadata=None):
+    function="google_cloud_utils.storage.copy_file_to",
+)
+def copy_file_to(local_file_path_or_handle, cloud_storage_file_path, metadata=None):
     """Copy local file to a cloud storage path."""
-    if (isinstance(local_file_path_or_handle, basestring) and
-            not os.path.exists(local_file_path_or_handle)):
-        logs.log_error('Local file %s not found.' % local_file_path_or_handle)
+    if isinstance(local_file_path_or_handle, basestring) and not os.path.exists(
+        local_file_path_or_handle
+    ):
+        logs.log_error("Local file %s not found." % local_file_path_or_handle)
         return False
 
     return _provider().copy_file_to(
-        local_file_path_or_handle, cloud_storage_file_path, metadata=metadata)
+        local_file_path_or_handle, cloud_storage_file_path, metadata=metadata
+    )
 
 
 @retry.wrap(
     retries=DEFAULT_FAIL_RETRIES,
     delay=DEFAULT_FAIL_WAIT,
-    function='google_cloud_utils.storage.copy_blob')
+    function="google_cloud_utils.storage.copy_blob",
+)
 def copy_blob(cloud_storage_source_path, cloud_storage_target_path):
     """Copy two blobs on GCS 'in the cloud' without touching local disk."""
-    return _provider().copy_blob(cloud_storage_source_path,
-                                 cloud_storage_target_path)
+    return _provider().copy_blob(cloud_storage_source_path, cloud_storage_target_path)
 
 
 @retry.wrap(
     retries=DEFAULT_FAIL_RETRIES,
     delay=DEFAULT_FAIL_WAIT,
-    function='google_cloud_utils.storage.delete')
+    function="google_cloud_utils.storage.delete",
+)
 def delete(cloud_storage_file_path):
     """Delete a cloud storage file given its path."""
     return _provider().delete(cloud_storage_file_path)
@@ -815,15 +813,18 @@ def delete(cloud_storage_file_path):
 @retry.wrap(
     retries=DEFAULT_FAIL_RETRIES,
     delay=DEFAULT_FAIL_WAIT,
-    function='google_cloud_utils.storage.exists')
+    function="google_cloud_utils.storage.exists",
+)
 def exists(cloud_storage_file_path, ignore_errors=False):
     """Return whether if a cloud storage file exists."""
     try:
         return bool(_provider().get(cloud_storage_file_path))
     except HttpError:
         if not ignore_errors:
-            logs.log_error('Failed when trying to find cloud storage file %s.' %
-                           cloud_storage_file_path)
+            logs.log_error(
+                "Failed when trying to find cloud storage file %s."
+                % cloud_storage_file_path
+            )
 
         return False
 
@@ -831,14 +832,15 @@ def exists(cloud_storage_file_path, ignore_errors=False):
 @retry.wrap(
     retries=DEFAULT_FAIL_RETRIES,
     delay=DEFAULT_FAIL_WAIT,
-    function='google_cloud_utils.storage.last_updated')
+    function="google_cloud_utils.storage.last_updated",
+)
 def last_updated(cloud_storage_file_path):
     """Return last updated value by parsing stats for all blobs under a cloud
     storage path."""
     last_update = None
     for blob in _provider().list_blobs(cloud_storage_file_path):
-        if not last_update or blob['updated'] > last_update:
-            last_update = blob['updated']
+        if not last_update or blob["updated"] > last_update:
+            last_update = blob["updated"]
     if last_update:
         # Remove UTC tzinfo to make these comparable.
         last_update = last_update.replace(tzinfo=None)
@@ -848,7 +850,8 @@ def last_updated(cloud_storage_file_path):
 @retry.wrap(
     retries=DEFAULT_FAIL_RETRIES,
     delay=DEFAULT_FAIL_WAIT,
-    function='google_cloud_utils.storage.read_data')
+    function="google_cloud_utils.storage.read_data",
+)
 def read_data(cloud_storage_file_path):
     """Return content of a cloud storage file."""
     return _provider().read_data(cloud_storage_file_path)
@@ -857,17 +860,18 @@ def read_data(cloud_storage_file_path):
 @retry.wrap(
     retries=DEFAULT_FAIL_RETRIES,
     delay=DEFAULT_FAIL_WAIT,
-    function='google_cloud_utils.storage.write_data')
+    function="google_cloud_utils.storage.write_data",
+)
 def write_data(data, cloud_storage_file_path, metadata=None):
     """Return content of a cloud storage file."""
-    return _provider().write_data(
-        data, cloud_storage_file_path, metadata=metadata)
+    return _provider().write_data(data, cloud_storage_file_path, metadata=metadata)
 
 
 @retry.wrap(
     retries=DEFAULT_FAIL_RETRIES,
     delay=DEFAULT_FAIL_WAIT,
-    function='google_cloud_utils.storage.get_blobs')
+    function="google_cloud_utils.storage.get_blobs",
+)
 def get_blobs(cloud_storage_path, recursive=True):
     """Return blobs under the given cloud storage path."""
     for blob in _provider().list_blobs(cloud_storage_path, recursive=recursive):
@@ -877,16 +881,15 @@ def get_blobs(cloud_storage_path, recursive=True):
 @retry.wrap(
     retries=DEFAULT_FAIL_RETRIES,
     delay=DEFAULT_FAIL_WAIT,
-    function='google_cloud_utils.storage.list_blobs')
+    function="google_cloud_utils.storage.list_blobs",
+)
 def list_blobs(cloud_storage_path, recursive=True):
     """Return blob names under the given cloud storage path."""
     for blob in _provider().list_blobs(cloud_storage_path, recursive=recursive):
-        yield blob['name']
+        yield blob["name"]
 
 
-def get_download_file_size(cloud_storage_file_path,
-                           file_path=None,
-                           use_cache=False):
+def get_download_file_size(cloud_storage_file_path, file_path=None, use_cache=False):
     """Get the download file size of the bucket path."""
     if use_cache and file_path:
         size_from_cache = get_file_size_from_cache_if_exists(file_path)
@@ -897,8 +900,7 @@ def get_download_file_size(cloud_storage_file_path,
 
 
 @utils.timeout(CACHE_TIMEOUT)
-def get_file_from_cache_if_exists(file_path,
-                                  update_modification_time_on_access=True):
+def get_file_from_cache_if_exists(file_path, update_modification_time_on_access=True):
     """Get file from nfs cache if available."""
     cache_file_path = get_cache_file_path(file_path)
     if not cache_file_path or not file_exists_in_cache(cache_file_path):
@@ -918,8 +920,7 @@ def get_file_from_cache_if_exists(file_path,
 
     # Return success or failure based on existence of local file and size
     # comparison.
-    return (os.path.exists(file_path) and
-            os.path.getsize(file_path) == cache_file_size)
+    return os.path.exists(file_path) and os.path.getsize(file_path) == cache_file_size
 
 
 @utils.timeout(CACHE_TIMEOUT)
@@ -935,42 +936,46 @@ def get_file_size_from_cache_if_exists(file_path):
 
 def get_cache_file_path(file_path):
     """Return cache file path given a local file path."""
-    if not environment.get_value('NFS_ROOT'):
+    if not environment.get_value("NFS_ROOT"):
         return None
 
     return os.path.join(
-        environment.get_value('NFS_ROOT'), CACHE_DIRNAME,
-        utils.get_directory_hash_for_path(file_path), os.path.basename(file_path))
+        environment.get_value("NFS_ROOT"),
+        CACHE_DIRNAME,
+        utils.get_directory_hash_for_path(file_path),
+        os.path.basename(file_path),
+    )
 
 
 def get_cache_file_metadata_path(cache_file_path):
     """Return metadata file path for a cache file."""
-    return '%s%s' % (cache_file_path, CACHE_METADATA_FILE_EXTENSION)
+    return "%s%s" % (cache_file_path, CACHE_METADATA_FILE_EXTENSION)
 
 
 def get_cache_file_size_from_metadata(cache_file_path):
     """Return cache file size from metadata file."""
     cache_file_metadata_path = get_cache_file_metadata_path(cache_file_path)
     metadata_content = utils.read_data_from_file(
-        cache_file_metadata_path, eval_data=True)
+        cache_file_metadata_path, eval_data=True
+    )
 
-    if not metadata_content or 'size' not in metadata_content:
+    if not metadata_content or "size" not in metadata_content:
         return None
 
-    return metadata_content['size']
+    return metadata_content["size"]
 
 
 def write_cache_file_metadata(cache_file_path, file_path):
     """Write cache file metadata."""
     cache_file_metadata_path = get_cache_file_metadata_path(cache_file_path)
-    utils.write_data_to_file({
-        'size': os.path.getsize(file_path)
-    }, cache_file_metadata_path)
+    utils.write_data_to_file(
+        {"size": os.path.getsize(file_path)}, cache_file_metadata_path
+    )
 
 
 def remove_cache_file_and_metadata(cache_file_path):
     """Removes cache file and its metadata."""
-    logs.log('Removing cache file %s and its metadata.' % cache_file_path)
+    logs.log("Removing cache file %s and its metadata." % cache_file_path)
     shell.remove_file(get_cache_file_metadata_path(cache_file_path))
     shell.remove_file(cache_file_path)
 
@@ -978,8 +983,8 @@ def remove_cache_file_and_metadata(cache_file_path):
 @retry.wrap(
     retries=DEFAULT_FAIL_RETRIES,
     delay=DEFAULT_FAIL_WAIT,
-    function='google_cloud_utils.storage.'
-    'update_access_and_modification_timestamp')
+    function="google_cloud_utils.storage." "update_access_and_modification_timestamp",
+)
 def update_access_and_modification_timestamp(file_path):
     os.utime(file_path, None)
 
@@ -987,7 +992,8 @@ def update_access_and_modification_timestamp(file_path):
 @retry.wrap(
     retries=DEFAULT_FAIL_RETRIES,
     delay=DEFAULT_FAIL_WAIT,
-    function='google_cloud_utils.storage.file_exists_in_cache')
+    function="google_cloud_utils.storage.file_exists_in_cache",
+)
 def file_exists_in_cache(cache_file_path):
     """Returns if the file exists in cache."""
     cache_file_metadata_path = get_cache_file_metadata_path(cache_file_path)
@@ -998,27 +1004,26 @@ def file_exists_in_cache(cache_file_path):
         return False
 
     actual_cache_file_size = os.path.getsize(cache_file_path)
-    expected_cache_file_size = get_cache_file_size_from_metadata(
-        cache_file_path)
+    expected_cache_file_size = get_cache_file_size_from_metadata(cache_file_path)
     return actual_cache_file_size == expected_cache_file_size
 
 
 @utils.timeout(CACHE_TIMEOUT)
-def store_file_in_cache(file_path,
-                        cached_files_per_directory_limit=True,
-                        force_update=False):
+def store_file_in_cache(
+    file_path, cached_files_per_directory_limit=True, force_update=False
+):
     """Get file from nfs cache if available."""
     if not os.path.exists(file_path):
         logs.log_error(
-            'Local file %s does not exist, nothing to store in cache.' % file_path)
+            "Local file %s does not exist, nothing to store in cache." % file_path
+        )
         return
 
     if os.path.getsize(file_path) > CACHE_SIZE_LIMIT:
-        logs.log('File %s is too large to store in cache, skipping.' %
-                 file_path)
+        logs.log("File %s is too large to store in cache, skipping." % file_path)
         return
 
-    nfs_root = environment.get_value('NFS_ROOT')
+    nfs_root = environment.get_value("NFS_ROOT")
     if not nfs_root:
         # No NFS, nothing to store in cache.
         return
@@ -1026,8 +1031,8 @@ def store_file_in_cache(file_path,
     # If NFS server is not available due to heavy load, skip storage operation
     # altogether as we would fail to store file.
     # Use . to iterate mount.
-    if not os.path.exists(os.path.join(nfs_root, '.')):
-        logs.log_warn('Cache %s not available.' % nfs_root)
+    if not os.path.exists(os.path.join(nfs_root, ".")):
+        logs.log_warn("Cache %s not available." % nfs_root)
         return
 
     cache_file_path = get_cache_file_path(file_path)
@@ -1036,8 +1041,7 @@ def store_file_in_cache(file_path,
 
     if not os.path.exists(cache_directory):
         if not shell.create_directory(cache_directory, create_intermediates=True):
-            logs.log_error('Failed to create cache directory %s.' %
-                           cache_directory)
+            logs.log_error("Failed to create cache directory %s." % cache_directory)
             return
 
     # Check if the file already exists in cache.
@@ -1059,23 +1063,29 @@ def store_file_in_cache(file_path,
             cached_file_path = os.path.join(cache_directory, cached_filename)
             cached_files_list.append(cached_file_path)
 
-        def mtime(f): return os.stat(f).st_mtime
+        def mtime(f):
+            return os.stat(f).st_mtime
+
         last_used_cached_files_list = list(
-            sorted(cached_files_list, key=mtime, reverse=True))
-        for cached_file_path in (
-                last_used_cached_files_list[MAX_CACHED_FILES_PER_DIRECTORY - 1:]):
+            sorted(cached_files_list, key=mtime, reverse=True)
+        )
+        for cached_file_path in last_used_cached_files_list[
+            MAX_CACHED_FILES_PER_DIRECTORY - 1 :
+        ]:
             remove_cache_file_and_metadata(cached_file_path)
 
     # Start storing the actual file in cache now.
-    logs.log('Started storing file %s into cache.' % filename)
+    logs.log("Started storing file %s into cache." % filename)
 
     # Fetch lock to store this file. Try only once since if any other bot has
     # started to store it, we don't need to do it ourselves. Just bail out.
-    lock_name = 'store:cache_file:%s' % utils.string_hash(cache_file_path)
+    lock_name = "store:cache_file:%s" % utils.string_hash(cache_file_path)
     if not locks.acquire_lock(
-            lock_name, max_hold_seconds=CACHE_LOCK_TIMEOUT, retries=1, by_zone=True):
+        lock_name, max_hold_seconds=CACHE_LOCK_TIMEOUT, retries=1, by_zone=True
+    ):
         logs.log_warn(
-            'Unable to fetch lock to update cache file %s, skipping.' % filename)
+            "Unable to fetch lock to update cache file %s, skipping." % filename
+        )
         return
 
     # Check if another bot already updated it.
@@ -1090,15 +1100,16 @@ def store_file_in_cache(file_path,
     locks.release_lock(lock_name, by_zone=True)
 
     if error_occurred:
-        logs.log_error('Failed to store file %s into cache.' % filename)
+        logs.log_error("Failed to store file %s into cache." % filename)
     else:
-        logs.log('Completed storing file %s into cache.' % filename)
+        logs.log("Completed storing file %s into cache." % filename)
 
 
 @retry.wrap(
     retries=DEFAULT_FAIL_RETRIES,
     delay=DEFAULT_FAIL_WAIT,
-    function='google_cloud_utils.storage.get')
+    function="google_cloud_utils.storage.get",
+)
 def get(cloud_storage_file_path):
     """Get GCS object data."""
     return _provider().get(cloud_storage_file_path)
@@ -1108,15 +1119,19 @@ def get(cloud_storage_file_path):
 @retry.wrap(
     retries=DEFAULT_FAIL_RETRIES,
     delay=DEFAULT_FAIL_WAIT,
-    function='google_cloud_utils.storage.get_acl')
+    function="google_cloud_utils.storage.get_acl",
+)
 def get_acl(cloud_storage_file_path, entity):
     """Get the access control for a file."""
     client = create_discovery_storage_client()
     bucket, path = get_bucket_name_and_path(cloud_storage_file_path)
 
     try:
-        return client.objectAccessControls().get(
-            bucket=bucket, object=path, entity=entity).execute()
+        return (
+            client.objectAccessControls()
+            .get(bucket=bucket, object=path, entity=entity)
+            .execute()
+        )
     except HttpError as e:
         if e.resp.status == 404:
             return None
@@ -1128,18 +1143,19 @@ def get_acl(cloud_storage_file_path, entity):
 @retry.wrap(
     retries=DEFAULT_FAIL_RETRIES,
     delay=DEFAULT_FAIL_WAIT,
-    function='google_cloud_utils.storage.set_acl')
-def set_acl(cloud_storage_file_path, entity, role='READER'):
+    function="google_cloud_utils.storage.set_acl",
+)
+def set_acl(cloud_storage_file_path, entity, role="READER"):
     """Set the access control for a file."""
     client = create_discovery_storage_client()
     bucket, path = get_bucket_name_and_path(cloud_storage_file_path)
 
     try:
-        return client.objectAccessControls().insert(
-            bucket=bucket, object=path, body={
-                'entity': entity,
-                'role': role
-            }).execute()
+        return (
+            client.objectAccessControls()
+            .insert(bucket=bucket, object=path, body={"entity": entity, "role": role})
+            .execute()
+        )
     except HttpError as e:
         if e.resp.status == 404:
             return None
@@ -1153,15 +1169,15 @@ def get_object_size(cloud_storage_file_path):
     if not gcs_object:
         return gcs_object
 
-    return int(gcs_object['size'])
+    return int(gcs_object["size"])
 
 
 def blobs_bucket():
     """Get the blobs bucket name."""
     # Allow tests to override blobs bucket name safely.
-    test_blobs_bucket = environment.get_value('TEST_BLOBS_BUCKET')
+    test_blobs_bucket = environment.get_value("TEST_BLOBS_BUCKET")
     if test_blobs_bucket:
         return test_blobs_bucket
 
-    assert not environment.get_value('PY_UNITTESTS')
-    return local_config.ProjectConfig().get('blobs.bucket')
+    assert not environment.get_value("PY_UNITTESTS")
+    return local_config.ProjectConfig().get("blobs.bucket")

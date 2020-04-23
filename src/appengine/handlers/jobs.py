@@ -35,12 +35,12 @@ def get_queues():
     queues = []
     for name, display_name in six.iteritems(tasks.TASK_QUEUE_DISPLAY_NAMES):
         queue = {
-            'name': name,
-            'display_name': display_name,
+            "name": name,
+            "display_name": display_name,
         }
         queues.append(queue)
 
-    queues.sort(key=lambda q: q['display_name'])
+    queues.sort(key=lambda q: q["display_name"])
     return queues
 
 
@@ -51,28 +51,29 @@ class Handler(base_handler.Handler):
     @handler.get(handler.HTML)
     def get(self):
         """Handle a get request."""
-        helpers.log('Jobs', helpers.VIEW_OPERATION)
+        helpers.log("Jobs", helpers.VIEW_OPERATION)
 
         template_values = self.get_results()
-        self.render('jobs.html', template_values)
+        self.render("jobs.html", template_values)
 
     @staticmethod
     def get_results():
         """Get results for the jobs page."""
         jobs = list(data_types.Job.query().order(data_types.Job.name))
-        templates = list(data_types.JobTemplate.query().order(
-            data_types.JobTemplate.name))
+        templates = list(
+            data_types.JobTemplate.query().order(data_types.JobTemplate.name)
+        )
         queues = get_queues()
 
         return {
-            'jobs': jobs,
-            'templates': templates,
-            'fieldValues': {
-                'csrf_token': form.generate_csrf_token(),
-                'queues': queues,
-                'update_job_url': '/update-job',
-                'update_job_template_url': '/update-job-template',
-                'upload_info': gcs.prepare_blob_upload()._asdict(),
+            "jobs": jobs,
+            "templates": templates,
+            "fieldValues": {
+                "csrf_token": form.generate_csrf_token(),
+                "queues": queues,
+                "update_job_url": "/update-job",
+                "update_job_template_url": "/update-job-template",
+                "upload_info": gcs.prepare_blob_upload()._asdict(),
             },
         }
 
@@ -84,30 +85,31 @@ class UpdateJob(base_handler.GcsUploadHandler):
     @handler.require_csrf_token
     def post(self):
         """Handle a post request."""
-        name = self.request.get('name')
+        name = self.request.get("name")
         if not name:
-            raise helpers.EarlyExitException(
-                'Please give this job a name!', 400)
+            raise helpers.EarlyExitException("Please give this job a name!", 400)
 
         if not data_types.Job.VALID_NAME_REGEX.match(name):
             raise helpers.EarlyExitException(
-                'Job name can only contain letters, numbers, dashes and underscores.',
-                400)
+                "Job name can only contain letters, numbers, dashes and underscores.",
+                400,
+            )
 
-        templates = self.request.get('templates', '').splitlines()
+        templates = self.request.get("templates", "").splitlines()
         for template in templates:
             if not data_types.JobTemplate.query(
-                    data_types.JobTemplate.name == template).get():
-                raise helpers.EarlyExitException('Invalid template name(s) specified.',
-                                                 400)
+                data_types.JobTemplate.name == template
+            ).get():
+                raise helpers.EarlyExitException(
+                    "Invalid template name(s) specified.", 400
+                )
 
-        new_platform = self.request.get('platform')
-        if not new_platform or new_platform == 'undefined':
-            raise helpers.EarlyExitException(
-                'No platform provided for job.', 400)
+        new_platform = self.request.get("platform")
+        if not new_platform or new_platform == "undefined":
+            raise helpers.EarlyExitException("No platform provided for job.", 400)
 
-        description = self.request.get('description', '')
-        environment_string = self.request.get('environment_string', '')
+        description = self.request.get("description", "")
+        environment_string = self.request.get("environment_string", "")
         previous_custom_binary_revision = 0
 
         job = data_types.Job.query(data_types.Job.name == name).get()
@@ -137,8 +139,8 @@ class UpdateJob(base_handler.GcsUploadHandler):
             job.custom_binary_filename = blob_info.filename
             job.custom_binary_revision = previous_custom_binary_revision + 1
 
-        if job.custom_binary_key and 'CUSTOM_BINARY' not in job.environment_string:
-            job.environment_string += '\nCUSTOM_BINARY = True'
+        if job.custom_binary_key and "CUSTOM_BINARY" not in job.environment_string:
+            job.environment_string += "\nCUSTOM_BINARY = True"
 
         job.put()
 
@@ -148,16 +150,16 @@ class UpdateJob(base_handler.GcsUploadHandler):
         # pylint: disable=unexpected-keyword-arg
         _ = data_handler.get_all_job_type_names(__memoize_force__=True)
 
-        helpers.log('Job created %s' % name, helpers.MODIFY_OPERATION)
+        helpers.log("Job created %s" % name, helpers.MODIFY_OPERATION)
         template_values = {
-            'title':
-                'Success',
-            'message': ('Job %s is successfully updated. '
-                        'Redirecting back to jobs page...') % name,
-            'redirect_url':
-                '/jobs',
+            "title": "Success",
+            "message": (
+                "Job %s is successfully updated. " "Redirecting back to jobs page..."
+            )
+            % name,
+            "redirect_url": "/jobs",
         }
-        self.render('message.html', template_values)
+        self.render("message.html", template_values)
 
 
 class UpdateJobTemplate(base_handler.Handler):
@@ -168,23 +170,26 @@ class UpdateJobTemplate(base_handler.Handler):
     @handler.post(handler.FORM, handler.HTML)
     def post(self):
         """Handle a post request."""
-        name = self.request.get('name')
+        name = self.request.get("name")
         if not name:
-            raise helpers.EarlyExitException(
-                'Please give this template a name!', 400)
+            raise helpers.EarlyExitException("Please give this template a name!", 400)
 
         if not data_types.Job.VALID_NAME_REGEX.match(name):
             raise helpers.EarlyExitException(
-                'Template name can only contain letters, numbers, dashes and '
-                'underscores.', 400)
+                "Template name can only contain letters, numbers, dashes and "
+                "underscores.",
+                400,
+            )
 
-        environment_string = self.request.get('environment_string')
+        environment_string = self.request.get("environment_string")
         if not environment_string:
             raise helpers.EarlyExitException(
-                'No environment string provided for job template.', 400)
+                "No environment string provided for job template.", 400
+            )
 
         template = data_types.JobTemplate.query(
-            data_types.JobTemplate.name == name).get()
+            data_types.JobTemplate.name == name
+        ).get()
         if not template:
             template = data_types.JobTemplate()
 
@@ -192,17 +197,18 @@ class UpdateJobTemplate(base_handler.Handler):
         template.environment_string = environment_string
         template.put()
 
-        helpers.log('Template created %s' % name, helpers.MODIFY_OPERATION)
+        helpers.log("Template created %s" % name, helpers.MODIFY_OPERATION)
 
         template_values = {
-            'title':
-                'Success',
-            'message': ('Template %s is successfully updated. '
-                        'Redirecting back to jobs page...') % name,
-            'redirect_url':
-                '/jobs',
+            "title": "Success",
+            "message": (
+                "Template %s is successfully updated. "
+                "Redirecting back to jobs page..."
+            )
+            % name,
+            "redirect_url": "/jobs",
         }
-        self.render('message.html', template_values)
+        self.render("message.html", template_values)
 
 
 class DeleteJobHandler(base_handler.Handler):
@@ -216,7 +222,7 @@ class DeleteJobHandler(base_handler.Handler):
         key = helpers.get_integer_key(self.request)
         job = ndb.Key(data_types.Job, key).get()
         if not job:
-            raise helpers.EarlyExitException('Job not found.', 400)
+            raise helpers.EarlyExitException("Job not found.", 400)
 
         # Delete from fuzzers' jobs' list.
         for fuzzer in ndb_utils.get_all_from_model(data_types.Fuzzer):
@@ -233,5 +239,5 @@ class DeleteJobHandler(base_handler.Handler):
         # Delete job.
         job.key.delete()
 
-        helpers.log('Deleted job %s' % job.name, helpers.MODIFY_OPERATION)
-        self.redirect('/jobs')
+        helpers.log("Deleted job %s" % job.name, helpers.MODIFY_OPERATION)
+        self.redirect("/jobs")

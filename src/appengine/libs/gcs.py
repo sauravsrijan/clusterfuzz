@@ -27,16 +27,17 @@ import base64
 from builtins import object
 from builtins import str
 from future import standard_library
+
 standard_library.install_aliases()
 
 
-STORAGE_URL = 'https://storage.googleapis.com/%s'
+STORAGE_URL = "https://storage.googleapis.com/%s"
 DEFAULT_URL_VALID_SECONDS = 30 * 60  # 30 minutes.
 MAX_UPLOAD_SIZE = 15 * 1024 * 1024 * 1024  # 15 GB.
 
 GcsUpload = collections.namedtuple(
-    'GcsUpload',
-    ['url', 'bucket', 'key', 'google_access_id', 'policy', 'signature'])
+    "GcsUpload", ["url", "bucket", "key", "google_access_id", "policy", "signature"]
+)
 
 
 class GcsError(Exception):
@@ -45,21 +46,23 @@ class GcsError(Exception):
 
 def sign_data(data):
     """Sign data with the default App Engine service account."""
-    iam = googleapiclient.discovery.build('iamcredentials', 'v1')
-    service_account = 'projects/-/serviceAccounts/' + utils.service_account_email(
+    iam = googleapiclient.discovery.build("iamcredentials", "v1")
+    service_account = "projects/-/serviceAccounts/" + utils.service_account_email()
+
+    response = (
+        iam.projects()
+        .serviceAccounts()
+        .signBlob(
+            name=service_account,
+            body={"delegates": [], "payload": base64.b64encode(data).decode("utf-8"),},
+        )
+        .execute()
     )
 
-    response = iam.projects().serviceAccounts().signBlob(
-        name=service_account,
-        body={
-            'delegates': [],
-            'payload': base64.b64encode(data).decode('utf-8'),
-        }).execute()
-
     try:
-        return base64.b64decode(response['signedBlob'])
+        return base64.b64decode(response["signedBlob"])
     except Exception as e:
-        raise GcsError('Invalid response: ' + str(e))
+        raise GcsError("Invalid response: " + str(e))
 
 
 class SignedGcsHandler(object):
@@ -71,10 +74,10 @@ class SignedGcsHandler(object):
 
         if content_disposition:
             content_disposition_params = {
-                'response-content-disposition': content_disposition,
+                "response-content-disposition": content_disposition,
             }
 
-            url += '&' + urllib.parse.urlencode(content_disposition_params)
+            url += "&" + urllib.parse.urlencode(content_disposition_params)
 
         self.redirect(url)
 
@@ -84,67 +87,58 @@ def _get_expiration_time(expiry_seconds):
     return int(time.time() + expiry_seconds)
 
 
-def get_signed_url(bucket_name,
-                   path,
-                   method='GET',
-                   expiry=DEFAULT_URL_VALID_SECONDS):
+def get_signed_url(bucket_name, path, method="GET", expiry=DEFAULT_URL_VALID_SECONDS):
     """Return a signed url."""
     timestamp = _get_expiration_time(expiry)
-    blob = '%s\n\n\n%d\n/%s/%s' % (method, timestamp, bucket_name, path)
+    blob = "%s\n\n\n%d\n/%s/%s" % (method, timestamp, bucket_name, path)
 
-    local_server = environment.get_value('LOCAL_GCS_SERVER_HOST')
+    local_server = environment.get_value("LOCAL_GCS_SERVER_HOST")
     if local_server:
-        url = local_server + '/' + bucket_name
-        signed_blob = b'SIGNATURE'
-        service_account_name = 'service_account'
+        url = local_server + "/" + bucket_name
+        signed_blob = b"SIGNATURE"
+        service_account_name = "service_account"
     else:
         url = STORAGE_URL % bucket_name
-        signed_blob = sign_data(blob.encode('utf-8'))
+        signed_blob = sign_data(blob.encode("utf-8"))
         service_account_name = utils.service_account_email()
 
     params = {
-        'GoogleAccessId': service_account_name,
-        'Expires': timestamp,
-        'Signature': base64.b64encode(signed_blob).decode('utf-8'),
+        "GoogleAccessId": service_account_name,
+        "Expires": timestamp,
+        "Signature": base64.b64encode(signed_blob).decode("utf-8"),
     }
 
-    return str(url + '/' + path + '?' + urllib.parse.urlencode(params))
+    return str(url + "/" + path + "?" + urllib.parse.urlencode(params))
 
 
 def prepare_upload(bucket_name, path, expiry=DEFAULT_URL_VALID_SECONDS):
     """Prepare a signed GCS upload."""
-    expiration_time = (
-        datetime.datetime.utcnow() + datetime.timedelta(seconds=expiry))
+    expiration_time = datetime.datetime.utcnow() + datetime.timedelta(seconds=expiry)
 
     conditions = [
-        {
-            'key': path
-        },
-        {
-            'bucket': bucket_name
-        },
-        ['content-length-range', 0, MAX_UPLOAD_SIZE],
-        ['starts-with', '$x-goog-meta-filename', ''],
+        {"key": path},
+        {"bucket": bucket_name},
+        ["content-length-range", 0, MAX_UPLOAD_SIZE],
+        ["starts-with", "$x-goog-meta-filename", ""],
     ]
 
     policy = base64.b64encode(
-        json.dumps({
-            'expiration': expiration_time.isoformat() + 'Z',
-            'conditions': conditions,
-        }).encode('utf-8'))
+        json.dumps(
+            {"expiration": expiration_time.isoformat() + "Z", "conditions": conditions,}
+        ).encode("utf-8")
+    )
 
-    local_server = environment.get_value('LOCAL_GCS_SERVER_HOST')
+    local_server = environment.get_value("LOCAL_GCS_SERVER_HOST")
     if local_server:
         url = local_server
-        signature = b'SIGNATURE'
-        service_account_name = 'service_account'
+        signature = b"SIGNATURE"
+        service_account_name = "service_account"
     else:
         url = STORAGE_URL % bucket_name
         signature = base64.b64encode(sign_data(policy))
         service_account_name = utils.service_account_email()
 
-    return GcsUpload(url, bucket_name, path, service_account_name, policy,
-                     signature)
+    return GcsUpload(url, bucket_name, path, service_account_name, policy, signature)
 
 
 def prepare_blob_upload():

@@ -52,9 +52,7 @@ class CacheTest(unittest.TestCase):
     """Cache tests."""
 
     def setUp(self):
-        test_helpers.patch(self, [
-            'webapp2.get_request',
-        ])
+        test_helpers.patch(self, ["webapp2.get_request",])
 
         self.mock.get_request.return_value = FakeRequest()
 
@@ -65,10 +63,7 @@ class CacheTest(unittest.TestCase):
         self.assertEqual(2, c.foo(1))
         self.assertEqual(3, c.foo(2))
 
-        self.assertListEqual([
-            (1,),
-            (2,),
-        ], c.called)
+        self.assertListEqual([(1,), (2,),], c.called)
 
     def test_no_request(self):
         """Test no request available."""
@@ -78,11 +73,7 @@ class CacheTest(unittest.TestCase):
         self.assertEqual(2, c.foo(1))
         self.assertEqual(3, c.foo(2))
 
-        self.assertListEqual([
-            (1,),
-            (1,),
-            (2,),
-        ], c.called)
+        self.assertListEqual([(1,), (1,), (2,),], c.called)
 
     def test_name_clash(self):
         """Test name clash."""
@@ -91,13 +82,9 @@ class CacheTest(unittest.TestCase):
         self.assertEqual(2, c1.foo(1))
         self.assertEqual(3, c2.foo(1))
 
-        self.assertListEqual([
-            (1,),
-        ], c1.called)
+        self.assertListEqual([(1,),], c1.called)
 
-        self.assertListEqual([
-            (1,),
-        ], c2.called)
+        self.assertListEqual([(1,),], c2.called)
 
     def test_scoped_to_request(self):
         """Test that the cache is scoped to requests."""
@@ -106,7 +93,4 @@ class CacheTest(unittest.TestCase):
         self.mock.get_request.return_value = FakeRequest()
         self.assertEqual(2, c.foo(1))
 
-        self.assertListEqual([
-            (1,),
-            (1,),
-        ], c.called)
+        self.assertListEqual([(1,), (1,),], c.called)

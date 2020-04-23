@@ -24,25 +24,24 @@ from google_cloud_utils import storage
 from metrics import logs
 from system import environment
 
-DICTIONARY_FILE_EXTENSION = '.dict'
+DICTIONARY_FILE_EXTENSION = ".dict"
 
 # Name of the file in GCS containing recommended dictionary.
-RECOMMENDED_DICTIONARY_FILENAME = (
-    'recommended_dictionary%s' % DICTIONARY_FILE_EXTENSION)
+RECOMMENDED_DICTIONARY_FILENAME = "recommended_dictionary%s" % DICTIONARY_FILE_EXTENSION
 
 # A comment string to separate recommended dictionary elements from manual ones.
-RECOMMENDED_DICTIONARY_HEADER = '# Recommended dictionary stored in GCS.'
+RECOMMENDED_DICTIONARY_HEADER = "# Recommended dictionary stored in GCS."
 
 # Token to split a dictionary element analyzed and metadata.
-TOKEN_ANALYZE_DICT_METADATA = ' # Score: '
+TOKEN_ANALYZE_DICT_METADATA = " # Score: "
 
 # Tokens to detect "Recommended dictionary" section in the output.
-TOKEN_RECOMMENDED_DICT_END = 'End of recommended dictionary.'
-TOKEN_RECOMMENDED_DICT_START = 'Recommended dictionary.'
+TOKEN_RECOMMENDED_DICT_END = "End of recommended dictionary."
+TOKEN_RECOMMENDED_DICT_START = "Recommended dictionary."
 
 # Tokens to detect "useless dictionary" section in the output.
-TOKEN_USELESS_DICT_END = 'End of useless dictionary elements.'
-TOKEN_USELESS_DICT_START = 'Useless dictionary elements.'
+TOKEN_USELESS_DICT_END = "End of useless dictionary elements."
+TOKEN_USELESS_DICT_START = "Useless dictionary elements."
 
 DICTIONARY_PART_PATTERN = re.compile(r'([^"]+\s*=\s*)?(.*)')
 
@@ -55,14 +54,13 @@ def extract_dictionary_element(line):
     if start_index == -1 or end_index == -1 or start_index == end_index:
         return None
 
-    element = line[start_index:end_index + 1]
+    element = line[start_index : end_index + 1]
     return element
 
 
 def get_default_dictionary_path(fuzz_target_path):
     """Return default dictionary path."""
-    return fuzzer_utils.get_supporting_file(fuzz_target_path,
-                                            DICTIONARY_FILE_EXTENSION)
+    return fuzzer_utils.get_supporting_file(fuzz_target_path, DICTIONARY_FILE_EXTENSION)
 
 
 def get_dictionary_size(dictionary_content):
@@ -81,11 +79,14 @@ def get_recommended_dictionary_gcs_path(fuzzer_name):
     Returns:
       String representing GCS path for a dictionary.
     """
-    bucket_name = environment.get_value('FUZZ_LOGS_BUCKET')
-    bucket_subdirectory_name = 'dictionaries'
-    recommended_dictionary_gcs_path = '/%s/%s/%s/%s' % (
-        bucket_name, bucket_subdirectory_name, fuzzer_name,
-        RECOMMENDED_DICTIONARY_FILENAME)
+    bucket_name = environment.get_value("FUZZ_LOGS_BUCKET")
+    bucket_subdirectory_name = "dictionaries"
+    recommended_dictionary_gcs_path = "/%s/%s/%s/%s" % (
+        bucket_name,
+        bucket_subdirectory_name,
+        fuzzer_name,
+        RECOMMENDED_DICTIONARY_FILENAME,
+    )
 
     return recommended_dictionary_gcs_path
 
@@ -96,7 +97,8 @@ def get_stats_for_dictionary_file(dictionary_path):
         return 0, 0
 
     dictionary_content = utils.read_data_from_file(
-        dictionary_path, eval_data=False).decode('utf-8')
+        dictionary_path, eval_data=False
+    ).decode("utf-8")
     dictionaries = dictionary_content.split(RECOMMENDED_DICTIONARY_HEADER)
 
     # If there are any elements before RECOMMENDED_DICTIONARY_HEADER, those are
@@ -110,34 +112,38 @@ def get_stats_for_dictionary_file(dictionary_path):
     return manual_dictionary_size, recommended_dictionary_size
 
 
-def merge_dictionary_files(original_dictionary_path,
-                           recommended_dictionary_path, merged_dictionary_path):
+def merge_dictionary_files(
+    original_dictionary_path, recommended_dictionary_path, merged_dictionary_path
+):
     """Merge a list of dictionaries with given paths into a singe dictionary."""
     if original_dictionary_path and os.path.exists(original_dictionary_path):
         merged_dictionary_data = utils.read_data_from_file(
-            original_dictionary_path, eval_data=False).decode('utf-8')
+            original_dictionary_path, eval_data=False
+        ).decode("utf-8")
     else:
-        merged_dictionary_data = ''
+        merged_dictionary_data = ""
 
-    recommended_dictionary_lines = utils.read_data_from_file(
-        recommended_dictionary_path,
-        eval_data=False).decode('utf-8').splitlines()
+    recommended_dictionary_lines = (
+        utils.read_data_from_file(recommended_dictionary_path, eval_data=False)
+        .decode("utf-8")
+        .splitlines()
+    )
 
     dictionary_lines_to_add = set()
     for line in recommended_dictionary_lines:
         if line not in merged_dictionary_data:
             dictionary_lines_to_add.add(line)
 
-    merged_dictionary_data += '\n%s\n' % RECOMMENDED_DICTIONARY_HEADER
+    merged_dictionary_data += "\n%s\n" % RECOMMENDED_DICTIONARY_HEADER
 
-    merged_dictionary_data += '\n'.join(dictionary_lines_to_add)
+    merged_dictionary_data += "\n".join(dictionary_lines_to_add)
     utils.write_data_to_file(merged_dictionary_data, merged_dictionary_path)
 
 
 def _fix_dictionary_line(line, dict_path):
     """Correct a single dictionary line."""
     # Ignore blank and comment lines.
-    if not line or line.strip().startswith('#'):
+    if not line or line.strip().startswith("#"):
         return line
 
     match = DICTIONARY_PART_PATTERN.match(line)
@@ -146,31 +152,33 @@ def _fix_dictionary_line(line, dict_path):
     if not match:
         raise errors.BadStateError(
             'Failed to correct dictionary line "{line}" in {path}.'.format(
-                line=line, path=dict_path))
+                line=line, path=dict_path
+            )
+        )
 
-    name_part = match.group(1) or ''
+    name_part = match.group(1) or ""
     entry = match.group(2)
 
     # In some cases, we'll detect the user's intended entry as a token name. This
     # can happen if the user included unquoted tokens such as "!=" or ">=".
     if not entry and name_part:
         entry = name_part
-        name_part = ''
+        name_part = ""
 
     # Handle quote entries as a special case. This simplifies later logic.
     if entry == '"':
-        entry = '"\\\""'
+        entry = '"\\""'
 
     if entry.startswith('"') and entry.endswith('"'):
         return name_part + entry
 
     # In this case, we know the entry is invalid. Escape any unescaped quotes
     # within it, then append quotes to the front and back.
-    new_entry = ''
-    prev_character = ''
+    new_entry = ""
+    prev_character = ""
     for character in entry:
-        if character == '"' and prev_character != '\\':
-            new_entry += '\\'
+        if character == '"' and prev_character != "\\":
+            new_entry += "\\"
         new_entry += character
         prev_character = character
 
@@ -183,14 +191,13 @@ def correct_if_needed(dict_path):
     if not dict_path or not os.path.exists(dict_path):
         return
 
-    content = utils.read_data_from_file(
-        dict_path, eval_data=False).decode('utf-8')
-    new_content = ''
+    content = utils.read_data_from_file(dict_path, eval_data=False).decode("utf-8")
+    new_content = ""
     for current_line in content.splitlines():
-        new_content += _fix_dictionary_line(current_line, dict_path) + '\n'
+        new_content += _fix_dictionary_line(current_line, dict_path) + "\n"
 
     # End of file newlines are inconsistent in dictionaries.
-    if new_content.rstrip('\n') != content.rstrip('\n'):
+    if new_content.rstrip("\n") != content.rstrip("\n"):
         utils.write_data_to_file(new_content, dict_path)
 
 
@@ -217,11 +224,11 @@ class DictionaryManager(object):
     def _compare_and_swap_gcs_dictionary(self, old_content, new_content):
         """Compare and swap implementation for dictionary stored in GCS. Of course,
         this function is not atomic, but window for race is acceptably small."""
-        current_content = storage.read_data(self.gcs_path).decode('utf-8')
+        current_content = storage.read_data(self.gcs_path).decode("utf-8")
         if current_content != old_content:
             return False, current_content
 
-        storage.write_data(new_content.encode('utf-8'), self.gcs_path)
+        storage.write_data(new_content.encode("utf-8"), self.gcs_path)
         return True, old_content
 
     def download_recommended_dictionary_from_gcs(self, local_dict_path):
@@ -242,7 +249,7 @@ class DictionaryManager(object):
         if storage.copy_file_from(self.gcs_path, local_dict_path):
             return True
 
-        logs.log('Downloading %s failed.' % self.gcs_path)
+        logs.log("Downloading %s failed." % self.gcs_path)
         return False
 
     def parse_recommended_dictionary_from_data(self, data):
@@ -341,12 +348,11 @@ class DictionaryManager(object):
         """
         # If the dictionary does not already exist, then directly update it.
         if not storage.exists(self.gcs_path):
-            storage.write_data('\n'.join(new_dictionary).encode('utf-8'),
-                               self.gcs_path)
+            storage.write_data("\n".join(new_dictionary).encode("utf-8"), self.gcs_path)
             return len(new_dictionary)
 
         # Read current version of the dictionary.
-        old_dictionary_data = storage.read_data(self.gcs_path).decode('utf-8')
+        old_dictionary_data = storage.read_data(self.gcs_path).decode("utf-8")
 
         # Use "Compare-and-swap"-like approach to avoid race conditions and also to
         # avoid having a separate job merging multiple recommended dictionaries.
@@ -365,6 +371,7 @@ class DictionaryManager(object):
                 return 0
 
             succeeded, old_dictionary_data = self._compare_and_swap_gcs_dictionary(
-                old_dictionary_data, '\n'.join(new_dictionary))
+                old_dictionary_data, "\n".join(new_dictionary)
+            )
 
         return len(new_dictionary) - len(old_dictionary)

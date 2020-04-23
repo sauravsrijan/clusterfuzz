@@ -25,16 +25,16 @@ from base import memoize
 from system import environment
 
 CACHE_SIZE = 1024
-YAML_FILE_EXTENSION = '.yaml'
+YAML_FILE_EXTENSION = ".yaml"
 
-SEPARATOR = '.'
+SEPARATOR = "."
 
-GAE_AUTH_PATH = 'gae.auth'
-GAE_CONFIG_PATH = 'gae.config'
-GCE_CLUSTERS_PATH = 'gce.clusters'
-ISSUE_TRACKERS_PATH = 'issue_trackers.config'
-MONITORING_REGIONS_PATH = 'monitoring.regions'
-PROJECT_PATH = 'project'
+GAE_AUTH_PATH = "gae.auth"
+GAE_CONFIG_PATH = "gae.config"
+GCE_CLUSTERS_PATH = "gce.clusters"
+ISSUE_TRACKERS_PATH = "issue_trackers.config"
+MONITORING_REGIONS_PATH = "monitoring.regions"
+PROJECT_PATH = "project"
 
 
 def _load_yaml_file(yaml_file_path):
@@ -46,8 +46,9 @@ def _load_yaml_file(yaml_file_path):
             raise errors.ConfigParseError(yaml_file_path)
 
 
-def _find_key_in_yaml_file(yaml_file_path, search_keys, full_key_name,
-                           value_is_relative_path):
+def _find_key_in_yaml_file(
+    yaml_file_path, search_keys, full_key_name, value_is_relative_path
+):
     """Find a key in a yaml file."""
     if not os.path.isfile(yaml_file_path):
         return None
@@ -104,7 +105,7 @@ def _get_key_location(search_path, full_key_name):
     if key_parts:
         return dir_path, key_parts[0] + YAML_FILE_EXTENSION, key_parts[1:]
 
-    return dir_path, '', []
+    return dir_path, "", []
 
 
 def _validate_root(search_path, root):
@@ -121,25 +122,31 @@ def _validate_root(search_path, root):
 
     # Check that the yaml file and keys exist.
     yaml_path = os.path.join(directory, filename)
-    return (_find_key_in_yaml_file(
-        yaml_path, search_keys, root, value_is_relative_path=False) is not None)
+    return (
+        _find_key_in_yaml_file(
+            yaml_path, search_keys, root, value_is_relative_path=False
+        )
+        is not None
+    )
 
 
 def _search_key(search_path, full_key_name, value_is_relative_path):
     """Search the key in a search path."""
-    directory, filename, search_keys = _get_key_location(search_path,
-                                                         full_key_name)
+    directory, filename, search_keys = _get_key_location(search_path, full_key_name)
 
     # Search in the yaml file.
     yaml_path = os.path.join(directory, filename)
-    return _find_key_in_yaml_file(yaml_path, search_keys, full_key_name,
-                                  value_is_relative_path)
+    return _find_key_in_yaml_file(
+        yaml_path, search_keys, full_key_name, value_is_relative_path
+    )
 
 
 class Config(object):
     """Config class helper."""
 
-    def __init__(self, root=None, *args, **kwargs):  # pylint: disable=keyword-arg-before-vararg
+    def __init__(
+        self, root=None, *args, **kwargs
+    ):  # pylint: disable=keyword-arg-before-vararg
         self._root = root.format(*args, **kwargs) if root is not None else None
         self._config_dir = environment.get_config_directory()
         self._cache = memoize.FifoInMemory(CACHE_SIZE)
@@ -161,8 +168,7 @@ class Config(object):
 
         return Config(root=new_root)
 
-    def _get_helper(self, key_name='', default=None,
-                    value_is_relative_path=False):
+    def _get_helper(self, key_name="", default=None, value_is_relative_path=False):
         """Helper for get and get_absolute_functions."""
         if self._root:
             key_name = self._root + SEPARATOR + key_name if key_name else self._root
@@ -170,8 +176,9 @@ class Config(object):
         if not key_name:
             raise errors.InvalidConfigKey(key_name)
 
-        cache_key_name = self._cache.get_key(self._get_helper,
-                                             (key_name, value_is_relative_path), {})
+        cache_key_name = self._cache.get_key(
+            self._get_helper, (key_name, value_is_relative_path), {}
+        )
         value = self._cache.get(cache_key_name)
         if value is not None:
             return value
@@ -183,14 +190,13 @@ class Config(object):
         self._cache.put(cache_key_name, value)
         return value
 
-    def get(self, key_name='', default=None):
+    def get(self, key_name="", default=None):
         """Get key value using a key name."""
         return self._get_helper(key_name, default=default)
 
-    def get_absolute_path(self, key_name='', default=None):
+    def get_absolute_path(self, key_name="", default=None):
         """Get absolute path of key value using a key name."""
-        return self._get_helper(
-            key_name, default=default, value_is_relative_path=True)
+        return self._get_helper(key_name, default=default, value_is_relative_path=True)
 
 
 class ProjectConfig(Config):
@@ -201,7 +207,7 @@ class ProjectConfig(Config):
 
     def set_environment(self):
         """Sets environment vars from project config."""
-        env_variable_values = self.get('env')
+        env_variable_values = self.get("env")
         if not env_variable_values:
             return
 

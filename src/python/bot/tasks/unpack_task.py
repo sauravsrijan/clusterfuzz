@@ -31,19 +31,17 @@ from system import shell
 
 def execute_task(metadata_id, job_type):
     """Unpack a bundled testcase archive and create analyze jobs for each item."""
-    metadata = ndb.Key(data_types.BundledArchiveMetadata,
-                       int(metadata_id)).get()
+    metadata = ndb.Key(data_types.BundledArchiveMetadata, int(metadata_id)).get()
     if not metadata:
-        logs.log_error('Invalid bundle metadata id %s.' % metadata_id)
+        logs.log_error("Invalid bundle metadata id %s." % metadata_id)
         return
 
-    bot_name = environment.get_value('BOT_NAME')
+    bot_name = environment.get_value("BOT_NAME")
     upload_metadata = data_types.TestcaseUploadMetadata.query(
-        data_types.TestcaseUploadMetadata.blobstore_key ==
-        metadata.blobstore_key).get()
+        data_types.TestcaseUploadMetadata.blobstore_key == metadata.blobstore_key
+    ).get()
     if not upload_metadata:
-        logs.log_error('Invalid upload metadata key %s.' %
-                       metadata.blobstore_key)
+        logs.log_error("Invalid upload metadata key %s." % metadata.blobstore_key)
         return
 
     # Update the upload metadata with this bot name.
@@ -52,28 +50,26 @@ def execute_task(metadata_id, job_type):
 
     # We can't use FUZZ_INPUTS directory since it is constrained
     # by tmpfs limits.
-    testcases_directory = environment.get_value('FUZZ_INPUTS_DISK')
+    testcases_directory = environment.get_value("FUZZ_INPUTS_DISK")
 
     # Retrieve multi-testcase archive.
     archive_path = os.path.join(testcases_directory, metadata.archive_filename)
     if not blobs.read_blob_to_disk(metadata.blobstore_key, archive_path):
-        logs.log_error(
-            'Could not retrieve archive for bundle %d.' % metadata_id)
-        tasks.add_task('unpack', metadata_id, job_type)
+        logs.log_error("Could not retrieve archive for bundle %d." % metadata_id)
+        tasks.add_task("unpack", metadata_id, job_type)
         return
 
     try:
         archive.unpack(archive_path, testcases_directory)
     except:
-        logs.log_error('Could not unpack archive for bundle %d.' % metadata_id)
-        tasks.add_task('unpack', metadata_id, job_type)
+        logs.log_error("Could not unpack archive for bundle %d." % metadata_id)
+        tasks.add_task("unpack", metadata_id, job_type)
         return
 
     # Get additional testcase metadata (if any).
     additional_metadata = None
     if upload_metadata.additional_metadata_string:
-        additional_metadata = json.loads(
-            upload_metadata.additional_metadata_string)
+        additional_metadata = json.loads(upload_metadata.additional_metadata_string)
 
     archive_state = data_types.ArchiveStatus.NONE
     bundled = True
@@ -88,7 +84,7 @@ def execute_task(metadata_id, job_type):
             continue
 
         try:
-            file_handle = open(absolute_file_path, 'rb')
+            file_handle = open(absolute_file_path, "rb")
             blob_key = blobs.write_blob(file_handle)
             file_handle.close()
         except:
@@ -96,20 +92,36 @@ def execute_task(metadata_id, job_type):
 
         if not blob_key:
             logs.log_error(
-                'Could not write testcase %s to blobstore.' % absolute_file_path)
+                "Could not write testcase %s to blobstore." % absolute_file_path
+            )
             continue
 
         data_handler.create_user_uploaded_testcase(
-            blob_key, metadata.blobstore_key, archive_state,
-            metadata.archive_filename, filename, metadata.timeout,
-            metadata.job_type, metadata.job_queue, metadata.http_flag,
-            metadata.gestures, metadata.additional_arguments,
-            metadata.bug_information, metadata.crash_revision,
-            metadata.uploader_email, metadata.platform_id,
-            metadata.app_launch_command, metadata.fuzzer_name,
-            metadata.overridden_fuzzer_name, metadata.fuzzer_binary_name, bundled,
-            upload_metadata.retries, upload_metadata.bug_summary_update_flag,
-            upload_metadata.quiet_flag, additional_metadata)
+            blob_key,
+            metadata.blobstore_key,
+            archive_state,
+            metadata.archive_filename,
+            filename,
+            metadata.timeout,
+            metadata.job_type,
+            metadata.job_queue,
+            metadata.http_flag,
+            metadata.gestures,
+            metadata.additional_arguments,
+            metadata.bug_information,
+            metadata.crash_revision,
+            metadata.uploader_email,
+            metadata.platform_id,
+            metadata.app_launch_command,
+            metadata.fuzzer_name,
+            metadata.overridden_fuzzer_name,
+            metadata.fuzzer_binary_name,
+            bundled,
+            upload_metadata.retries,
+            upload_metadata.bug_summary_update_flag,
+            upload_metadata.quiet_flag,
+            additional_metadata,
+        )
 
     # The upload metadata for the archive is not needed anymore since we created
     # one for each testcase.

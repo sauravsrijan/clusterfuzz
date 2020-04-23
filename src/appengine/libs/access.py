@@ -29,23 +29,27 @@ from libs.issue_management import issue_tracker_utils
 
 def _is_privileged_user(email):
     """Check if an email is in the privileged users list."""
-    if local_config.AuthConfig().get('all_users_privileged'):
+    if local_config.AuthConfig().get("all_users_privileged"):
         return True
 
-    privileged_user_emails = (db_config.get_value('privileged_users') or
-                              '').splitlines()
+    privileged_user_emails = (
+        db_config.get_value("privileged_users") or ""
+    ).splitlines()
     return any(
         utils.emails_equal(email, privileged_user_email)
-        for privileged_user_email in privileged_user_emails)
+        for privileged_user_email in privileged_user_emails
+    )
 
 
 def _is_blacklisted_user(email):
     """Check if an email is in the privileged users list."""
-    blacklisted_user_emails = (db_config.get_value('blacklisted_users') or
-                               '').splitlines()
+    blacklisted_user_emails = (
+        db_config.get_value("blacklisted_users") or ""
+    ).splitlines()
     return any(
         utils.emails_equal(email, blacklisted_user_email)
-        for blacklisted_user_email in blacklisted_user_emails)
+        for blacklisted_user_email in blacklisted_user_emails
+    )
 
 
 def get_user_job_type():
@@ -53,11 +57,12 @@ def get_user_job_type():
       can access any job type. You might want to invoke get_access(..) with
       the job type afterward."""
     email = helpers.get_user_email()
-    privileged_user_emails = (db_config.get_value('privileged_users') or
-                              '').splitlines()
+    privileged_user_emails = (
+        db_config.get_value("privileged_users") or ""
+    ).splitlines()
     for privileged_user_email in privileged_user_emails:
-        if ';' in privileged_user_email:
-            tokens = privileged_user_email.split(';')
+        if ";" in privileged_user_email:
+            tokens = privileged_user_email.split(";")
             privileged_user_real_email = tokens[0]
             privileged_user_job_type = tokens[1]
             if utils.emails_equal(email, privileged_user_real_email):
@@ -67,17 +72,16 @@ def get_user_job_type():
 
 def _is_domain_allowed(email):
     """Check if the email's domain is allowed."""
-    domains = local_config.AuthConfig().get('whitelisted_domains', default=[])
+    domains = local_config.AuthConfig().get("whitelisted_domains", default=[])
     for domain in domains:
-        if utils.normalize_email(email).endswith('@%s' % domain.lower()):
+        if utils.normalize_email(email).endswith("@%s" % domain.lower()):
             return True
 
     return False
 
 
 class UserAccess(object):
-    Allowed, Denied, Redirected = list(
-        range(3))  # pylint: disable=invalid-name
+    Allowed, Denied, Redirected = list(range(3))  # pylint: disable=invalid-name
 
 
 def has_access(need_privileged_access=False, job_type=None, fuzzer_name=None):
@@ -85,7 +89,8 @@ def has_access(need_privileged_access=False, job_type=None, fuzzer_name=None):
     result = get_access(
         need_privileged_access=need_privileged_access,
         job_type=job_type,
-        fuzzer_name=fuzzer_name)
+        fuzzer_name=fuzzer_name,
+    )
 
     return result == UserAccess.Allowed
 
@@ -109,8 +114,7 @@ def get_access(need_privileged_access=False, job_type=None, fuzzer_name=None):
     if job_type and external_users.is_job_allowed_for_user(email, job_type):
         return UserAccess.Allowed
 
-    if (fuzzer_name and
-            external_users.is_fuzzer_allowed_for_user(email, fuzzer_name)):
+    if fuzzer_name and external_users.is_fuzzer_allowed_for_user(email, fuzzer_name):
         return UserAccess.Allowed
 
     if not need_privileged_access and _is_domain_allowed(email):
@@ -123,12 +127,14 @@ def can_user_access_testcase(testcase):
     """Checks if the current user can access the testcase."""
     config = db_config.get()
     need_privileged_access = (
-        testcase.security_flag and not config.relax_security_bug_restrictions)
+        testcase.security_flag and not config.relax_security_bug_restrictions
+    )
 
     if has_access(
-            fuzzer_name=testcase.actual_fuzzer_name(),
-            job_type=testcase.job_type,
-            need_privileged_access=need_privileged_access):
+        fuzzer_name=testcase.actual_fuzzer_name(),
+        job_type=testcase.job_type,
+        need_privileged_access=need_privileged_access,
+    ):
         return True
 
     user_email = helpers.get_user_email()
@@ -140,8 +146,7 @@ def can_user_access_testcase(testcase):
     if not issue_id:
         return False
 
-    issue_tracker = issue_tracker_utils.get_issue_tracker_for_testcase(
-        testcase)
+    issue_tracker = issue_tracker_utils.get_issue_tracker_for_testcase(testcase)
     associated_issue = issue_tracker.get_issue(issue_id)
     if not associated_issue:
         return False
@@ -154,13 +159,16 @@ def can_user_access_testcase(testcase):
         if original_issue:
             issues_to_check.append(original_issue)
 
-    relaxed_restrictions = (
-        config.relax_testcase_restrictions or _is_domain_allowed(user_email))
+    relaxed_restrictions = config.relax_testcase_restrictions or _is_domain_allowed(
+        user_email
+    )
     for issue in issues_to_check:
         if relaxed_restrictions:
-            if (any(utils.emails_equal(user_email, cc) for cc in issue.ccs) or
-                utils.emails_equal(user_email, issue.assignee) or
-                    utils.emails_equal(user_email, issue.reporter)):
+            if (
+                any(utils.emails_equal(user_email, cc) for cc in issue.ccs)
+                or utils.emails_equal(user_email, issue.assignee)
+                or utils.emails_equal(user_email, issue.reporter)
+            ):
                 return True
 
         elif utils.emails_equal(user_email, issue.assignee):
@@ -175,12 +183,12 @@ def check_access_and_get_testcase(testcase_id):
         raise helpers.UnauthorizedException()
 
     if not testcase_id:
-        raise helpers.EarlyExitException('No test case specified!', 404)
+        raise helpers.EarlyExitException("No test case specified!", 404)
 
     try:
         testcase = data_handler.get_testcase_by_id(testcase_id)
     except errors.InvalidTestcaseError:
-        raise helpers.EarlyExitException('Invalid test case!', 404)
+        raise helpers.EarlyExitException("Invalid test case!", 404)
 
     if not can_user_access_testcase(testcase):
         raise helpers.AccessDeniedException()

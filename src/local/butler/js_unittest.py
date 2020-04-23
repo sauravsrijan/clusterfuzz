@@ -25,40 +25,38 @@ from selenium import webdriver
 
 from local.butler import common
 
-_SUITE_SEPARATOR = '=' * 80
-_TEST_SEPARATOR = '-' * 80
+_SUITE_SEPARATOR = "=" * 80
+_TEST_SEPARATOR = "-" * 80
 
 
 def _parse_error_report(driver):
     """Parse failed test report from Mocha HTML result"""
-    error_report = ''
+    error_report = ""
 
     # Remove the replay buttons next to test names
-    for elem in driver.find_elements_by_css_selector('#mocha-report .suite h2 a'):
-        driver.execute_script('arguments[0].remove()', elem)
+    for elem in driver.find_elements_by_css_selector("#mocha-report .suite h2 a"):
+        driver.execute_script("arguments[0].remove()", elem)
 
-    suites = driver.find_elements_by_css_selector(
-        '#mocha-report .suite .suite')
+    suites = driver.find_elements_by_css_selector("#mocha-report .suite .suite")
     for suite in suites:
-        failed_tests = suite.find_elements_by_css_selector('.test.fail')
+        failed_tests = suite.find_elements_by_css_selector(".test.fail")
         if not failed_tests:
             continue
 
-        suite_name = suite.find_element_by_css_selector('h1').text.strip()
+        suite_name = suite.find_element_by_css_selector("h1").text.strip()
 
-        error_report += '\n\n%s\n' % _SUITE_SEPARATOR
-        error_report += '%s\n' % suite_name
+        error_report += "\n\n%s\n" % _SUITE_SEPARATOR
+        error_report += "%s\n" % suite_name
 
         for failed_test in failed_tests:
-            name = failed_test.find_element_by_css_selector('h2').text.strip()
-            trace = failed_test.find_element_by_css_selector(
-                '.error').text.strip()
-            trace = re.sub('^', '| ', trace)
-            trace = re.sub('\n', '\n| ', trace)
+            name = failed_test.find_element_by_css_selector("h2").text.strip()
+            trace = failed_test.find_element_by_css_selector(".error").text.strip()
+            trace = re.sub("^", "| ", trace)
+            trace = re.sub("\n", "\n| ", trace)
 
-            error_report += '%s\n' % _TEST_SEPARATOR
-            error_report += 'Failed test: %s\n' % name
-            error_report += '%s\n' % trace
+            error_report += "%s\n" % _TEST_SEPARATOR
+            error_report += "Failed test: %s\n" % name
+            error_report += "%s\n" % trace
 
     return error_report
 
@@ -68,49 +66,51 @@ def execute(args):
 
        1. Execute the HTML with chromedriver.
        2. Read the test result from the HTML."""
-    test_filepath = os.path.join('src', 'appengine', 'private', 'test.html')
-    print('Running chromedriver on %s' % test_filepath)
+    test_filepath = os.path.join("src", "appengine", "private", "test.html")
+    print("Running chromedriver on %s" % test_filepath)
 
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument('--allow-file-access-from-files')
+    chrome_options.add_argument("--allow-file-access-from-files")
 
-    is_ci = os.getenv('TEST_BOT_ENVIRONMENT')
+    is_ci = os.getenv("TEST_BOT_ENVIRONMENT")
     if is_ci:
         # Turn off sandbox since running under root, with trusted tests.
-        chrome_options.add_argument('--no-sandbox')
-        chrome_options.add_argument('--headless')
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--headless")
 
     driver = webdriver.Chrome(
-        executable_path=common.get_chromedriver_path(),
-        chrome_options=chrome_options)
+        executable_path=common.get_chromedriver_path(), chrome_options=chrome_options
+    )
 
     try:
-        driver.get('file://%s' % os.path.abspath(test_filepath))
+        driver.get("file://%s" % os.path.abspath(test_filepath))
 
         # Wait for tests to be completed.
         while True:
-            success_count = driver.execute_script(
-                'return WCT._reporter.stats.passes;')
+            success_count = driver.execute_script("return WCT._reporter.stats.passes;")
             failure_count = driver.execute_script(
-                'return WCT._reporter.stats.failures;')
+                "return WCT._reporter.stats.failures;"
+            )
             sys.stdout.write(
-                '\rSuccess: %d, Failure: %d' % (success_count, failure_count))
+                "\rSuccess: %d, Failure: %d" % (success_count, failure_count)
+            )
             sys.stdout.flush()
 
-            is_complete = driver.execute_script(
-                'return WCT._reporter.complete;')
+            is_complete = driver.execute_script("return WCT._reporter.complete;")
             if is_complete:
                 break
             else:
                 time.sleep(0.1)
 
-        sys.stdout.write('\r' + (' ' * 70))
+        sys.stdout.write("\r" + (" " * 70))
         sys.stdout.flush()
 
         success_count = int(
-            driver.find_element_by_css_selector('#mocha-stats .passes em').text)
+            driver.find_element_by_css_selector("#mocha-stats .passes em").text
+        )
         failure_count = int(
-            driver.find_element_by_css_selector('#mocha-stats .failures em').text)
+            driver.find_element_by_css_selector("#mocha-stats .failures em").text
+        )
         error_report = _parse_error_report(driver)
 
         if error_report:
@@ -118,17 +118,20 @@ def execute(args):
 
         print()
         print(_SUITE_SEPARATOR)
-        print('Test results:')
-        print('| Success: %d' % success_count)
-        print('| Failure: %d' % failure_count)
+        print("Test results:")
+        print("| Success: %d" % success_count)
+        print("| Failure: %d" % failure_count)
         print(_SUITE_SEPARATOR)
         print()
 
         if args.persist:
             # pylint: disable=eval-used
             eval(
-                input('--persist is used. Leave the browser open.'
-                      ' Press ENTER to close it:'))
+                input(
+                    "--persist is used. Leave the browser open."
+                    " Press ENTER to close it:"
+                )
+            )
     finally:
         driver.quit()
 

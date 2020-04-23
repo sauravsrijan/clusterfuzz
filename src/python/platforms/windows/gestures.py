@@ -29,7 +29,7 @@ except ImportError:
     # This can be imported from appengine, so make sure we don't exception out.
     pass
 
-RELOAD_GESTURE = 'key,{F5}'
+RELOAD_GESTURE = "key,{F5}"
 
 
 def find_windows_for_process(process_id):
@@ -44,18 +44,18 @@ def find_windows_for_process(process_id):
         try:
             app.connect(process=pid)
         except:
-            logs.log_warn('Unable to connect to process.')
+            logs.log_warn("Unable to connect to process.")
             continue
 
         try:
             windows = app.windows()
         except:
-            logs.log_warn('Unable to get application windows.')
+            logs.log_warn("Unable to get application windows.")
             continue
 
         for window in windows:
             try:
-                window.type_keys('')
+                window.type_keys("")
             except:
                 continue
 
@@ -67,73 +67,110 @@ def find_windows_for_process(process_id):
 def get_random_gestures(gesture_count):
     """Return list of random gesture command strings."""
     gestures_types = [
-        'key,Letters', 'key,Letters', 'key,Letters', 'key,Letters', 'mouse,MA',
-        'mousedrag,MB', 'mousemove,MC'
+        "key,Letters",
+        "key,Letters",
+        "key,Letters",
+        "key,Letters",
+        "mouse,MA",
+        "mousedrag,MB",
+        "mousemove,MC",
     ]
 
     gestures = []
     for _ in range(gesture_count):
         random_gesture = utils.random_element_from_list(gestures_types)
-        if 'Letters' in random_gesture:
+        if "Letters" in random_gesture:
             num_letters = random.randint(1, 10)
             letters = []
             for _ in range(num_letters):
                 if not random.randint(0, 7):
                     letters.append(
-                        utils.random_element_from_list([
-                            '{BACK}', '{BACKSPACE}', '{BKSP}', '{CAP}', '{DEL}',
-                            '{DELETE}', '{DOWN}', '{DOWN}', '{END}', '{ENTER}', '{ENTER}',
-                            '{ENTER}', 'A{ESC}', '{F1}', '{F2}', '{F3}', 'A{F4}', '{F5}',
-                            '{F6}', '{F7}', '{F8}', '{F9}', '{F10}', '{F11}', '{F12}',
-                            '{HOME}', '{INSERT}', '{LEFT}', '{PGDN}', '{PGUP}', '{RIGHT}',
-                            '{SPACE}', '{TAB}', '{TAB}', '{TAB}', '{TAB}', '{UP}', '{UP}',
-                            '+', '^'
-                        ]))
+                        utils.random_element_from_list(
+                            [
+                                "{BACK}",
+                                "{BACKSPACE}",
+                                "{BKSP}",
+                                "{CAP}",
+                                "{DEL}",
+                                "{DELETE}",
+                                "{DOWN}",
+                                "{DOWN}",
+                                "{END}",
+                                "{ENTER}",
+                                "{ENTER}",
+                                "{ENTER}",
+                                "A{ESC}",
+                                "{F1}",
+                                "{F2}",
+                                "{F3}",
+                                "A{F4}",
+                                "{F5}",
+                                "{F6}",
+                                "{F7}",
+                                "{F8}",
+                                "{F9}",
+                                "{F10}",
+                                "{F11}",
+                                "{F12}",
+                                "{HOME}",
+                                "{INSERT}",
+                                "{LEFT}",
+                                "{PGDN}",
+                                "{PGUP}",
+                                "{RIGHT}",
+                                "{SPACE}",
+                                "{TAB}",
+                                "{TAB}",
+                                "{TAB}",
+                                "{TAB}",
+                                "{UP}",
+                                "{UP}",
+                                "+",
+                                "^",
+                            ]
+                        )
+                    )
                 else:
                     letters.append(
                         utils.random_element_from_list(
-                            ['{TAB}', '^=', '^-',
-                             '{%s}' % chr(random.randint(32, 126))]))
-            random_gesture = random_gesture.replace(
-                'Letters', ''.join(letters))
-            if ('^c' in random_gesture.lower() or '^d' in random_gesture.lower() or
-                    '^z' in random_gesture.lower()):
+                            ["{TAB}", "^=", "^-", "{%s}" % chr(random.randint(32, 126))]
+                        )
+                    )
+            random_gesture = random_gesture.replace("Letters", "".join(letters))
+            if (
+                "^c" in random_gesture.lower()
+                or "^d" in random_gesture.lower()
+                or "^z" in random_gesture.lower()
+            ):
                 continue
 
-        if ',MA' in random_gesture:
-            button = utils.random_element_from_list(
-                ['left', 'right', 'middle'])
-            coords = '(%d,%d)' % (random.randint(
-                0, 1000), random.randint(0, 1000))
-            double = utils.random_element_from_list(['True', 'False'])
+        if ",MA" in random_gesture:
+            button = utils.random_element_from_list(["left", "right", "middle"])
+            coords = "(%d,%d)" % (random.randint(0, 1000), random.randint(0, 1000))
+            double = utils.random_element_from_list(["True", "False"])
             random_gesture = random_gesture.replace(
-                'MA', '%s;%s;%s' % (button, coords, double))
+                "MA", "%s;%s;%s" % (button, coords, double)
+            )
 
-        if ',MB' in random_gesture:
-            button = utils.random_element_from_list(
-                ['left', 'right', 'middle'])
-            coords1 = '(%d,%d)' % (random.randint(
-                0, 1000), random.randint(0, 1000))
-            coords2 = '(%d,%d)' % (random.randint(
-                0, 1000), random.randint(0, 1000))
+        if ",MB" in random_gesture:
+            button = utils.random_element_from_list(["left", "right", "middle"])
+            coords1 = "(%d,%d)" % (random.randint(0, 1000), random.randint(0, 1000))
+            coords2 = "(%d,%d)" % (random.randint(0, 1000), random.randint(0, 1000))
             random_gesture = random_gesture.replace(
-                'MB', '%s;%s;%s' % (button, coords1, coords2))
+                "MB", "%s;%s;%s" % (button, coords1, coords2)
+            )
 
-        if ',MC' in random_gesture:
-            button = utils.random_element_from_list(
-                ['left', 'right', 'middle'])
-            coords = '(%d,%d)' % (random.randint(
-                0, 1000), random.randint(0, 1000))
-            random_gesture = random_gesture.replace(
-                'MC', '%s;%s' % (button, coords))
+        if ",MC" in random_gesture:
+            button = utils.random_element_from_list(["left", "right", "middle"])
+            coords = "(%d,%d)" % (random.randint(0, 1000), random.randint(0, 1000))
+            random_gesture = random_gesture.replace("MC", "%s;%s" % (button, coords))
 
         gestures.append(random_gesture)
 
     return gestures
 
 
-def run_gestures(gestures, process_id, process_status, start_time, timeout,
-                 windows):
+def run_gestures(gestures, process_id, process_status, start_time, timeout, windows):
     """Run the provided interaction gestures."""
     if not windows:
         windows += find_windows_for_process(process_id)
@@ -146,31 +183,32 @@ def run_gestures(gestures, process_id, process_status, start_time, timeout,
                 return
 
             try:
-                tokens = gesture.split(',')
+                tokens = gesture.split(",")
                 command = tokens.pop(0)
-                value = ','.join(tokens)
+                value = ",".join(tokens)
 
-                if command == 'key':
+                if command == "key":
                     window.type_keys(value)
 
-                elif command == 'mouse':
-                    button, coords, double = value.split(';')
+                elif command == "mouse":
+                    button, coords, double = value.split(";")
                     window.click_input(
                         button=button,
                         coords=ast.literal_eval(coords),
-                        double=ast.literal_eval(double))
+                        double=ast.literal_eval(double),
+                    )
 
-                elif command == 'mousedrag':
-                    button, coords1, coords2 = value.split(';')
+                elif command == "mousedrag":
+                    button, coords1, coords2 = value.split(";")
                     window.drag_mouse(
                         button=button,
                         press_coords=ast.literal_eval(coords1),
-                        release_coords=ast.literal_eval(coords2))
+                        release_coords=ast.literal_eval(coords2),
+                    )
 
-                elif command == 'mousemove':
-                    button, coords = value.split(';')
-                    window.move_mouse(
-                        pressed=button, coords=ast.literal_eval(coords))
+                elif command == "mousemove":
+                    button, coords = value.split(";")
+                    window.move_mouse(pressed=button, coords=ast.literal_eval(coords))
 
             except Exception:
                 # Several types of errors can happen. Just ignore them until a better

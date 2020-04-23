@@ -25,9 +25,9 @@ from metrics import logs
 from system import environment
 from system import shell
 
-ALLOWED_FUZZ_TARGET_EXTENSIONS = ['', '.exe', '.par']
-FUZZ_TARGET_SEARCH_BYTES = b'LLVMFuzzerTestOneInput'
-VALID_TARGET_NAME = re.compile(r'^[a-zA-Z0-9_-]+$')
+ALLOWED_FUZZ_TARGET_EXTENSIONS = ["", ".exe", ".par"]
+FUZZ_TARGET_SEARCH_BYTES = b"LLVMFuzzerTestOneInput"
+VALID_TARGET_NAME = re.compile(r"^[a-zA-Z0-9_-]+$")
 
 
 def is_fuzz_target_local(file_path, file_handle=None):
@@ -46,27 +46,26 @@ def is_fuzz_target_local(file_path, file_handle=None):
         # Ignore non-existant files for cases when we don't have a file handle.
         return False
 
-    if filename.endswith('_fuzzer'):
+    if filename.endswith("_fuzzer"):
         return True
 
     # TODO(aarya): Remove this optimization if it does not show up significant
     # savings in profiling results.
-    fuzz_target_name_regex = environment.get_value('FUZZER_NAME_REGEX')
+    fuzz_target_name_regex = environment.get_value("FUZZER_NAME_REGEX")
     if fuzz_target_name_regex:
         return bool(re.match(fuzz_target_name_regex, filename))
 
     if os.path.exists(file_path) and not stat.S_ISREG(os.stat(file_path).st_mode):
         # Don't read special files (eg: /dev/urandom).
-        logs.log_warn('Tried to read from non-regular file: %s.' % file_path)
+        logs.log_warn("Tried to read from non-regular file: %s." % file_path)
         return False
 
     # Use already provided file handle or open the file.
-    local_file_handle = file_handle or open(file_path, 'rb')
+    local_file_handle = file_handle or open(file_path, "rb")
 
     # TODO(metzman): Bound this call so we don't read forever if something went
     # wrong.
-    result = utils.search_bytes_in_file(FUZZ_TARGET_SEARCH_BYTES,
-                                        local_file_handle)
+    result = utils.search_bytes_in_file(FUZZ_TARGET_SEARCH_BYTES, local_file_handle)
 
     if not file_handle:
         # If this local file handle is owned by our function, close it now.
@@ -93,6 +92,7 @@ def get_fuzz_targets(path):
     """Get list of fuzz targets paths."""
     if environment.is_trusted_host():
         from bot.untrusted_runner import file_host
+
         return file_host.get_fuzz_targets(path)
     return get_fuzz_targets_local(path)
 
@@ -103,7 +103,7 @@ def extract_argument(arguments, prefix, remove=True):
         if argument.startswith(prefix):
             if remove:
                 arguments.remove(argument)
-            return argument[len(prefix):]
+            return argument[len(prefix) :]
 
     return None
 
@@ -111,7 +111,7 @@ def extract_argument(arguments, prefix, remove=True):
 def get_build_revision():
     """Get build revision."""
     try:
-        build_revision = int(environment.get_value('APP_REVISION'))
+        build_revision = int(environment.get_value("APP_REVISION"))
     except (ValueError, TypeError):
         build_revision = -1
 
@@ -125,9 +125,10 @@ def get_supporting_file(fuzz_target_path, extension_or_suffix):
 
 def get_temp_dir():
     """Return the temp dir."""
-    temp_dirname = 'temp-' + str(os.getpid())
+    temp_dirname = "temp-" + str(os.getpid())
     temp_directory = os.path.join(
-        environment.get_value('FUZZ_INPUTS_DISK'), temp_dirname)
+        environment.get_value("FUZZ_INPUTS_DISK"), temp_dirname
+    )
     shell.create_directory(temp_directory)
     return temp_directory
 

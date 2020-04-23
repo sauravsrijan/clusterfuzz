@@ -33,34 +33,38 @@ from metrics import logs
 
 # After experimentation with high, low, and medium temperature parameters, we
 # decided on .15.
-TEMPERATURE_PARAMETER = .15
+TEMPERATURE_PARAMETER = 0.15
 
 # Maintain a list of strategies to include in query for each fuzzing engine.
 # Keep this strategy order for strategy combination tracking as strategy
 # combinations are tracked as strings.
 libfuzzer_query_strategy_list = [
-    strategy_tuple for strategy_tuple in strategy.LIBFUZZER_STRATEGY_LIST
+    strategy_tuple
+    for strategy_tuple in strategy.LIBFUZZER_STRATEGY_LIST
     if not strategy_tuple.manually_enable
 ]
 
 afl_query_strategy_list = [
-    strategy_tuple for strategy_tuple in strategy.AFL_STRATEGY_LIST
+    strategy_tuple
+    for strategy_tuple in strategy.AFL_STRATEGY_LIST
     if not strategy_tuple.manually_enable
 ]
 
 # A tuple of engine name and corresponding strategies to include in multi-armed
 # bandit query.
-Engine = namedtuple('Engine', 'name query_strategy_list performance_metric')
+Engine = namedtuple("Engine", "name query_strategy_list performance_metric")
 
 LIBFUZZER_ENGINE = Engine(
-    name='libFuzzer',
+    name="libFuzzer",
     query_strategy_list=libfuzzer_query_strategy_list,
-    performance_metric='new_edges')
+    performance_metric="new_edges",
+)
 
 AFL_ENGINE = Engine(
-    name='afl',
+    name="afl",
     query_strategy_list=afl_query_strategy_list,
-    performance_metric='new_units_generated')
+    performance_metric="new_units_generated",
+)
 
 ENGINE_LIST = [LIBFUZZER_ENGINE, AFL_ENGINE]
 
@@ -135,19 +139,23 @@ def _query_multi_armed_bandit_probabilities(engine):
     strategy_names_list = [
         strategy_entry.name for strategy_entry in engine.query_strategy_list
     ]
-    strategies_subquery = '\n'.join([
-        STRATEGY_SUBQUERY_FORMAT.format(strategy_name=strategy_name)
-        for strategy_name in strategy_names_list
-    ])
+    strategies_subquery = "\n".join(
+        [
+            STRATEGY_SUBQUERY_FORMAT.format(strategy_name=strategy_name)
+            for strategy_name in strategy_names_list
+        ]
+    )
     client = big_query.Client()
-    strategies = ','.join(
-        ['strategy_' + strategy_name for strategy_name in strategy_names_list])
+    strategies = ",".join(
+        ["strategy_" + strategy_name for strategy_name in strategy_names_list]
+    )
     formatted_query = BANDIT_PROBABILITY_QUERY_FORMAT.format(
         performance_metric=engine.performance_metric,
         temperature_value=TEMPERATURE_PARAMETER,
         strategies=strategies,
         strategies_subquery=strategies_subquery,
-        engine=engine.name)
+        engine=engine.name,
+    )
     return client.query(query=formatted_query).rows
 
 
@@ -160,20 +168,21 @@ def _store_probabilities_in_bigquery(engine, data):
     # implementation.
     for row in data:
         bigquery_row = {
-            'strategy_name': row['strategy'],
-            'probability': row['bandit_weight'],
-            'engine': engine.name
+            "strategy_name": row["strategy"],
+            "probability": row["bandit_weight"],
+            "engine": engine.name,
         }
-        bigquery_data.append(big_query.Insert(
-            row=bigquery_row, insert_id=None))
+        bigquery_data.append(big_query.Insert(row=bigquery_row, insert_id=None))
 
     if bigquery_data:
         client = big_query.Client(
-            dataset_id='main', table_id='fuzz_strategy_probability')
+            dataset_id="main", table_id="fuzz_strategy_probability"
+        )
         client.insert(bigquery_data)
     else:
-        logs.log('No fuzz strategy distribution data was found to upload to '
-                 'BigQuery.')
+        logs.log(
+            "No fuzz strategy distribution data was found to upload to " "BigQuery."
+        )
 
 
 def _query_and_upload_strategy_probabilities(engine):
@@ -184,26 +193,27 @@ def _query_and_upload_strategy_probabilities(engine):
     are based on new_edges feature."""
     strategy_data = []
     data = _query_multi_armed_bandit_probabilities(engine)
-    logs.log('Queried distribution for {}.'.format(engine.name))
+    logs.log("Queried distribution for {}.".format(engine.name))
 
     # TODO(mukundv): Update once we choose a temperature parameter for final
     # implementation.
     for row in data:
         curr_strategy = data_types.FuzzStrategyProbability()
-        curr_strategy.strategy_name = str(row['strategy'])
-        curr_strategy.probability = float(row['bandit_weight'])
+        curr_strategy.strategy_name = str(row["strategy"])
+        curr_strategy.probability = float(row["bandit_weight"])
         curr_strategy.engine = engine.name
         strategy_data.append(curr_strategy)
 
     query = data_types.FuzzStrategyProbability.query(
-        data_types.FuzzStrategyProbability.engine == engine.name)
+        data_types.FuzzStrategyProbability.engine == engine.name
+    )
     ndb_utils.delete_multi(
-        [entity.key for entity in ndb_utils.get_all_from_query(query)])
+        [entity.key for entity in ndb_utils.get_all_from_query(query)]
+    )
     ndb_utils.put_multi(strategy_data)
-    logs.log('Uploaded queried distribution to ndb for {}'.format(engine.name))
+    logs.log("Uploaded queried distribution to ndb for {}".format(engine.name))
     _store_probabilities_in_bigquery(engine, data)
-    logs.log('Uploaded queried distribution to BigQuery for {}'.format(
-        engine.name))
+    logs.log("Uploaded queried distribution to BigQuery for {}".format(engine.name))
 
 
 class Handler(base_handler.Handler):

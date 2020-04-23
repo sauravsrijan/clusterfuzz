@@ -37,17 +37,17 @@ def _create_data(self):
     for i in range(30):
         m = TestDatastoreModel()
         if (i % 2) == 0:
-            m.tokens = ['a']
+            m.tokens = ["a"]
             m.boolean_value = True
         else:
-            m.tokens = ['b']
+            m.tokens = ["b"]
             m.boolean_value = False
         m.datetime_value = datetime.datetime.fromtimestamp(100 - i)
         m.put()
         self.mocks.append(m)
 
 
-@test_utils.with_cloud_emulators('datastore')
+@test_utils.with_cloud_emulators("datastore")
 class KeyQueryTest(unittest.TestCase):
     """Test KeyQuery."""
 
@@ -57,8 +57,8 @@ class KeyQueryTest(unittest.TestCase):
     def test_empty(self):
         """Test when there's no record."""
         query = datastore_query._KeyQuery(TestDatastoreModel)
-        query.filter('=', 'tokens', 'c')
-        query.order('datetime_value', True)
+        query.filter("=", "tokens", "c")
+        query.order("datetime_value", True)
 
         items, count, has_more = query.fetch(offset=0, limit=10, more_limit=20)
         self.assertListEqual([], items)
@@ -68,54 +68,60 @@ class KeyQueryTest(unittest.TestCase):
     def test_no_or_condition(self):
         """Test no OR condition."""
         query = datastore_query._KeyQuery(TestDatastoreModel)
-        query.filter('=', 'tokens', 'a')
-        query.order('datetime_value', True)
+        query.filter("=", "tokens", "a")
+        query.order("datetime_value", True)
 
         items, count, has_more = query.fetch(offset=8, limit=2, more_limit=10)
-        self.assertListEqual([self.mocks[16].key.id(), self.mocks[18].key.id()],
-                             [item.key.id() for item in items])
+        self.assertListEqual(
+            [self.mocks[16].key.id(), self.mocks[18].key.id()],
+            [item.key.id() for item in items],
+        )
         self.assertEqual(15, count)
         self.assertFalse(has_more)
 
     def test_or_condition(self):
         """Test OR conditions."""
         query = datastore_query._KeyQuery(TestDatastoreModel)
-        query.filter('IN', 'tokens', ['a', 'b', 'c'])
-        query.filter('IN', 'boolean_value', [True, False])
-        query.order('datetime_value', True)
+        query.filter("IN", "tokens", ["a", "b", "c"])
+        query.filter("IN", "boolean_value", [True, False])
+        query.order("datetime_value", True)
 
         queries = query.flatten()
         for q in queries:
             self.assertListEqual([], q.or_filters)
-            self.assertEqual('datetime_value', q.order_property)
+            self.assertEqual("datetime_value", q.order_property)
             self.assertTrue(q.order_desc)
 
         def _make(token, boolean):
-            return [('=', 'tokens', token), ('=', 'boolean_value', boolean)]
+            return [("=", "tokens", token), ("=", "boolean_value", boolean)]
 
         self.assertEqual(6, len(queries))
-        self.assertListEqual(_make('a', True), queries[0].filters)
-        self.assertListEqual(_make('b', True), queries[1].filters)
-        self.assertListEqual(_make('c', True), queries[2].filters)
-        self.assertListEqual(_make('a', False), queries[3].filters)
-        self.assertListEqual(_make('b', False), queries[4].filters)
-        self.assertListEqual(_make('c', False), queries[5].filters)
+        self.assertListEqual(_make("a", True), queries[0].filters)
+        self.assertListEqual(_make("b", True), queries[1].filters)
+        self.assertListEqual(_make("c", True), queries[2].filters)
+        self.assertListEqual(_make("a", False), queries[3].filters)
+        self.assertListEqual(_make("b", False), queries[4].filters)
+        self.assertListEqual(_make("c", False), queries[5].filters)
 
         items, count, has_more = query.fetch(offset=8, limit=2, more_limit=40)
-        self.assertListEqual([self.mocks[8].key.id(), self.mocks[9].key.id()],
-                             [item.key.id() for item in items])
+        self.assertListEqual(
+            [self.mocks[8].key.id(), self.mocks[9].key.id()],
+            [item.key.id() for item in items],
+        )
         self.assertEqual(30, count)
         self.assertFalse(has_more)
 
     def test_get_more(self):
         """Test multiple OR conditions and get more items for total count."""
         query = datastore_query._KeyQuery(TestDatastoreModel)
-        query.filter('IN', 'tokens', ['a', 'b'])
-        query.order('datetime_value', True)
+        query.filter("IN", "tokens", ["a", "b"])
+        query.order("datetime_value", True)
 
         items, count, has_more = query.fetch(offset=8, limit=2, more_limit=15)
-        self.assertListEqual([self.mocks[8].key.id(), self.mocks[9].key.id()],
-                             [item.key.id() for item in items])
+        self.assertListEqual(
+            [self.mocks[8].key.id(), self.mocks[9].key.id()],
+            [item.key.id() for item in items],
+        )
         self.assertEqual(25, count)
         self.assertTrue(has_more)
 
@@ -123,17 +129,19 @@ class KeyQueryTest(unittest.TestCase):
         """Test multiple OR conditions and compute total count from the current
           result."""
         query = datastore_query._KeyQuery(TestDatastoreModel)
-        query.filter('IN', 'tokens', ['a', 'b'])
-        query.order('datetime_value', True)
+        query.filter("IN", "tokens", ["a", "b"])
+        query.order("datetime_value", True)
 
         items, count, has_more = query.fetch(offset=8, limit=2, more_limit=5)
-        self.assertListEqual([self.mocks[8].key.id(), self.mocks[9].key.id()],
-                             [item.key.id() for item in items])
+        self.assertListEqual(
+            [self.mocks[8].key.id(), self.mocks[9].key.id()],
+            [item.key.id() for item in items],
+        )
         self.assertEqual(15, count)
         self.assertTrue(has_more)
 
 
-@test_utils.with_cloud_emulators('datastore')
+@test_utils.with_cloud_emulators("datastore")
 class QueryTest(unittest.TestCase):
     """Test Query."""
 
@@ -143,15 +151,18 @@ class QueryTest(unittest.TestCase):
     def test_third_page(self):
         """Test getting the third page with more total count."""
         query = datastore_query.Query(TestDatastoreModel)
-        query.filter_in('tokens', ['a', 'b'])
-        query.filter('boolean_value', True)
-        query.order('datetime_value', is_desc=True)
+        query.filter_in("tokens", ["a", "b"])
+        query.filter("boolean_value", True)
+        query.order("datetime_value", is_desc=True)
 
         items, total_pages, total_items, has_more = query.fetch_page(
-            page=3, page_size=2, projection=['tokens'], more_limit=4)
-        self.assertListEqual([self.mocks[8].key.id(), self.mocks[10].key.id()],
-                             [item.key.id() for item in items])
-        self.assertListEqual([['a'], ['a']], [item.tokens for item in items])
+            page=3, page_size=2, projection=["tokens"], more_limit=4
+        )
+        self.assertListEqual(
+            [self.mocks[8].key.id(), self.mocks[10].key.id()],
+            [item.key.id() for item in items],
+        )
+        self.assertListEqual([["a"], ["a"]], [item.tokens for item in items])
         with self.assertRaises(ndb.UnprojectedPropertyError):
             _ = [item.boolean_value for item in items]
         self.assertEqual(10, total_items)
@@ -162,10 +173,12 @@ class QueryTest(unittest.TestCase):
         """Test that a query using an operator other than "=" works."""
         query = datastore_query.Query(TestDatastoreModel)
         query.filter(
-            'datetime_value', datetime.datetime.fromtimestamp(96), operator='>=')
-        query.order('datetime_value', is_desc=True)
+            "datetime_value", datetime.datetime.fromtimestamp(96), operator=">="
+        )
+        query.order("datetime_value", is_desc=True)
         _, total_count, has_more = query.fetch(
-            offset=0, limit=100, projection=['tokens'], more_limit=100)
+            offset=0, limit=100, projection=["tokens"], more_limit=100
+        )
 
         # We expect the above query to return values from 96-100.
         self.assertEqual(total_count, 5)
@@ -175,7 +188,9 @@ class QueryTest(unittest.TestCase):
 class QueryWrapper(ndb.Query):
     """Query wrapper for easy mocking."""
 
-    def __init__(self, wrapped, results, subqueries):  # pylint: disable=super-init-not-called
+    def __init__(
+        self, wrapped, results, subqueries
+    ):  # pylint: disable=super-init-not-called
         self.wrapped = wrapped
         self.results = results
         self.subqueries = subqueries
@@ -183,14 +198,16 @@ class QueryWrapper(ndb.Query):
     def filter(self, *args):
         """Wraps the result from filter()."""
         query = QueryWrapper(
-            ndb.Query.filter(self.wrapped, *args), self.results, self.subqueries)
+            ndb.Query.filter(self.wrapped, *args), self.results, self.subqueries
+        )
         self.subqueries.append(query)
         return query
 
     def order(self, *args):
         """Wraps the result from order()."""
         query = QueryWrapper(
-            ndb.Query.order(self.wrapped, *args), self.results, self.subqueries)
+            ndb.Query.order(self.wrapped, *args), self.results, self.subqueries
+        )
         self.subqueries.append(query)
         return query
 
@@ -209,7 +226,7 @@ class QueryWrapper(ndb.Query):
         return getattr(self.wrapped, attr)
 
 
-@test_utils.with_cloud_emulators('datastore')
+@test_utils.with_cloud_emulators("datastore")
 class QueryMockTest(unittest.TestCase):
     """Test Query with mocks. This test is important because we want to make sure
       we call the underlying query correctly."""
@@ -228,7 +245,7 @@ class QueryMockTest(unittest.TestCase):
             return QueryWrapper(query, [item], self.queries[-1])
 
         self.queries = []
-        patcher = mock.patch.object(TestDatastoreModel, 'query')
+        patcher = mock.patch.object(TestDatastoreModel, "query")
         mock_query = patcher.start()
         mock_query.side_effect = get_query
         self.addCleanup(patcher.stop)
@@ -236,24 +253,25 @@ class QueryMockTest(unittest.TestCase):
     def test_third_page(self):
         """Test getting the third page with more total count."""
         query = datastore_query.Query(TestDatastoreModel)
-        query.filter_in('tokens', ['a', 'b'])
-        query.filter('boolean_value', True)
-        query.order('datetime_value', is_desc=True)
+        query.filter_in("tokens", ["a", "b"])
+        query.filter("boolean_value", True)
+        query.order("datetime_value", is_desc=True)
 
-        query.fetch_page(page=1, page_size=2, projection=[
-                         'tokens'], more_limit=4)
+        query.fetch_page(page=1, page_size=2, projection=["tokens"], more_limit=4)
 
         self.assertIsInstance(self.queries[0][-1].filters, ndb.AND)
-        six.assertCountEqual(self, [
-            ('tokens', '=', 'a'),
-            ('boolean_value', '=', True),
-        ], [f.__getnewargs__() for f in self.queries[0][-1].filters])
+        six.assertCountEqual(
+            self,
+            [("tokens", "=", "a"), ("boolean_value", "=", True),],
+            [f.__getnewargs__() for f in self.queries[0][-1].filters],
+        )
 
         self.assertIsInstance(self.queries[1][-1].filters, ndb.AND)
-        six.assertCountEqual(self, [
-            ('tokens', '=', 'b'),
-            ('boolean_value', '=', True),
-        ], [f.__getnewargs__() for f in self.queries[1][-1].filters])
+        six.assertCountEqual(
+            self,
+            [("tokens", "=", "b"), ("boolean_value", "=", True),],
+            [f.__getnewargs__() for f in self.queries[1][-1].filters],
+        )
 
         self.assertIsInstance(self.queries[2][-1].filters, ndb.OR)
 
@@ -261,12 +279,22 @@ class QueryMockTest(unittest.TestCase):
         for item in [f.__getnewargs__() for f in self.queries[2][-1].filters]:
             expected.append((item[0], item[1], repr(item[2])))
 
-        six.assertCountEqual(self, [
-            ('__key__', '=',
-             '<Key(\'TestDatastoreModel\', 0), project=test-clusterfuzz>'),
-            ('__key__', '=',
-             '<Key(\'TestDatastoreModel\', 1), project=test-clusterfuzz>'),
-        ], expected)
+        six.assertCountEqual(
+            self,
+            [
+                (
+                    "__key__",
+                    "=",
+                    "<Key('TestDatastoreModel', 0), project=test-clusterfuzz>",
+                ),
+                (
+                    "__key__",
+                    "=",
+                    "<Key('TestDatastoreModel', 1), project=test-clusterfuzz>",
+                ),
+            ],
+            expected,
+        )
 
 
 class ComputeProjectionTest(unittest.TestCase):
@@ -274,17 +302,18 @@ class ComputeProjectionTest(unittest.TestCase):
 
     def test_none(self):
         """Test when projection is None."""
-        self.assertIsNone(
-            datastore_query.compute_projection(None, 'order_field'))
+        self.assertIsNone(datastore_query.compute_projection(None, "order_field"))
 
     def test_combine(self):
         """Test combine."""
         self.assertSetEqual(
-            set(['a', 'b', 'c']),
-            set(datastore_query.compute_projection(['a', 'c'], 'b')))
+            set(["a", "b", "c"]),
+            set(datastore_query.compute_projection(["a", "c"], "b")),
+        )
 
     def test_dedup(self):
         """Test dedup."""
         self.assertSetEqual(
-            set(['a', 'b', 'c']),
-            set(datastore_query.compute_projection(['a', 'b', 'c'], 'b')))
+            set(["a", "b", "c"]),
+            set(datastore_query.compute_projection(["a", "b", "c"], "b")),
+        )

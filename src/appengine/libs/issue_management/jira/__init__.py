@@ -14,8 +14,7 @@
 """Jira issue tracker."""
 
 from libs.issue_management import issue_tracker
-from libs.issue_management.jira.issue_tracker_manager import (
-    IssueTrackerManager)
+from libs.issue_management.jira.issue_tracker_manager import IssueTrackerManager
 from config import db_config
 
 from builtins import str
@@ -29,10 +28,8 @@ class Issue(issue_tracker.Issue):
         self.itm = itm
         self.jira_issue = jira_issue
 
-        self._ccs = issue_tracker.LabelStore(
-            self.itm.get_watchers(self.jira_issue))
-        self._components = issue_tracker.LabelStore(
-            self.jira_issue.fields.components)
+        self._ccs = issue_tracker.LabelStore(self.itm.get_watchers(self.jira_issue))
+        self._components = issue_tracker.LabelStore(self.jira_issue.fields.components)
         self._labels = issue_tracker.LabelStore(self.jira_issue.fields.labels)
 
     @property
@@ -66,7 +63,7 @@ class Issue(issue_tracker.Issue):
     @property
     def is_open(self):
         """Whether the issue is open."""
-        return self.jira_issue.resolution not in ['Closed', 'Done', 'Resolved']
+        return self.jira_issue.resolution not in ["Closed", "Done", "Resolved"]
 
     @property
     def closed_time(self):
@@ -160,24 +157,24 @@ class IssueTracker(issue_tracker.IssueTracker):
 
     def find_issues(self, keywords=None, only_open=False):
         """Find issues."""
-        search_text = 'project = {project_name}' + _get_search_text(keywords)
+        search_text = "project = {project_name}" + _get_search_text(keywords)
         search_text.format(project_name=self._itm.project_name)
         if only_open:
-            search_text += ' AND resolution = Unresolved'
+            search_text += " AND resolution = Unresolved"
         issues = self._itm.get_issues(search_text)
         return [Issue(self._itm, issue) for issue in issues]
 
     def issue_url(self, issue_id):
         """Return the issue URL with the given ID."""
         config = db_config.get()
-        url = config.jira_url + '/browse/' + str(issue_id)
+        url = config.jira_url + "/browse/" + str(issue_id)
         return url
 
 
 def _get_issue_tracker_manager_for_project(project_name):
     """Return jira issue tracker manager for the given project."""
     # If there is no issue tracker set, bail out.
-    if not project_name or project_name == 'disabled':
+    if not project_name or project_name == "disabled":
         return None
 
     return IssueTrackerManager(project_name=project_name)
@@ -194,7 +191,7 @@ def get_issue_tracker(project_name, config):  # pylint: disable=unused-argument
 
 def _get_search_text(keywords):
     """Get search text."""
-    search_text = ''
+    search_text = ""
     for keyword in keywords:
         search_text += ' AND text ~ "%s"' % keyword
 

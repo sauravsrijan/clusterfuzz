@@ -22,7 +22,7 @@ from system import environment
 
 # The name of the file that run.py puts in the input directory so AFL doesn't
 # complain, since it needs at least one input file.
-AFL_DUMMY_INPUT = 'in1'
+AFL_DUMMY_INPUT = "in1"
 
 
 def write_dummy_file(input_dir):
@@ -33,9 +33,10 @@ def write_dummy_file(input_dir):
     dummy_input_path = os.path.join(input_dir, AFL_DUMMY_INPUT)
     if environment.is_trusted_host():
         from bot.untrusted_runner import file_host
-        file_host.write_data_to_worker(b' ', dummy_input_path)
+
+        file_host.write_data_to_worker(b" ", dummy_input_path)
     else:
-        utils.write_data_to_file(' ', dummy_input_path)
+        utils.write_data_to_file(" ", dummy_input_path)
 
 
 class Afl(builtin.EngineFuzzer):
@@ -43,11 +44,10 @@ class Afl(builtin.EngineFuzzer):
 
     def generate_arguments(self, fuzzer_path):  # pylint: disable=unused-argument
         """Generate arguments for fuzzer using .options file or default values."""
-        return ''
+        return ""
 
     def run(self, input_directory, output_directory, no_of_files):
-        result = super(Afl, self).run(input_directory, output_directory,
-                                      no_of_files)
+        result = super(Afl, self).run(input_directory, output_directory, no_of_files)
 
         write_dummy_file(result.corpus_directory)
         return result

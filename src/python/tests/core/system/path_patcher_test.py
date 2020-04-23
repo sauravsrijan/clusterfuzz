@@ -23,6 +23,7 @@ import ctypes
 import builtins
 from builtins import object
 from future import standard_library
+
 standard_library.install_aliases()
 
 
@@ -38,13 +39,17 @@ class MetadataTest(unittest.TestCase):
     """Metadata test."""
 
     def setUp(self):
-        helpers.patch(self, [
-            'system.path_patcher._is_windows',
-            'system.path_patcher._short_name_modifier'
-        ])
+        helpers.patch(
+            self,
+            [
+                "system.path_patcher._is_windows",
+                "system.path_patcher._short_name_modifier",
+            ],
+        )
         self.mock._is_windows.return_value = True  # pylint: disable=protected-access
-        self.mock._short_name_modifier.side_effect = lambda v: v + \
-            '_mod'  # pylint: disable=protected-access
+        self.mock._short_name_modifier.side_effect = (
+            lambda v: v + "_mod"
+        )  # pylint: disable=protected-access
         self.original_file = file
         path_patcher.patch()
 
@@ -53,15 +58,15 @@ class MetadataTest(unittest.TestCase):
 
     def test_name(self):
         """Test __name__s are the same."""
-        self.assertEqual('listdir', os.listdir.__name__)
-        self.assertEqual('makedirs', os.makedirs.__name__)
-        self.assertEqual('mkdir', os.mkdir.__name__)
-        self.assertEqual('stat', os.stat.__name__)
-        self.assertEqual('exists', os.path.exists.__name__)
-        self.assertEqual('isfile', os.path.isfile.__name__)
-        self.assertEqual('isdir', os.path.isdir.__name__)
-        self.assertEqual('open', builtins.open.__name__)
-        self.assertEqual('file', builtins.file.__name__)
+        self.assertEqual("listdir", os.listdir.__name__)
+        self.assertEqual("makedirs", os.makedirs.__name__)
+        self.assertEqual("mkdir", os.mkdir.__name__)
+        self.assertEqual("stat", os.stat.__name__)
+        self.assertEqual("exists", os.path.exists.__name__)
+        self.assertEqual("isfile", os.path.isfile.__name__)
+        self.assertEqual("isdir", os.path.isdir.__name__)
+        self.assertEqual("open", builtins.open.__name__)
+        self.assertEqual("file", builtins.file.__name__)
 
         self.assertTrue(os.listdir.__path_patcher__)
         self.assertTrue(os.makedirs.__path_patcher__)
@@ -76,9 +81,9 @@ class MetadataTest(unittest.TestCase):
     def test_open(self):
         """Test the returned value of open(..)."""
         with tempfile.NamedTemporaryFile(delete=True) as tmp:
-            with open(tmp.name, 'wb') as file_handle:
+            with open(tmp.name, "wb") as file_handle:
                 # The filename is the new name.
-                self.assertEqual('%s_mod' % tmp.name, file_handle.name)
+                self.assertEqual("%s_mod" % tmp.name, file_handle.name)
 
                 # FIXME(unassigned): The below expectation is NOT what we want. But we
                 # can't find a way to fix it. This can create an error in the logic
@@ -95,28 +100,30 @@ class PatcherTest(object):
 
     def setUp(self):
         """Set up."""
-        if not hasattr(ctypes, 'windll'):
+        if not hasattr(ctypes, "windll"):
             ctypes.windll = mock.Mock()
 
-        if not hasattr(ctypes, 'wintypes'):
+        if not hasattr(ctypes, "wintypes"):
             ctypes.wintypes = mock.Mock()
 
-        if not hasattr(ctypes.windll, 'kernel32'):
+        if not hasattr(ctypes.windll, "kernel32"):
             ctypes.windll.kernel32 = mock.Mock()
 
-        if not hasattr(ctypes.windll.kernel32, 'GetShortPathNameW'):
+        if not hasattr(ctypes.windll.kernel32, "GetShortPathNameW"):
             ctypes.windll.kernel32.GetShortPathNameW = mock.Mock()
 
-        helpers.patch(self, [
-            'system.path_patcher._is_windows',
-            'ctypes.windll.kernel32.GetShortPathNameW',
-            'ctypes.create_unicode_buffer'
-        ])
-        self.path = r'c:\test/test2/test3'
-        self.prepared_path = r'\\?\c:\test\test2\test3'
-        self.short_path = r'\\?\c:\shortpath'
-        self.mock.create_unicode_buffer.return_value = (
-            MockedBuffer(self.short_path))
+        helpers.patch(
+            self,
+            [
+                "system.path_patcher._is_windows",
+                "ctypes.windll.kernel32.GetShortPathNameW",
+                "ctypes.create_unicode_buffer",
+            ],
+        )
+        self.path = r"c:\test/test2/test3"
+        self.prepared_path = r"\\?\c:\test\test2\test3"
+        self.short_path = r"\\?\c:\shortpath"
+        self.mock.create_unicode_buffer.return_value = MockedBuffer(self.short_path)
 
         self.path_lengths = []
 
@@ -149,12 +156,13 @@ class PatcherTest(object):
         path_patcher.patch()
         self.call(self.path)
 
-        self.mock.GetShortPathNameW.assert_has_calls([
-            mock.call(self.prepared_path, None, 0),
-            mock.call(self.prepared_path, mock.ANY, 10)
-        ])
-        self.underlying_mock.assert_has_calls(
-            [self.expected_call(self.short_path)])
+        self.mock.GetShortPathNameW.assert_has_calls(
+            [
+                mock.call(self.prepared_path, None, 0),
+                mock.call(self.prepared_path, mock.ANY, 10),
+            ]
+        )
+        self.underlying_mock.assert_has_calls([self.expected_call(self.short_path)])
 
     def test_no_short_path(self):
         """Test modifying."""
@@ -164,7 +172,8 @@ class PatcherTest(object):
         self.call(self.path)
 
         self.mock.GetShortPathNameW.assert_has_calls(
-            [mock.call(self.prepared_path, None, 0)])
+            [mock.call(self.prepared_path, None, 0)]
+        )
         self.underlying_mock.assert_has_calls([self.expected_call(self.path)])
 
     def test_fail(self):
@@ -176,10 +185,12 @@ class PatcherTest(object):
         with self.assertRaises(Exception):
             self.call(self.path)
 
-        self.mock.GetShortPathNameW.assert_has_calls([
-            mock.call(self.prepared_path, None, 0),
-            mock.call(self.prepared_path, mock.ANY, 10)
-        ])
+        self.mock.GetShortPathNameW.assert_has_calls(
+            [
+                mock.call(self.prepared_path, None, 0),
+                mock.call(self.prepared_path, mock.ANY, 10),
+            ]
+        )
         self.underlying_mock.assert_has_calls([])
 
     def test_other_platform(self):
@@ -197,7 +208,7 @@ class ListdirTest(PatcherTest, unittest.TestCase):
     """Listdir test."""
 
     def setUp(self):
-        helpers.patch(self, ['os.listdir'])
+        helpers.patch(self, ["os.listdir"])
         super(ListdirTest, self).setUp()
 
         self.underlying_mock = self.mock.listdir
@@ -214,7 +225,7 @@ class StatTest(PatcherTest, unittest.TestCase):
     """Stat test."""
 
     def setUp(self):
-        helpers.patch(self, ['os.stat'])
+        helpers.patch(self, ["os.stat"])
         super(StatTest, self).setUp()
 
         self.underlying_mock = self.mock.stat
@@ -231,7 +242,7 @@ class MakedirsTest(PatcherTest, unittest.TestCase):
     """Makedirs test."""
 
     def setUp(self):
-        helpers.patch(self, ['os.makedirs'])
+        helpers.patch(self, ["os.makedirs"])
         super(MakedirsTest, self).setUp()
 
         self.underlying_mock = self.mock.makedirs
@@ -266,10 +277,10 @@ class FileTest(PatcherTest, unittest.TestCase):
         builtins.file = self.original_file
 
     def call(self, path):
-        builtins.file(path, 'wb')
+        builtins.file(path, "wb")
 
     def expected_call(self, path):
-        return mock.call(path, 'wb')
+        return mock.call(path, "wb")
 
 
 @test_utils.python2_only
@@ -277,16 +288,16 @@ class OpenTest(PatcherTest, unittest.TestCase):
     """Open test."""
 
     def setUp(self):
-        helpers.patch(self, ['builtins.open'])
+        helpers.patch(self, ["builtins.open"])
         super(OpenTest, self).setUp()
 
         self.underlying_mock = self.mock.open
 
     def call(self, path):
-        builtins.open(path, 'wb')
+        builtins.open(path, "wb")
 
     def expected_call(self, path):
-        return mock.call(path, 'wb')
+        return mock.call(path, "wb")
 
 
 @test_utils.python2_only
@@ -294,7 +305,7 @@ class OsPathExistsTest(PatcherTest, unittest.TestCase):
     """os.path.exists test."""
 
     def setUp(self):
-        helpers.patch(self, ['os.path.exists'])
+        helpers.patch(self, ["os.path.exists"])
         super(OsPathExistsTest, self).setUp()
 
         self.underlying_mock = self.mock.exists
@@ -311,7 +322,7 @@ class OsPathIsfileTest(PatcherTest, unittest.TestCase):
     """os.path.isfile test."""
 
     def setUp(self):
-        helpers.patch(self, ['os.path.isfile'])
+        helpers.patch(self, ["os.path.isfile"])
         super(OsPathIsfileTest, self).setUp()
 
         self.underlying_mock = self.mock.isfile
@@ -328,7 +339,7 @@ class OsPathIsdirTest(PatcherTest, unittest.TestCase):
     """os.path.isdir test."""
 
     def setUp(self):
-        helpers.patch(self, ['os.path.isdir'])
+        helpers.patch(self, ["os.path.isdir"])
         super(OsPathIsdirTest, self).setUp()
 
         self.underlying_mock = self.mock.isdir
@@ -345,7 +356,7 @@ class OsMkdirTest(PatcherTest, unittest.TestCase):
     """mkdir test."""
 
     def setUp(self):
-        helpers.patch(self, ['os.mkdir'])
+        helpers.patch(self, ["os.mkdir"])
         super(OsMkdirTest, self).setUp()
 
         self.underlying_mock = self.mock.mkdir

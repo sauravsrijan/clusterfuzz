@@ -48,13 +48,13 @@ class BlobInfo(data_types.Model):
 
     @classmethod
     def _get_kind(cls):
-        if environment.get_value('DATASTORE_EMULATOR_HOST'):
+        if environment.get_value("DATASTORE_EMULATOR_HOST"):
             # Datastore emulator does not allow writing entities with names of the
             # format "__*__".
-            cls._kind_map['_BlobInfo_'] = cls
-            return '_BlobInfo_'
+            cls._kind_map["_BlobInfo_"] = cls
+            return "_BlobInfo_"
 
-        return '__BlobInfo__'
+        return "__BlobInfo__"
 
 
 class _blobmigrator_BlobKeyMapping(data_types.Model):
@@ -73,14 +73,15 @@ class BlobsException(Exception):
 def _is_gcs_key(blob_key):
     """Return whether if the key is a GCS key."""
     gcs_key_pattern = re.compile(
-        r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$')
+        r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    )
 
     return bool(gcs_key_pattern.match(blob_key))
 
 
 def _get_gcs_blob_path(blob_key):
     """Return the full path to the blob on GCS."""
-    return '/%s/%s' % (storage.blobs_bucket(), blob_key)
+    return "/%s/%s" % (storage.blobs_bucket(), blob_key)
 
 
 def get_gcs_path(blob_key):
@@ -100,10 +101,11 @@ def get_gcs_path(blob_key):
 @retry.wrap(
     retries=FAIL_NUM_RETRIES,
     delay=FAIL_WAIT,
-    function='google_cloud_utils.blobs.get_blob_size')
+    function="google_cloud_utils.blobs.get_blob_size",
+)
 def get_blob_size(blob_key):
     """Returns blob size for a given blob key."""
-    if not blob_key or blob_key == 'NA':
+    if not blob_key or blob_key == "NA":
         return None
 
     blob_info = get_blob_info(blob_key)
@@ -129,8 +131,9 @@ def get_blob_info(blob_key):
 @retry.wrap(
     retries=FAIL_NUM_RETRIES,
     delay=FAIL_WAIT,
-    function='google_cloud_utils.blobs.delete_blob',
-    retry_on_false=True)
+    function="google_cloud_utils.blobs.delete_blob",
+    retry_on_false=True,
+)
 def delete_blob(blob_key):
     """Delete a blob key."""
     blob_info = get_blob_info(blob_key)
@@ -143,15 +146,16 @@ def delete_blob(blob_key):
 @retry.wrap(
     retries=FAIL_NUM_RETRIES,
     delay=FAIL_WAIT,
-    function='google_cloud_utils.blobs.write_blob',
-    retry_on_false=True)
+    function="google_cloud_utils.blobs.write_blob",
+    retry_on_false=True,
+)
 def write_blob(file_handle_or_path):
     """Write a single file testcase to GCS."""
     blobs_bucket = storage.blobs_bucket()
     blob_name = generate_new_blob_name()
 
     if storage.get(storage.get_cloud_storage_file_path(blobs_bucket, blob_name)):
-        raise BlobsException('UUID collision found: %s' % blob_name)
+        raise BlobsException("UUID collision found: %s" % blob_name)
 
     if isinstance(file_handle_or_path, basestring):
         filename = os.path.basename(file_handle_or_path)
@@ -162,18 +166,19 @@ def write_blob(file_handle_or_path):
         storage.BLOB_FILENAME_METADATA_KEY: filename,
     }
 
-    gcs_path = '/%s/%s' % (blobs_bucket, blob_name)
+    gcs_path = "/%s/%s" % (blobs_bucket, blob_name)
     if storage.copy_file_to(file_handle_or_path, gcs_path, metadata=metadata):
         return blob_name
 
-    raise BlobsException('Failed to write blob %s.' % blob_name)
+    raise BlobsException("Failed to write blob %s." % blob_name)
 
 
 @retry.wrap(
     retries=FAIL_NUM_RETRIES,
     delay=FAIL_WAIT,
-    function='google_cloud_utils.blobs.read_blob_to_disk',
-    retry_on_false=True)
+    function="google_cloud_utils.blobs.read_blob_to_disk",
+    retry_on_false=True,
+)
 def read_blob_to_disk(blob_key, local_file):
     """Copy data stored in the blobstore to a local file."""
     assert not environment.is_running_on_app_engine()
@@ -205,7 +210,7 @@ def get_legacy_blob_info(blob_key):
     # entry created by our migration jobs.
     blob_mapping = get_blob_mapping(blob_key)
     if not blob_mapping:
-        raise BlobsException('Blob mapping not found.')
+        raise BlobsException("Blob mapping not found.")
 
     legacy_blob_info.gs_object_name = blob_mapping.gcs_filename
     return legacy_blob_info

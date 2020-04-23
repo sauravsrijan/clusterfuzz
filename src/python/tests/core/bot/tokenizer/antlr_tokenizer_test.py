@@ -24,7 +24,7 @@ class AntlrTokenizerTest(unittest.TestCase):
     def test_empty_list_on_empty_data(self):
         """Test Tokenizer works on empty list"""
         tokenizer = AntlrTokenizer(JavaScriptLexer)
-        data = b''
+        data = b""
 
         tokens = tokenizer.tokenize(data)
 
@@ -40,13 +40,51 @@ class AntlrTokenizerTest(unittest.TestCase):
           }"""
 
         tokens = tokenizer.tokenize(txt)
-        self.assertEqual(tokens, [
-            'async', ' ', 'function', ' ', 'process', '(', 'array', ')', ' ', '{',
-            '\n', '          ', 'for', ' ', 'await', ' ', '(', 'let', ' ', 'i', ' ',
-            'of', ' ', 'array', ')', ' ', '{', '\n', '              ',
-            'doSomething', '(', 'i', ')', ';', '\n', '            ', '}', '\n',
-            '          ', '}'
-        ])
+        self.assertEqual(
+            tokens,
+            [
+                "async",
+                " ",
+                "function",
+                " ",
+                "process",
+                "(",
+                "array",
+                ")",
+                " ",
+                "{",
+                "\n",
+                "          ",
+                "for",
+                " ",
+                "await",
+                " ",
+                "(",
+                "let",
+                " ",
+                "i",
+                " ",
+                "of",
+                " ",
+                "array",
+                ")",
+                " ",
+                "{",
+                "\n",
+                "              ",
+                "doSomething",
+                "(",
+                "i",
+                ")",
+                ";",
+                "\n",
+                "            ",
+                "}",
+                "\n",
+                "          ",
+                "}",
+            ],
+        )
 
     def test_combine_same_as_orig(self):
         """Tests the token combiner"""
@@ -64,10 +102,30 @@ class AntlrTokenizerTest(unittest.TestCase):
     def test_tokenizes_malformed_without_error(self):
         """Tests tokenizer doesnt error on garbage input"""
         tokenizer = AntlrTokenizer(JavaScriptLexer)
-        txt = b'aasdfj1  1jhsdf9 1 3@ 1 + => adj 193'
+        txt = b"aasdfj1  1jhsdf9 1 3@ 1 + => adj 193"
 
         tokens = tokenizer.tokenize(txt)
-        self.assertEqual(tokens, [
-            'aasdfj1', '  ', '1', 'jhsdf9', ' ', '1', ' ', '3', '@', ' ', '1', ' ',
-            '+', ' ', '=>', ' ', 'adj', ' ', '193'
-        ])
+        self.assertEqual(
+            tokens,
+            [
+                "aasdfj1",
+                "  ",
+                "1",
+                "jhsdf9",
+                " ",
+                "1",
+                " ",
+                "3",
+                "@",
+                " ",
+                "1",
+                " ",
+                "+",
+                " ",
+                "=>",
+                " ",
+                "adj",
+                " ",
+                "193",
+            ],
+        )

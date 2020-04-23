@@ -23,15 +23,15 @@ import re
 def tokenize(s):
     """Tokenize a string, by line, into atomic tokens and complex tokens."""
     if not s:
-        s = ''
+        s = ""
 
-    s = '%s' % s
+    s = "%s" % s
     tokens = set()
 
     lines = s.splitlines()
     for line in lines:
         line = line.strip()
-        only_ascii = re.sub(r'\s*[^\x00-\x7F]+\s*', ' ', line)
+        only_ascii = re.sub(r"\s*[^\x00-\x7F]+\s*", " ", line)
         tokens |= _complex_tokenize(only_ascii, limit=10)
         tokens.add(line.lower())
 
@@ -56,9 +56,9 @@ def tokenize_impact_version(version):
         return []
 
     tokens = set()
-    splitted = version.split('.')
+    splitted = version.split(".")
     for index in range(len(splitted)):
-        tokens.add('.'.join(splitted[0:(index + 1)]))
+        tokens.add(".".join(splitted[0 : (index + 1)]))
 
     return [t for t in tokens if t.strip()]
 
@@ -78,8 +78,12 @@ def _is_camel_case_ab(s, index):
 def _is_camel_case_abb(s, index):
     """Determine if the index ends at 'ABb', which is the start of a camel
       token. For example, with 'HTMLParser', this function detects 'LPa'."""
-    return (index >= 2 and s[index - 2].isupper() and s[index - 1].isupper() and
-            s[index].islower())
+    return (
+        index >= 2
+        and s[index - 2].isupper()
+        and s[index - 1].isupper()
+        and s[index].islower()
+    )
 
 
 def _token_indices(s):
@@ -123,7 +127,7 @@ def _complex_tokenize(s, limit):
     second_token_index = len(s)
     count = 0
     for end_index, next_start_index in _token_indices(s):
-        tokens.append(s[0:(end_index + 1)])
+        tokens.append(s[0 : (end_index + 1)])
         count += 1
         second_token_index = min(next_start_index, second_token_index)
 

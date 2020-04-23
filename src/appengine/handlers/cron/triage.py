@@ -34,10 +34,8 @@ from libs.issue_management import issue_tracker_utils
 from metrics import crash_stats
 from metrics import logs
 
-UNREPRODUCIBLE_CRASH_IGNORE_CRASH_TYPES = [
-    'Out-of-memory', 'Stack-overflow', 'Timeout'
-]
-TRIAGE_MESSAGE_KEY = 'triage_message'
+UNREPRODUCIBLE_CRASH_IGNORE_CRASH_TYPES = ["Out-of-memory", "Stack-overflow", "Timeout"]
+TRIAGE_MESSAGE_KEY = "triage_message"
 
 
 def _add_triage_message(testcase, message):
@@ -73,12 +71,13 @@ def _get_excluded_jobs():
         job_environment = job.get_environment()
 
         # Exclude experimental jobs.
-        if utils.string_is_true(job_environment.get('EXPERIMENTAL')):
+        if utils.string_is_true(job_environment.get("EXPERIMENTAL")):
             excluded_jobs.append(job.name)
 
         # Exclude custom binary jobs.
-        elif (utils.string_is_true(job_environment.get('CUSTOM_BINARY')) or
-              job_environment.get('SYSTEM_BINARY_DIR')):
+        elif utils.string_is_true(
+            job_environment.get("CUSTOM_BINARY")
+        ) or job_environment.get("SYSTEM_BINARY_DIR"):
             excluded_jobs.append(job.name)
 
     return excluded_jobs
@@ -92,7 +91,8 @@ def _is_bug_filed(testcase):
 
     # Re-check our stored metadata so that we don't file the same testcase twice.
     is_bug_filed_for_testcase = data_types.FiledBug.query(
-        data_types.FiledBug.testcase_id == testcase.key.id()).get()
+        data_types.FiledBug.testcase_id == testcase.key.id()
+    ).get()
     if is_bug_filed_for_testcase:
         return True
 
@@ -105,7 +105,7 @@ def _is_crash_important(testcase):
         # A reproducible crash is an important crash.
         return True
 
-    if testcase.status != 'Processed':
+    if testcase.status != "Processed":
         # A duplicate or unreproducible crash is not an important crash.
         return False
 
@@ -119,7 +119,8 @@ def _is_crash_important(testcase):
     if testcase.group_id:
         other_reproducible_testcase = data_types.Testcase.query(
             data_types.Testcase.group_id == testcase.group_id,
-            ndb_utils.is_false(data_types.Testcase.one_time_crasher_flag)).get()
+            ndb_utils.is_false(data_types.Testcase.one_time_crasher_flag),
+        ).get()
         if other_reproducible_testcase:
             # There is another reproducible testcase in our group. So, this crash is
             # not important.
@@ -133,39 +134,45 @@ def _is_crash_important(testcase):
 
     _, rows = crash_stats.get(
         end=last_hour,
-        block='day',
+        block="day",
         days=data_types.FILE_CONSISTENT_UNREPRODUCIBLE_TESTCASE_DEADLINE,
-        group_by='reproducible_flag',
+        group_by="reproducible_flag",
         where_clause=(
-            'crash_type = %s AND crash_state = %s AND security_flag = %s' %
-            (json.dumps(testcase.crash_type), json.dumps(testcase.crash_state),
-             json.dumps(testcase.security_flag))),
-        group_having_clause='',
-        sort_by='total_count',
+            "crash_type = %s AND crash_state = %s AND security_flag = %s"
+            % (
+                json.dumps(testcase.crash_type),
+                json.dumps(testcase.crash_state),
+                json.dumps(testcase.security_flag),
+            )
+        ),
+        group_having_clause="",
+        sort_by="total_count",
         offset=0,
-        limit=1)
+        limit=1,
+    )
 
     # Calculate total crash count and crash days count.
     crash_days_indices = set([])
     total_crash_count = 0
     for row in rows:
-        if 'groups' not in row:
+        if "groups" not in row:
             continue
 
-        total_crash_count += row['totalCount']
-        for group in row['groups']:
-            for index in group['indices']:
-                crash_days_indices.add(index['hour'])
+        total_crash_count += row["totalCount"]
+        for group in row["groups"]:
+            for index in group["indices"]:
+                crash_days_indices.add(index["hour"])
 
     crash_days_count = len(crash_days_indices)
 
     # Only those unreproducible testcases are important that happened atleast once
     # everyday for the last X days and total crash count exceeded our threshold
     # limit.
-    return (crash_days_count ==
-            data_types.FILE_CONSISTENT_UNREPRODUCIBLE_TESTCASE_DEADLINE and
-            total_crash_count >=
-            data_types.FILE_UNREPRODUCIBLE_TESTCASE_MIN_CRASH_THRESHOLD)
+    return (
+        crash_days_count == data_types.FILE_CONSISTENT_UNREPRODUCIBLE_TESTCASE_DEADLINE
+        and total_crash_count
+        >= data_types.FILE_UNREPRODUCIBLE_TESTCASE_MIN_CRASH_THRESHOLD
+    )
 
 
 def _check_and_update_similar_bug(testcase, issue_tracker):
@@ -174,9 +181,11 @@ def _check_and_update_similar_bug(testcase, issue_tracker):
     similar_testcases_from_group = []
     if testcase.group_id:
         group_query = data_types.Testcase.query(
-            data_types.Testcase.group_id == testcase.group_id)
+            data_types.Testcase.group_id == testcase.group_id
+        )
         similar_testcases_from_group = ndb_utils.get_all_from_query(
-            group_query, batch_size=data_types.TESTCASE_ENTITY_QUERY_LIMIT // 2)
+            group_query, batch_size=data_types.TESTCASE_ENTITY_QUERY_LIMIT // 2
+        )
 
     # Get testcases with the same crash params. These might not be in the a group
     # if they were just fixed.
@@ -185,13 +194,15 @@ def _check_and_update_similar_bug(testcase, issue_tracker):
         data_types.Testcase.crash_state == testcase.crash_state,
         data_types.Testcase.security_flag == testcase.security_flag,
         data_types.Testcase.project_name == testcase.project_name,
-        data_types.Testcase.status == 'Processed')
+        data_types.Testcase.status == "Processed",
+    )
 
     similar_testcases_from_query = ndb_utils.get_all_from_query(
-        same_crash_params_query,
-        batch_size=data_types.TESTCASE_ENTITY_QUERY_LIMIT // 2)
-    for similar_testcase in itertools.chain(similar_testcases_from_group,
-                                            similar_testcases_from_query):
+        same_crash_params_query, batch_size=data_types.TESTCASE_ENTITY_QUERY_LIMIT // 2
+    )
+    for similar_testcase in itertools.chain(
+        similar_testcases_from_group, similar_testcases_from_query
+    ):
         # Exclude ourself from comparison.
         if similar_testcase.key.id() == testcase.key.id():
             continue
@@ -218,27 +229,33 @@ def _check_and_update_similar_bug(testcase, issue_tracker):
         # If the issue indicates that this crash needs to be ignored, no need to
         # file another one.
         policy = issue_tracker_policy.get(issue_tracker.project)
-        ignore_label = policy.label('ignore')
+        ignore_label = policy.label("ignore")
         if ignore_label in issue.labels:
             _add_triage_message(
                 testcase,
-                ('Skipping filing a bug since similar testcase ({testcase_id}) in '
-                 'issue ({issue_id}) is blacklisted with {ignore_label} label.'
-                 ).format(
+                (
+                    "Skipping filing a bug since similar testcase ({testcase_id}) in "
+                    "issue ({issue_id}) is blacklisted with {ignore_label} label."
+                ).format(
                     testcase_id=similar_testcase.key.id(),
                     issue_id=issue.id,
-                    ignore_label=ignore_label))
+                    ignore_label=ignore_label,
+                ),
+            )
             return True
 
         # If the issue is recently closed, wait certain time period to make sure
         # our fixed verification has completed.
-        if (issue.closed_time and not dates.time_has_expired(
-                issue.closed_time, hours=data_types.MIN_ELAPSED_TIME_SINCE_FIXED)):
+        if issue.closed_time and not dates.time_has_expired(
+            issue.closed_time, hours=data_types.MIN_ELAPSED_TIME_SINCE_FIXED
+        ):
             _add_triage_message(
                 testcase,
-                ('Delaying filing a bug since similar testcase '
-                 '({testcase_id}) in issue ({issue_id}) was just fixed.').format(
-                     testcase_id=similar_testcase.key.id(), issue_id=issue.id))
+                (
+                    "Delaying filing a bug since similar testcase "
+                    "({testcase_id}) in issue ({issue_id}) was just fixed."
+                ).format(testcase_id=similar_testcase.key.id(), issue_id=issue.id),
+            )
             return True
 
     return False
@@ -253,7 +270,7 @@ class Handler(base_handler.Handler):
         try:
             grouper.group_testcases()
         except:
-            logs.log_error('Error occurred while grouping test cases.')
+            logs.log_error("Error occurred while grouping test cases.")
             return
 
         # Free up memory after group task run.
@@ -282,7 +299,7 @@ class Handler(base_handler.Handler):
                 continue
 
             # Skip if we are running progression task at this time.
-            if testcase.get_metadata('progression_pending'):
+            if testcase.get_metadata("progression_pending"):
                 continue
 
             # If the testcase has a bug filed already, no triage is needed.
@@ -304,13 +321,13 @@ class Handler(base_handler.Handler):
             # FIXME: In future, grouping might be dependent on regression range, so we
             # would have to add an additional wait time.
             if not testcase.group_id and not dates.time_has_expired(
-                    testcase.timestamp, hours=data_types.MIN_ELAPSED_TIME_SINCE_REPORT):
+                testcase.timestamp, hours=data_types.MIN_ELAPSED_TIME_SINCE_REPORT
+            ):
                 continue
 
             # If this project does not have an associated issue tracker, we cannot
             # file this crash anywhere.
-            issue_tracker = issue_tracker_utils.get_issue_tracker_for_testcase(
-                testcase)
+            issue_tracker = issue_tracker_utils.get_issue_tracker_for_testcase(testcase)
             if not issue_tracker:
                 continue
 
@@ -326,10 +343,11 @@ class Handler(base_handler.Handler):
             try:
                 issue_filer.file_issue(testcase, issue_tracker)
             except Exception:
-                logs.log_error(
-                    'Failed to file issue for testcase %d.' % testcase_id)
+                logs.log_error("Failed to file issue for testcase %d." % testcase_id)
                 continue
 
             _create_filed_bug_metadata(testcase)
-            logs.log('Filed new issue %s for testcase %d.' %
-                     (testcase.bug_information, testcase_id))
+            logs.log(
+                "Filed new issue %s for testcase %d."
+                % (testcase.bug_information, testcase_id)
+            )

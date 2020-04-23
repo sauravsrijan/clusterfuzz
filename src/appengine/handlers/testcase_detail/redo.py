@@ -32,15 +32,17 @@ class Handler(base_handler.Handler):
         except tasks.InvalidRedoTask as error:
             raise helpers.EarlyExitException(str(error), 400)
 
-        helpers.log('Redo testcase %d: %s' % (testcase.key.id(), testcase_tasks),
-                    helpers.MODIFY_OPERATION)
+        helpers.log(
+            "Redo testcase %d: %s" % (testcase.key.id(), testcase_tasks),
+            helpers.MODIFY_OPERATION,
+        )
 
     @handler.post(handler.JSON, handler.JSON)
     @handler.require_csrf_token
     @handler.check_testcase_access
     def post(self, testcase):
         """Queue redo tasks."""
-        testcase_tasks = self.request.get('tasks')
+        testcase_tasks = self.request.get("tasks")
         user_email = helpers.get_user_email()
 
         self.redo(testcase, testcase_tasks, user_email)

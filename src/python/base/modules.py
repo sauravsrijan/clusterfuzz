@@ -21,16 +21,16 @@ import sys
 
 def _config_modules_directory(root_directory):
     """Get the config modules directory."""
-    config_dir = os.getenv('CONFIG_DIR_OVERRIDE')
+    config_dir = os.getenv("CONFIG_DIR_OVERRIDE")
     if not config_dir:
-        config_dir = os.path.join(root_directory, 'src', 'appengine', 'config')
+        config_dir = os.path.join(root_directory, "src", "appengine", "config")
 
-    return os.path.join(config_dir, 'modules')
+    return os.path.join(config_dir, "modules")
 
 
 def _patch_appengine_modules_for_bots():
     """Patch out App Engine reliant behaviour from bots."""
-    if os.getenv('SERVER_SOFTWARE'):
+    if os.getenv("SERVER_SOFTWARE"):
         # Not applicable on App Engine.
         return
 
@@ -38,6 +38,7 @@ def _patch_appengine_modules_for_bots():
     # google.appengine.api.app_identity.
     try:
         from google.auth import app_engine as auth_app_engine
+
         if auth_app_engine.app_identity:
             auth_app_engine.app_identity = None
     except ImportError:
@@ -46,17 +47,18 @@ def _patch_appengine_modules_for_bots():
 
 def fix_module_search_paths():
     """Add directories that we must be able to import from to path."""
-    root_directory = os.environ['ROOT_DIR']
-    source_directory = os.path.join(root_directory, 'src')
+    root_directory = os.environ["ROOT_DIR"]
+    source_directory = os.path.join(root_directory, "src")
 
-    python_path = os.getenv('PYTHONPATH', '').split(os.pathsep)
+    python_path = os.getenv("PYTHONPATH", "").split(os.pathsep)
 
-    third_party_libraries_directory = os.path.join(source_directory,
-                                                   'third_party')
+    third_party_libraries_directory = os.path.join(source_directory, "third_party")
     config_modules_directory = _config_modules_directory(root_directory)
 
-    if (os.path.exists(config_modules_directory) and
-            config_modules_directory not in sys.path):
+    if (
+        os.path.exists(config_modules_directory)
+        and config_modules_directory not in sys.path
+    ):
         sys.path.insert(0, config_modules_directory)
         python_path.insert(0, config_modules_directory)
 
@@ -64,7 +66,7 @@ def fix_module_search_paths():
         sys.path.insert(0, third_party_libraries_directory)
         python_path.insert(0, third_party_libraries_directory)
 
-    python_source_directory = os.path.join(source_directory, 'python')
+    python_source_directory = os.path.join(source_directory, "python")
     if python_source_directory not in sys.path:
         sys.path.insert(0, python_source_directory)
         python_path.insert(0, python_source_directory)
@@ -73,7 +75,7 @@ def fix_module_search_paths():
         sys.path.insert(0, source_directory)
         python_path.insert(0, source_directory)
 
-    os.environ['PYTHONPATH'] = os.pathsep.join(python_path)
+    os.environ["PYTHONPATH"] = os.pathsep.join(python_path)
 
     # Add site directory to make from imports work in google namespace.
     site.addsitedir(third_party_libraries_directory)

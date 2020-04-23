@@ -36,6 +36,7 @@ from builtins import object
 from builtins import str
 
 from future import standard_library
+
 standard_library.install_aliases()
 
 
@@ -52,24 +53,23 @@ def create_generic_testcase(created_days_ago=28):
 
     # Add more values here as needed. Intended to be the bare minimum for what we
     # need to simulate a test case.
-    testcase.absolute_path = '/a/b/c/test.html'
-    testcase.crash_address = '0xdeadbeef'
+    testcase.absolute_path = "/a/b/c/test.html"
+    testcase.crash_address = "0xdeadbeef"
     testcase.crash_revision = 1
-    testcase.crash_state = 'crashy_function()'
+    testcase.crash_state = "crashy_function()"
     testcase.crash_stacktrace = testcase.crash_state
-    testcase.crash_type = 'fake type'
-    testcase.comments = 'Fuzzer: test'
-    testcase.fuzzed_keys = 'abcd'
-    testcase.minimized_keys = 'efgh'
-    testcase.fuzzer_name = 'fuzzer1'
+    testcase.crash_type = "fake type"
+    testcase.comments = "Fuzzer: test"
+    testcase.fuzzed_keys = "abcd"
+    testcase.minimized_keys = "efgh"
+    testcase.fuzzer_name = "fuzzer1"
     testcase.open = True
     testcase.one_time_crasher_flag = False
-    testcase.job_type = 'test_content_shell_drt'
-    testcase.status = 'Processed'
-    testcase.timestamp = CURRENT_TIME - \
-        datetime.timedelta(days=created_days_ago)
-    testcase.project_name = 'project'
-    testcase.platform = 'linux'
+    testcase.job_type = "test_content_shell_drt"
+    testcase.status = "Processed"
+    testcase.timestamp = CURRENT_TIME - datetime.timedelta(days=created_days_ago)
+    testcase.project_name = "project"
+    testcase.platform = "linux"
     testcase.put()
 
     return testcase
@@ -99,9 +99,9 @@ def adhoc(func):
 
       For example, downloading a chrome revision (10GB) and
       unpacking it. It can be enabled using the env ADHOC=1."""
-    return unittest.skipIf(not environment.get_value('ADHOC', False),
-                           'Adhoc tests are not enabled.')(
-                               func)
+    return unittest.skipIf(
+        not environment.get_value("ADHOC", False), "Adhoc tests are not enabled."
+    )(func)
 
 
 def integration(func):
@@ -109,50 +109,51 @@ def integration(func):
       and/or is slow. The integration tests should, at least, be run before
       merging and are counted toward test coverage. It can be enabled using the
       env INTEGRATION=1."""
-    return unittest.skipIf(not environment.get_value('INTEGRATION', False),
-                           'Integration tests are not enabled.')(
-                               func)
+    return unittest.skipIf(
+        not environment.get_value("INTEGRATION", False),
+        "Integration tests are not enabled.",
+    )(func)
 
 
 def slow(func):
     """Slow tests which are skipped during presubmit."""
-    return unittest.skipIf(not environment.get_value('SLOW_TESTS', True),
-                           'Skipping slow tests.')(
-                               func)
+    return unittest.skipIf(
+        not environment.get_value("SLOW_TESTS", True), "Skipping slow tests."
+    )(func)
 
 
 def reproduce_tool(func):
     """Tests for the test case reproduction script."""
     return unittest.skipIf(
-        not environment.get_value('REPRODUCE_TOOL_TESTS', False),
-        'Skipping reproduce tool tests.')(
-            func)
+        not environment.get_value("REPRODUCE_TOOL_TESTS", False),
+        "Skipping reproduce tool tests.",
+    )(func)
 
 
 # TODO(mbarbella): Remove this and all users after fully migrating to Python 3.
 def python2_only(func):
     """Tests which can only run on Python 2."""
-    return unittest.skipIf(sys.version_info.major != 2,
-                           'Skipping Python 2-only test.')(
-                               func)
+    return unittest.skipIf(sys.version_info.major != 2, "Skipping Python 2-only test.")(
+        func
+    )
 
 
 def python3_only(func):
     """Tests which can only run on Python 3."""
-    return unittest.skipIf(sys.version_info.major != 3,
-                           'Skipping Python 3-only test.')(
-                               func)
+    return unittest.skipIf(sys.version_info.major != 3, "Skipping Python 3-only test.")(
+        func
+    )
 
 
 def android_device_required(func):
     """Skip Android-specific tests if we cannot run them."""
     reason = None
-    if not environment.get_value('ANDROID_SERIAL'):
-        reason = 'Android device tests require that ANDROID_SERIAL is set.'
-    elif not environment.get_value('INTEGRATION'):
-        reason = 'Integration tests are not enabled.'
-    elif environment.platform() != 'LINUX':
-        reason = 'Android device tests can only run on a Linux host.'
+    if not environment.get_value("ANDROID_SERIAL"):
+        reason = "Android device tests require that ANDROID_SERIAL is set."
+    elif not environment.get_value("INTEGRATION"):
+        reason = "Integration tests are not enabled."
+    elif environment.platform() != "LINUX":
+        reason = "Android device tests can only run on a Linux host."
 
     return unittest.skipIf(reason is not None, reason)(func)
 
@@ -175,25 +176,23 @@ class EmulatorInstance(object):
 
     def reset(self):
         """Reset emulator state."""
-        req = requests.post('http://localhost:{}/reset'.format(self._port))
+        req = requests.post("http://localhost:{}/reset".format(self._port))
         req.raise_for_status()
 
 
 def _find_free_port():
     """Find a free port."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(('localhost', 0))
+    sock.bind(("localhost", 0))
     _, port = sock.getsockname()
     sock.close()
 
     return port
 
 
-def wait_for_emulator_ready(proc,
-                            emulator,
-                            indicator,
-                            timeout=EMULATOR_TIMEOUT,
-                            output_lines=None):
+def wait_for_emulator_ready(
+    proc, emulator, indicator, timeout=EMULATOR_TIMEOUT, output_lines=None
+):
     """Wait for emulator to be ready."""
 
     def _read_thread(proc, ready_event):
@@ -218,31 +217,26 @@ def wait_for_emulator_ready(proc,
     thread.start()
 
     if not ready_event.wait(timeout):
-        raise RuntimeError(
-            '{} emulator did not get ready in time.'.format(emulator))
+        raise RuntimeError("{} emulator did not get ready in time.".format(emulator))
 
     return thread
 
 
-def start_cloud_emulator(emulator,
-                         args=None,
-                         data_dir=None,
-                         store_on_disk=False):
+def start_cloud_emulator(emulator, args=None, data_dir=None, store_on_disk=False):
     """Start a cloud emulator."""
     ready_indicators = {
-        'datastore': b'is now running',
-        'pubsub': b'Server started',
+        "datastore": b"is now running",
+        "pubsub": b"Server started",
     }
 
-    store_on_disk_flag = ('--store-on-disk'
-                          if store_on_disk else '--no-store-on-disk')
+    store_on_disk_flag = "--store-on-disk" if store_on_disk else "--no-store-on-disk"
     default_flags = {
-        'datastore': [store_on_disk_flag, '--consistency=1'],
-        'pubsub': [],
+        "datastore": [store_on_disk_flag, "--consistency=1"],
+        "pubsub": [],
     }
 
     if emulator not in ready_indicators:
-        raise RuntimeError('Unsupported emulator')
+        raise RuntimeError("Unsupported emulator")
 
     if data_dir:
         cleanup_dir = None
@@ -254,9 +248,14 @@ def start_cloud_emulator(emulator,
     port = _find_free_port()
 
     command = [
-        'gcloud', 'beta', 'emulators', emulator, 'start',
-        '--data-dir=' + data_dir, '--host-port=localhost:' + str(port),
-        '--project=' + local_config.GAEConfig().get('application_id')
+        "gcloud",
+        "beta",
+        "emulators",
+        emulator,
+        "start",
+        "--data-dir=" + data_dir,
+        "--host-port=localhost:" + str(port),
+        "--project=" + local_config.GAEConfig().get("application_id"),
     ]
     if args:
         command.extend(args)
@@ -264,21 +263,18 @@ def start_cloud_emulator(emulator,
     command.extend(default_flags[emulator])
 
     # Start emulator.
-    proc = subprocess.Popen(
-        command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-    thread = wait_for_emulator_ready(
-        proc, emulator, ready_indicators[emulator])
+    thread = wait_for_emulator_ready(proc, emulator, ready_indicators[emulator])
 
     # Set env vars.
-    env_vars = subprocess.check_output([
-        'gcloud', 'beta', 'emulators', emulator, 'env-init',
-        '--data-dir=' + data_dir
-    ])
+    env_vars = subprocess.check_output(
+        ["gcloud", "beta", "emulators", emulator, "env-init", "--data-dir=" + data_dir]
+    )
 
     for line in env_vars.splitlines():
-        key, value = line.split()[1].split(b'=')
-        os.environ[key.strip().decode('utf-8')] = value.strip().decode('utf-8')
+        key, value = line.split()[1].split(b"=")
+        os.environ[key.strip().decode("utf-8")] = value.strip().decode("utf-8")
 
     return EmulatorInstance(proc, port, thread, cleanup_dir)
 
@@ -304,15 +300,14 @@ def create_pubsub_subscription(client, project, topic, name):
 
 def setup_pubsub(project):
     """Set up pubsub topics and subscriptions."""
-    config = local_config.Config('pubsub.queues')
+    config = local_config.Config("pubsub.queues")
     client = pubsub.PubSubClient()
 
-    queues = config.get('resources')
+    queues = config.get("resources")
 
     for queue in queues:
-        create_pubsub_topic(client, project, queue['name'])
-        create_pubsub_subscription(
-            client, project, queue['name'], queue['name'])
+        create_pubsub_topic(client, project, queue["name"])
+        create_pubsub_subscription(client, project, queue["name"], queue["name"])
 
 
 def with_cloud_emulators(*emulator_names):
@@ -329,11 +324,10 @@ def with_cloud_emulators(*emulator_names):
                 """Class setup."""
                 for emulator_name in emulator_names:
                     if emulator_name not in _emulators:
-                        _emulators[emulator_name] = start_cloud_emulator(
-                            emulator_name)
+                        _emulators[emulator_name] = start_cloud_emulator(emulator_name)
                         atexit.register(_emulators[emulator_name].cleanup)
 
-                    if emulator_name == 'datastore':
+                    if emulator_name == "datastore":
                         cls._context_generator = ndb_init.context()
                         cls._context_generator.__enter__()
 
@@ -343,7 +337,7 @@ def with_cloud_emulators(*emulator_names):
             def tearDownClass(cls):
                 """Class teardown."""
                 for emulator_name in emulator_names:
-                    if emulator_name == 'datastore':
+                    if emulator_name == "datastore":
                         cls._context_generator.__exit__(None, None, None)
 
                 super(Wrapped, cls).tearDownClass()
@@ -375,9 +369,9 @@ def supported_platforms(*platforms):
 
     def decorator(func):  # pylint: disable=unused-argument
         """Decorator."""
-        return unittest.skipIf(environment.platform() not in platforms,
-                               'Unsupported platform.')(
-                                   func)
+        return unittest.skipIf(
+            environment.platform() not in platforms, "Unsupported platform."
+        )(func)
 
     return decorator
 
@@ -394,5 +388,7 @@ if sys.version_info.major == 2:
         def getvalue(self):
             self.flush()
             return self.raw.getvalue()
+
+
 else:
     MockStdout = io.StringIO  # pylint: disable=invalid-name

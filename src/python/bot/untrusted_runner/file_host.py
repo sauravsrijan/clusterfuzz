@@ -38,8 +38,10 @@ def is_directory_parent(path, directory):
     if len(path_components) <= len(directory_components):
         return False
 
-    return all(path_components[i] == directory_components[i]
-               for i in range(len(directory_components)))
+    return all(
+        path_components[i] == directory_components[i]
+        for i in range(len(directory_components))
+    )
 
 
 def _rebase(path, target_base, cur_base):
@@ -59,27 +61,33 @@ def _rebase(path, target_base, cur_base):
         return target_base
 
     # Only paths relative to ROOT_DIR are supported.
-    assert not rel_path.startswith(
-        os.pardir), 'Bad relative path %s' % rel_path
+    assert not rel_path.startswith(os.pardir), "Bad relative path %s" % rel_path
     return os.path.join(target_base, rel_path)
 
 
 def rebase_to_host_root(worker_path):
     """Return corresponding host root given a worker CF path."""
-    return _rebase(worker_path, environment.get_value('ROOT_DIR'),
-                   environment.get_value('WORKER_ROOT_DIR'))
+    return _rebase(
+        worker_path,
+        environment.get_value("ROOT_DIR"),
+        environment.get_value("WORKER_ROOT_DIR"),
+    )
 
 
 def rebase_to_worker_root(host_path):
     """Return corresponding worker path given a host CF path."""
-    return _rebase(host_path, environment.get_value('WORKER_ROOT_DIR'),
-                   environment.get_value('ROOT_DIR'))
+    return _rebase(
+        host_path,
+        environment.get_value("WORKER_ROOT_DIR"),
+        environment.get_value("ROOT_DIR"),
+    )
 
 
 def create_directory(path, create_intermediates=False):
     """Create a directory."""
     request = untrusted_runner_pb2.CreateDirectoryRequest(
-        path=path, create_intermediates=create_intermediates)
+        path=path, create_intermediates=create_intermediates
+    )
 
     response = host.stub().CreateDirectory(request)
     return response.result
@@ -88,8 +96,7 @@ def create_directory(path, create_intermediates=False):
 def remove_directory(path, recreate=False):
     """Remove a directory. If |recreate| is set, always creates the directory even
     if it did not exist."""
-    request = untrusted_runner_pb2.RemoveDirectoryRequest(
-        path=path, recreate=recreate)
+    request = untrusted_runner_pb2.RemoveDirectoryRequest(path=path, recreate=recreate)
 
     response = host.stub().RemoveDirectory(request)
     return response.result
@@ -97,8 +104,7 @@ def remove_directory(path, recreate=False):
 
 def list_files(path, recursive=False):
     """List files in the directory. Returns full file paths."""
-    request = untrusted_runner_pb2.ListFilesRequest(
-        path=path, recursive=recursive)
+    request = untrusted_runner_pb2.ListFilesRequest(path=path, recursive=recursive)
 
     response = host.stub().ListFiles(request)
     return response.file_paths
@@ -107,9 +113,9 @@ def list_files(path, recursive=False):
 def copy_file_to_worker(host_path, worker_path):
     """Copy file from host to worker. |worker_path| must be a full path (including
     the filename). Any directories will be created if needed."""
-    with open(host_path, 'rb') as f:
+    with open(host_path, "rb") as f:
         request_iterator = file_utils.file_chunk_generator(f)
-        metadata = [('path-bin', worker_path.encode('utf-8'))]
+        metadata = [("path-bin", worker_path.encode("utf-8"))]
 
         response = host.stub().CopyFileTo(request_iterator, metadata=metadata)
         return response.result
@@ -118,7 +124,7 @@ def copy_file_to_worker(host_path, worker_path):
 def write_data_to_worker(data, worker_path):
     """Write data to a file on the worker."""
     request_iterator = file_utils.data_chunk_generator(data)
-    metadata = [('path-bin', worker_path.encode('utf-8'))]
+    metadata = [("path-bin", worker_path.encode("utf-8"))]
 
     response = host.stub().CopyFileTo(request_iterator, metadata=metadata)
     return response.result
@@ -130,7 +136,7 @@ def copy_file_from_worker(worker_path, host_path):
     response = host.stub().CopyFileFrom(request)
     file_utils.write_chunks(host_path, response)
     metadata = dict(response.trailing_metadata())
-    if metadata.get('result') != 'ok':
+    if metadata.get("result") != "ok":
         # file_utils.write_chunks always opens the file for writing, so remove it
         # here.
         os.remove(host_path)
@@ -150,9 +156,10 @@ def copy_directory_to_worker(host_directory, worker_directory, replace=False):
         for filename in files:
             file_path = os.path.join(root, filename)
             worker_file_path = os.path.join(
-                worker_directory, os.path.relpath(file_path, host_directory))
+                worker_directory, os.path.relpath(file_path, host_directory)
+            )
             if not copy_file_to_worker(file_path, worker_file_path):
-                logs.log_warn('Failed to copy %s to worker.' % file_path)
+                logs.log_warn("Failed to copy %s to worker." % file_path)
                 return False
 
     return True
@@ -167,16 +174,13 @@ def copy_directory_from_worker(worker_directory, host_directory, replace=False):
         os.mkdir(host_directory)
 
     for worker_file_path in list_files(worker_directory, recursive=True):
-        relative_worker_file_path = os.path.relpath(worker_file_path,
-                                                    worker_directory)
-        host_file_path = os.path.join(
-            host_directory, relative_worker_file_path)
+        relative_worker_file_path = os.path.relpath(worker_file_path, worker_directory)
+        host_file_path = os.path.join(host_directory, relative_worker_file_path)
 
         # Be careful with the path provided by the worker here. We want to make sure
         # we're only writing files to |host_directory| and not outside it.
         if not is_directory_parent(host_file_path, host_directory):
-            logs.log_warn(
-                'copy_directory_from_worker: Attempt to escape |host_dir|.')
+            logs.log_warn("copy_directory_from_worker: Attempt to escape |host_dir|.")
             return False
 
         host_file_directory = os.path.dirname(host_file_path)
@@ -184,7 +188,7 @@ def copy_directory_from_worker(worker_directory, host_directory, replace=False):
             os.makedirs(host_file_directory)
 
         if not copy_file_from_worker(worker_file_path, host_file_path):
-            logs.log_warn('Failed to copy %s from worker.' % worker_file_path)
+            logs.log_warn("Failed to copy %s from worker." % worker_file_path)
             return False
 
     return True
@@ -203,41 +207,41 @@ def stat(path):
 def clear_testcase_directories():
     """Clear the testcases directories on the worker."""
     remove_directory(
-        rebase_to_worker_root(environment.get_value('FUZZ_INPUTS')),
-        recreate=True)
+        rebase_to_worker_root(environment.get_value("FUZZ_INPUTS")), recreate=True
+    )
     remove_directory(
-        rebase_to_worker_root(environment.get_value('FUZZ_INPUTS_DISK')),
-        recreate=True)
+        rebase_to_worker_root(environment.get_value("FUZZ_INPUTS_DISK")), recreate=True
+    )
 
 
 def clear_build_urls_directory():
     """Clear the build urls directory on the worker."""
     remove_directory(
-        rebase_to_worker_root(environment.get_value('BUILD_URLS_DIR')),
-        recreate=True)
+        rebase_to_worker_root(environment.get_value("BUILD_URLS_DIR")), recreate=True
+    )
 
 
 def clear_temp_directory():
     """Clear the temp directory on the worker."""
-    remove_directory(environment.get_value('WORKER_BOT_TMPDIR'), recreate=True)
+    remove_directory(environment.get_value("WORKER_BOT_TMPDIR"), recreate=True)
 
 
 def push_testcases_to_worker():
     """Push all testcases to the worker."""
-    local_testcases_directory = environment.get_value('FUZZ_INPUTS')
-    worker_testcases_directory = rebase_to_worker_root(
-        local_testcases_directory)
+    local_testcases_directory = environment.get_value("FUZZ_INPUTS")
+    worker_testcases_directory = rebase_to_worker_root(local_testcases_directory)
     return copy_directory_to_worker(
-        local_testcases_directory, worker_testcases_directory, replace=True)
+        local_testcases_directory, worker_testcases_directory, replace=True
+    )
 
 
 def pull_testcases_from_worker():
     """Pull all testcases to the worker."""
-    local_testcases_directory = environment.get_value('FUZZ_INPUTS')
-    worker_testcases_directory = rebase_to_worker_root(
-        local_testcases_directory)
+    local_testcases_directory = environment.get_value("FUZZ_INPUTS")
+    worker_testcases_directory = rebase_to_worker_root(local_testcases_directory)
     return copy_directory_from_worker(
-        worker_testcases_directory, local_testcases_directory, replace=True)
+        worker_testcases_directory, local_testcases_directory, replace=True
+    )
 
 
 def get_fuzz_targets(path):

@@ -27,14 +27,15 @@ class ChunkMinimizer(minimizer.Minimizer):
 
     def __init__(self, *args, **kwargs):
         self.chunk_sizes = self._handle_constructor_argument(
-            'chunk_sizes', kwargs, default=[10, 4, 1])
+            "chunk_sizes", kwargs, default=[10, 4, 1]
+        )
         minimizer.Minimizer.__init__(self, *args, **kwargs)
 
     def _execute(self, data):
         """Minimize |data| using the algorithm from CF (but backwards)."""
         testcase = minimizer.Testcase(data, self)
         if not self.validate_tokenizer(data, testcase):
-            raise errors.TokenizationFailureError('Chunk Minimizer')
+            raise errors.TokenizationFailureError("Chunk Minimizer")
 
         for lines_to_remove in self.chunk_sizes:
             remaining_tokens = testcase.get_required_token_indices()
@@ -48,7 +49,7 @@ class ChunkMinimizer(minimizer.Minimizer):
         return testcase
 
     @staticmethod
-    def run(data, thread_count=minimizer.DEFAULT_THREAD_COUNT, file_extension=''):
+    def run(data, thread_count=minimizer.DEFAULT_THREAD_COUNT, file_extension=""):
         """Minimize |data| using the old strategy from CF."""
         minimizer_round_1 = ChunkMinimizer(
             utils.test,
@@ -56,7 +57,8 @@ class ChunkMinimizer(minimizer.Minimizer):
             tokenizer=utils.tokenize,
             token_combiner=utils.token_combiner,
             chunk_sizes=[80, 40, 20],
-            file_extension=file_extension)
+            file_extension=file_extension,
+        )
 
         full_tokenizer = functools.partial(utils.tokenize, level=1)
         minimizer_round_2 = ChunkMinimizer(
@@ -65,7 +67,8 @@ class ChunkMinimizer(minimizer.Minimizer):
             tokenizer=full_tokenizer,
             token_combiner=utils.token_combiner,
             chunk_sizes=[10, 4, 1],
-            file_extension=file_extension)
+            file_extension=file_extension,
+        )
 
         result = minimizer_round_1.minimize(data)
         result = minimizer_round_2.minimize(result)

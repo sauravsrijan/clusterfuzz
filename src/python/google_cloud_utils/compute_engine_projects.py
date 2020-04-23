@@ -25,14 +25,15 @@ from collections import namedtuple
 from config import local_config
 from system import environment
 
-FILE_SCHEME = 'file://'
+FILE_SCHEME = "file://"
 
 
 class Project(object):
     """Project."""
 
-    def __init__(self, project_id, clusters, instance_templates,
-                 host_worker_assignments):
+    def __init__(
+        self, project_id, clusters, instance_templates, host_worker_assignments
+    ):
         self.project_id = project_id
         self.clusters = clusters
         self.instance_templates = instance_templates
@@ -40,68 +41,91 @@ class Project(object):
 
     def get_instance_template(self, name):
         """Get instance template with the given name."""
-        return next((template for template in self.instance_templates
-                     if template['name'] == name), None)
+        return next(
+            (
+                template
+                for template in self.instance_templates
+                if template["name"] == name
+            ),
+            None,
+        )
 
     def get_cluster(self, name):
         """Get the cluster with the given name."""
-        return next((cluster for cluster in self.clusters if cluster.name == name),
-                    None)
+        return next(
+            (cluster for cluster in self.clusters if cluster.name == name), None
+        )
 
 
-Cluster = namedtuple('Cluster', [
-    'name', 'gce_zone', 'instance_count', 'instance_template', 'distribute',
-    'worker', 'high_end'
-])
+Cluster = namedtuple(
+    "Cluster",
+    [
+        "name",
+        "gce_zone",
+        "instance_count",
+        "instance_template",
+        "distribute",
+        "worker",
+        "high_end",
+    ],
+)
 
-HostWorkerAssignment = namedtuple('HostWorkerAssignment',
-                                  ['host', 'worker', 'workers_per_host'])
+HostWorkerAssignment = namedtuple(
+    "HostWorkerAssignment", ["host", "worker", "workers_per_host"]
+)
 
 
 def _process_instance_template(instance_template):
     """Process instance template, normalizing some of metadata key values."""
     # Load metadata items for a particular instance template.
-    items = instance_template['properties']['metadata']['items']
+    items = instance_template["properties"]["metadata"]["items"]
     for item in items:
         # If the item value is a relative file path specified using the file://
         # scheme, then subsitute it with the actual file content. This is needed
         # since compute engine instance manager cannot read files from our repo.
-        if (isinstance(item['value'], basestring) and
-                item['value'].startswith(FILE_SCHEME)):
-            file_path = item['value'][len(FILE_SCHEME):]
+        if isinstance(item["value"], basestring) and item["value"].startswith(
+            FILE_SCHEME
+        ):
+            file_path = item["value"][len(FILE_SCHEME) :]
             with open(
-                    os.path.join(environment.get_gce_config_directory(), file_path)) as f:
-                item['value'] = f.read()
+                os.path.join(environment.get_gce_config_directory(), file_path)
+            ) as f:
+                item["value"] = f.read()
 
 
 def _config_to_project(name, config):
     """Read a project config."""
     clusters = []
 
-    for cluster_name, zone in six.iteritems(config['clusters']):
+    for cluster_name, zone in six.iteritems(config["clusters"]):
         clusters.append(
             Cluster(
                 name=cluster_name,
-                gce_zone=zone['gce_zone'],
-                instance_count=zone['instance_count'],
-                instance_template=zone['instance_template'],
-                distribute=zone.get('distribute', False),
-                worker=zone.get('worker', False),
-                high_end=zone.get('high_end', False)))
+                gce_zone=zone["gce_zone"],
+                instance_count=zone["instance_count"],
+                instance_template=zone["instance_template"],
+                distribute=zone.get("distribute", False),
+                worker=zone.get("worker", False),
+                high_end=zone.get("high_end", False),
+            )
+        )
 
-    for instance_template in config['instance_templates']:
+    for instance_template in config["instance_templates"]:
         _process_instance_template(instance_template)
 
     host_worker_assignments = []
-    for assignment in config.get('host_worker_assignments', []):
+    for assignment in config.get("host_worker_assignments", []):
         host_worker_assignments.append(
             HostWorkerAssignment(
-                host=assignment['host'],
-                worker=assignment['worker'],
-                workers_per_host=assignment['workers_per_host']))
+                host=assignment["host"],
+                worker=assignment["worker"],
+                workers_per_host=assignment["workers_per_host"],
+            )
+        )
 
-    return Project(name, clusters, config['instance_templates'],
-                   host_worker_assignments)
+    return Project(
+        name, clusters, config["instance_templates"], host_worker_assignments
+    )
 
 
 def _project_configs():

@@ -38,16 +38,16 @@ class JSMinimizer(minimizer.Minimizer):
     def _execute(self, data):
         testcase = minimizer.Testcase(data, self)
         if not self.validate_tokenizer(data, testcase):
-            raise errors.TokenizationFailureError('JS Minimizer')
+            raise errors.TokenizationFailureError("JS Minimizer")
 
         brace_stack = []
         paren_stack = []
 
         for index, token in enumerate(testcase.tokens):
-            if token == '{':
+            if token == "{":
                 brace_stack.append(index)
 
-            elif token == '}' and brace_stack:
+            elif token == "}" and brace_stack:
 
                 # Two hypotheses for tokens grouped by curly braces:
                 # 1) Remove from start of line to open brace and the closing brace.
@@ -56,31 +56,36 @@ class JSMinimizer(minimizer.Minimizer):
 
                 # Find the first non-empty token prior to the starting brackets.
                 token_before_bracket = step_back_while(
-                    open_brace_index - 1, (lambda x: not testcase.tokens[x].strip()))
+                    open_brace_index - 1, (lambda x: not testcase.tokens[x].strip())
+                )
 
                 # If that token is a close paren, we need to grab everything else too.
                 # Do this to grab the whole paren so we don't create a syntax error by
                 # removing only part of a paren.
-                if testcase.tokens[token_before_bracket] == ')':
+                if testcase.tokens[token_before_bracket] == ")":
                     # Find everything in the paren.
                     token_before_bracket = step_back_while(
-                        token_before_bracket, (lambda x: testcase.tokens[x] != '('))
+                        token_before_bracket, (lambda x: testcase.tokens[x] != "(")
+                    )
 
                     # Get the token before the paren.
                     token_before_bracket -= 1
                     token_before_bracket = step_back_while(
-                        token_before_bracket, (lambda x: not testcase.tokens[x].strip()))
+                        token_before_bracket, (lambda x: not testcase.tokens[x].strip())
+                    )
 
                 # Walk back to the start of that line as well to get if/else and funcs.
                 # Do this after paren to manage situations where there are newlines in
                 # the parens.
                 token_before_bracket = step_back_while(
-                    token_before_bracket, (lambda x: testcase.tokens[x] != '\n'))
+                    token_before_bracket, (lambda x: testcase.tokens[x] != "\n")
+                )
 
                 token_before_bracket += 1
 
-                hypothesis = list(range(token_before_bracket,
-                                        open_brace_index + 1)) + [index]
+                hypothesis = list(range(token_before_bracket, open_brace_index + 1)) + [
+                    index
+                ]
 
                 testcase.prepare_test(hypothesis)
 
@@ -89,23 +94,24 @@ class JSMinimizer(minimizer.Minimizer):
                 future_index = len(testcase.tokens)
                 open_count = 0
                 for future_index in range(index + 1, len(testcase.tokens)):
-                    if testcase.tokens[future_index] == '{':
+                    if testcase.tokens[future_index] == "{":
                         open_count += 1
-                    if testcase.tokens[future_index] == '}':
+                    if testcase.tokens[future_index] == "}":
                         open_count -= 1
                         # Make sure to grab entire outer brace if there are inner braces.
                         if not open_count:
                             break
                 if future_index != len(testcase.tokens):
                     lookahead_hypothesis = hypothesis + list(
-                        range(index + 1, future_index + 1))
+                        range(index + 1, future_index + 1)
+                    )
 
                     testcase.prepare_test(lookahead_hypothesis)
 
-            elif token == '(':
+            elif token == "(":
                 paren_stack.append(index)
 
-            elif token == ')' and paren_stack:
+            elif token == ")" and paren_stack:
                 # Three hypotheses for tokens grouped by parentheses:
                 # 1) Remove the parentheses and the previous token.
                 #    e.g.: assertTrue(crash()); -> crash()
@@ -127,25 +133,26 @@ class JSMinimizer(minimizer.Minimizer):
                 # Find the beginning of the line
                 token_before_paren = previous_end
                 token_before_paren = step_back_while(
-                    previous_end, (lambda x: testcase.tokens[x] != '\n'))
+                    previous_end, (lambda x: testcase.tokens[x] != "\n")
+                )
                 token_before_paren += 1
 
-                hypothesis = list(
-                    range(token_before_paren, previous_end + 1)) + [index]
+                hypothesis = list(range(token_before_paren, previous_end + 1)) + [index]
                 testcase.prepare_test(hypothesis)
 
                 # 4) Like 3, but also from the closing brace to the next one.
                 #    e.g.: (function(global) { })(this);
                 future_index = len(testcase.tokens)
                 for future_index in range(index + 1, len(testcase.tokens)):
-                    if testcase.tokens[future_index] == ')':
+                    if testcase.tokens[future_index] == ")":
                         break
                 if future_index != len(testcase.tokens):
                     lookahead_hypothesis = list(
-                        range(token_before_paren, future_index + 1))
+                        range(token_before_paren, future_index + 1)
+                    )
                     testcase.prepare_test(lookahead_hypothesis)
 
-            elif token == ',':
+            elif token == ",":
                 # Two hypotheses for commas:
                 # 1) Remove comma and left-hand-side.
                 #    e.g.: f(whatever, crash()) -> f(crash())
@@ -168,12 +175,11 @@ class JSMinimizer(minimizer.Minimizer):
         return testcase
 
     @staticmethod
-    def run(data,
-            thread_count=minimizer.DEFAULT_THREAD_COUNT,
-            file_extension='.js'):
+    def run(data, thread_count=minimizer.DEFAULT_THREAD_COUNT, file_extension=".js"):
         """Attempt to minimize a javascript test case."""
         line_minimizer = delta_minimizer.DeltaMinimizer(
-            utils.test, max_threads=thread_count, file_extension=file_extension)
+            utils.test, max_threads=thread_count, file_extension=file_extension
+        )
 
         js_tokenizer = AntlrTokenizer(JavaScriptLexer)
 
@@ -182,7 +188,8 @@ class JSMinimizer(minimizer.Minimizer):
             max_threads=thread_count,
             tokenizer=js_tokenizer.tokenize,
             token_combiner=js_tokenizer.combine,
-            file_extension=file_extension)
+            file_extension=file_extension,
+        )
 
         result = line_minimizer.minimize(data)
         result = js_minimizer(result)

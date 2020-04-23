@@ -20,19 +20,19 @@ from local.butler import common
 
 def execute(_):
     """Format changed code."""
-    _, output = common.execute('git diff --name-only FETCH_HEAD')
+    _, output = common.execute("git diff --name-only FETCH_HEAD")
 
-    file_paths = [
-        f.decode('utf-8') for f in output.splitlines() if os.path.exists(f)
-    ]
+    file_paths = [f.decode("utf-8") for f in output.splitlines() if os.path.exists(f)]
     py_changed_file_paths = [
-        f for f in file_paths if f.endswith('.py') and
+        f
+        for f in file_paths
+        if f.endswith(".py") and
         # Exclude auto-generated files.
-        not f.endswith('_pb2.py') and not f.endswith('_pb2_grpc.py')
+        not f.endswith("_pb2.py") and not f.endswith("_pb2_grpc.py")
     ]
-    go_changed_file_paths = [f for f in file_paths if f.endswith('.go')]
+    go_changed_file_paths = [f for f in file_paths if f.endswith(".go")]
     for file_path in py_changed_file_paths:
-        common.execute('yapf -i ' + file_path)
+        common.execute("yapf -i " + file_path)
 
     for file_path in go_changed_file_paths:
-        common.execute('gofmt -w ' + file_path)
+        common.execute("gofmt -w " + file_path)

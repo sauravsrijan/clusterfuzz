@@ -73,11 +73,10 @@ def main(args):
     timestamp = str(math.trunc(time.time()))
 
     with tf.Session() as session:
-        print('\nusing model {} to generate {} inputs...'.format(model_path, count))
+        print("\nusing model {} to generate {} inputs...".format(model_path, count))
 
         # Restore the model.
-        new_saver = tf.train.import_meta_graph(model_path +
-                                               constants.MODEL_META_SUFFIX)
+        new_saver = tf.train.import_meta_graph(model_path + constants.MODEL_META_SUFFIX)
         new_saver.restore(session, model_path)
 
         corpus_files_info = utils.get_files_info(input_dir)
@@ -89,7 +88,8 @@ def main(args):
             # Reset hidden states each time to generate new inputs, so that
             # different rounds will not interfere.
             state = np.zeros(
-                [BATCH_SIZE, hidden_state_size * hidden_layer_size], dtype=np.float32)
+                [BATCH_SIZE, hidden_state_size * hidden_layer_size], dtype=np.float32
+            )
 
             # Randomly select `BATCH_SIZE` number of inputs from corpus.
             # Record their first byte and file length.
@@ -97,7 +97,7 @@ def main(args):
             corpus_files_length = []
             for i in range(BATCH_SIZE):
                 file_info = utils.random_element_from_list(corpus_files_info)
-                first_byte, file_size = file_info['first_byte'], file_info['file_size']
+                first_byte, file_size = file_info["first_byte"], file_info["file_size"]
                 new_files_bytes.append([first_byte])
                 corpus_files_length.append(file_size)
 
@@ -117,25 +117,30 @@ def main(args):
 
             for _ in range(max_length - 1):
                 feed_dict = {
-                    'input_bytes:0': input_bytes,
-                    'pkeep:0': 1.0,
-                    'hidden_state:0': state,
-                    'batchsize:0': BATCH_SIZE
+                    "input_bytes:0": input_bytes,
+                    "pkeep:0": 1.0,
+                    "hidden_state:0": state,
+                    "batchsize:0": BATCH_SIZE,
                 }
 
                 try:
                     output, new_state = session.run(
-                        ['output_onehot:0', 'next_state:0'], feed_dict=feed_dict)
+                        ["output_onehot:0", "next_state:0"], feed_dict=feed_dict
+                    )
                 except ValueError:
                     print(
-                        ('Failed to run TensorFlow operations since '
-                         'model parameters do not match.'),
-                        file=sys.stderr)
+                        (
+                            "Failed to run TensorFlow operations since "
+                            "model parameters do not match."
+                        ),
+                        file=sys.stderr,
+                    )
                     return constants.ExitCode.TENSORFLOW_ERROR
 
                 for i in range(BATCH_SIZE):
                     predicted_byte = utils.sample_from_probabilities(
-                        output[i], topn=TOPN)
+                        output[i], topn=TOPN
+                    )
                     new_files_bytes[i].append(predicted_byte)
                     input_bytes[i][0] = predicted_byte
 
@@ -144,27 +149,30 @@ def main(args):
 
             # Use timestamp as part of file name.
             for i in range(BATCH_SIZE):
-                new_file_name = '{}_{:0>8}'.format(timestamp, new_units_count)
+                new_file_name = "{}_{:0>8}".format(timestamp, new_units_count)
                 new_file_path = os.path.join(output_dir, new_file_name)
 
                 # Use existing input length if possible, but make sure it is between
                 # min_length and max_length.
-                new_file_length = max(min_length, min(corpus_files_length[i],
-                                                      max_length))
-                new_file_byte_array = bytearray(
-                    new_files_bytes[i][:new_file_length])
+                new_file_length = max(
+                    min_length, min(corpus_files_length[i], max_length)
+                )
+                new_file_byte_array = bytearray(new_files_bytes[i][:new_file_length])
 
-                with open(new_file_path, 'wb') as new_file:
+                with open(new_file_path, "wb") as new_file:
                     new_file.write(new_file_byte_array)
-                print('generate input: {}, feed byte: {}, input length: {}'.format(
-                    new_file_path, new_files_bytes[i][0], new_file_length))
+                print(
+                    "generate input: {}, feed byte: {}, input length: {}".format(
+                        new_file_path, new_files_bytes[i][0], new_file_length
+                    )
+                )
 
                 # Have we got enough inputs?
                 new_units_count += 1
                 if new_units_count >= count:
                     break
 
-        print('Done.')
+        print("Done.")
         return constants.ExitCode.SUCCESS
 
 
@@ -179,13 +187,12 @@ def validate_paths(args):
     """
     if not os.path.exists(args.input_dir):
         print(
-            'Input directory {} does not exist'.format(args.input_dir),
-            file=sys.stderr)
+            "Input directory {} does not exist".format(args.input_dir), file=sys.stderr
+        )
         return False
 
     if not utils.validate_model_path(args.model_path):
-        print('Model {} does not exist'.format(
-            args.model_path), file=sys.stderr)
+        print("Model {} does not exist".format(args.model_path), file=sys.stderr)
         return False
 
     if not os.path.exists(args.output_dir):
@@ -201,35 +208,34 @@ def parse_args():
       Parsed arguement object.
     """
     parser = argparse.ArgumentParser(
-        'Generating testcases using the model trained with train.py script.')
+        "Generating testcases using the model trained with train.py script."
+    )
 
-    parser.add_argument('--input-dir', help='Input folder path', required=True)
+    parser.add_argument("--input-dir", help="Input folder path", required=True)
+    parser.add_argument("--output-dir", help="Output folder path", required=True)
+    parser.add_argument("--model-path", help="Path to trained model", required=True)
     parser.add_argument(
-        '--output-dir', help='Output folder path', required=True)
-    parser.add_argument(
-        '--model-path', help='Path to trained model', required=True)
-    parser.add_argument(
-        '--count',
-        help='Number of similar inputs to generate',
-        type=int,
-        required=True)
+        "--count", help="Number of similar inputs to generate", type=int, required=True
+    )
 
     # Optional arguments: model parameters.
     # Warning: parameter values must match the model specified above.
     parser.add_argument(
-        '--hidden-state-size',
-        help='Hidden state size of LSTM cell (must match model)',
+        "--hidden-state-size",
+        help="Hidden state size of LSTM cell (must match model)",
         type=int,
-        default=constants.HIDDEN_STATE_SIZE)
+        default=constants.HIDDEN_STATE_SIZE,
+    )
     parser.add_argument(
-        '--hidden-layer-size',
-        help='Hidden layer size of LSTM model (must match model)',
+        "--hidden-layer-size",
+        help="Hidden layer size of LSTM model (must match model)",
         type=int,
-        default=constants.HIDDEN_LAYER_SIZE)
+        default=constants.HIDDEN_LAYER_SIZE,
+    )
 
     return parser.parse_args()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parsed_args = parse_args()
     sys.exit(main(parsed_args))

@@ -39,18 +39,17 @@ def _add_to_zip(output_file, src_file_path, dest_file_path=None):
     """Add the src_file_path to the output_file with the right target path."""
     if dest_file_path is None:
         dest_file_path = src_file_path
-    output_file.write(src_file_path, os.path.join(
-        'clusterfuzz', dest_file_path))
+    output_file.write(src_file_path, os.path.join("clusterfuzz", dest_file_path))
 
 
 def _is_nodejs_up_to_date():
     """Check if node is of version MINIMUM_NODEJS_VERSION."""
-    return_code, output = common.execute('node -v')
+    return_code, output = common.execute("node -v")
 
     if return_code != 0:
         return False
 
-    m = re.match(br'v([0-9]+)\..+', output.strip())
+    m = re.match(br"v([0-9]+)\..+", output.strip())
 
     if not m:
         return False
@@ -63,25 +62,27 @@ def _get_files(path):
     """Iterate through files in path."""
     for root, _, filenames in os.walk(path):
         for filename in filenames:
-            if filename.endswith('.pyc') or (os.sep + '.git') in root:
+            if filename.endswith(".pyc") or (os.sep + ".git") in root:
                 continue
 
             yield os.path.join(root, filename)
 
 
-def package(revision,
-            target_zip_dir=constants.PACKAGE_TARGET_ZIP_DIRECTORY,
-            target_manifest_path=constants.PACKAGE_TARGET_MANIFEST_PATH,
-            platform_name=None,
-            python3=False):
+def package(
+    revision,
+    target_zip_dir=constants.PACKAGE_TARGET_ZIP_DIRECTORY,
+    target_manifest_path=constants.PACKAGE_TARGET_MANIFEST_PATH,
+    platform_name=None,
+    python3=False,
+):
     """Prepare clusterfuzz-source.zip."""
-    is_ci = os.getenv('TEST_BOT_ENVIRONMENT')
+    is_ci = os.getenv("TEST_BOT_ENVIRONMENT")
     if not is_ci and common.is_git_dirty():
-        print('Your branch is dirty. Please fix before packaging.')
+        print("Your branch is dirty. Please fix before packaging.")
         sys.exit(1)
 
     if not _is_nodejs_up_to_date():
-        print('You do not have nodejs, or your nodejs is not at least version 4.')
+        print("You do not have nodejs, or your nodejs is not at least version 4.")
         sys.exit(1)
 
     common.install_dependencies(platform_name=platform_name)
@@ -90,10 +91,8 @@ def package(revision,
     # archived for bot.
     appengine.symlink_dirs()
 
-    _, ls_files_output = common.execute(
-        'git -C . ls-files', print_output=False)
-    file_paths = [path.decode('utf-8')
-                  for path in ls_files_output.splitlines()]
+    _, ls_files_output = common.execute("git -C . ls-files", print_output=False)
+    file_paths = [path.decode("utf-8") for path in ls_files_output.splitlines()]
 
     if not os.path.exists(target_zip_dir):
         os.makedirs(target_zip_dir)
@@ -101,54 +100,55 @@ def package(revision,
     target_zip_name = constants.LEGACY_ZIP_NAME
     if platform_name:
         if python3:
-            target_zip_name = platform_name + '-3.zip'
+            target_zip_name = platform_name + "-3.zip"
         else:
-            target_zip_name = platform_name + '.zip'
+            target_zip_name = platform_name + ".zip"
 
     target_zip_path = os.path.join(target_zip_dir, target_zip_name)
     _clear_zip(target_zip_path)
 
-    output_file = zipfile.ZipFile(target_zip_path, 'w', zipfile.ZIP_DEFLATED)
+    output_file = zipfile.ZipFile(target_zip_path, "w", zipfile.ZIP_DEFLATED)
 
     # Add files from git.
     for file_path in file_paths:
-        if (file_path.startswith('config') or file_path.startswith('local') or
-            file_path.startswith(os.path.join('src', 'appengine')) or
-            file_path.startswith(os.path.join('src', 'local')) or
-                file_path.startswith(os.path.join('src', 'python', 'tests'))):
+        if (
+            file_path.startswith("config")
+            or file_path.startswith("local")
+            or file_path.startswith(os.path.join("src", "appengine"))
+            or file_path.startswith(os.path.join("src", "local"))
+            or file_path.startswith(os.path.join("src", "python", "tests"))
+        ):
             continue
         _add_to_zip(output_file, file_path)
 
     # These are project configuration yamls.
-    for path in _get_files(os.path.join('src', 'appengine', 'config')):
+    for path in _get_files(os.path.join("src", "appengine", "config")):
         _add_to_zip(output_file, path)
 
     # These are third party dependencies.
-    for path in _get_files(os.path.join('src', 'third_party')):
+    for path in _get_files(os.path.join("src", "third_party")):
         _add_to_zip(output_file, path)
 
     output_file.close()
 
-    with open(target_manifest_path, 'w') as f:
-        f.write('%s\n' % revision)
+    with open(target_manifest_path, "w") as f:
+        f.write("%s\n" % revision)
 
-    with zipfile.ZipFile(target_zip_path, 'a', zipfile.ZIP_DEFLATED) as f:
-        _add_to_zip(f, target_manifest_path,
-                    constants.PACKAGE_TARGET_MANIFEST_PATH)
+    with zipfile.ZipFile(target_zip_path, "a", zipfile.ZIP_DEFLATED) as f:
+        _add_to_zip(f, target_manifest_path, constants.PACKAGE_TARGET_MANIFEST_PATH)
 
-    print('Revision: %s' % revision)
+    print("Revision: %s" % revision)
 
     print()
-    print('%s is ready.' % target_zip_path)
+    print("%s is ready." % target_zip_path)
     return target_zip_path
 
 
 def execute(args):
-    if args.platform == 'all':
+    if args.platform == "all":
         for platform_name in list(constants.PLATFORMS.keys()):
             package(
-                revision=common.compute_staging_revision(),
-                platform_name=platform_name)
+                revision=common.compute_staging_revision(), platform_name=platform_name
+            )
     else:
-        package(
-            revision=common.compute_staging_revision(), platform_name=args.platform)
+        package(revision=common.compute_staging_revision(), platform_name=args.platform)

@@ -31,11 +31,12 @@ import time
 import os
 import atexit
 from python.base import modules
+
 modules.fix_module_search_paths()
 
 
-BOT_SCRIPT = 'run_bot.py'
-HEARTBEAT_SCRIPT = 'run_heartbeat.py'
+BOT_SCRIPT = "run_bot.py"
+HEARTBEAT_SCRIPT = "run_heartbeat.py"
 HEARTBEAT_START_WAIT_TIME = 60
 LOOP_SLEEP_INTERVAL = 3
 
@@ -49,26 +50,26 @@ def start_bot(bot_command):
 
     try:
         process_handle = mozprocess.ProcessHandlerMixin(
-            command,
-            arguments,
-            kill_on_timeout=True,
-            processOutputLine=[store_output])
+            command, arguments, kill_on_timeout=True, processOutputLine=[store_output]
+        )
         process_handler.start_process(process_handle)
     except Exception:
-        logs.log_error('Unable to start bot process (%s).' % bot_command)
+        logs.log_error("Unable to start bot process (%s)." % bot_command)
         return 1
 
     # Wait until the process terminates or until run timed out.
-    run_timeout = environment.get_value('RUN_TIMEOUT')
+    run_timeout = environment.get_value("RUN_TIMEOUT")
     exit_code = process_handle.wait(timeout=run_timeout)
     try:
         process_handle.kill()
     except Exception:
         pass
 
-    log_message = (
-        'Command: %s %s (exit=%s)\n' % (command, arguments, exit_code) +
-        b'\n'.join(store_output.output).decode('utf-8', errors='ignore'))
+    log_message = "Command: %s %s (exit=%s)\n" % (
+        command,
+        arguments,
+        exit_code,
+    ) + b"\n".join(store_output.output).decode("utf-8", errors="ignore")
 
     if exit_code == 0:
         logs.log(log_message)
@@ -99,8 +100,7 @@ def start_heartbeat(heartbeat_command):
         process_handle = mozprocess.ProcessHandlerMixin(command, arguments)
         process_handler.start_process(process_handle)
     except Exception:
-        logs.log_error(
-            'Unable to start heartbeat process (%s).' % heartbeat_command)
+        logs.log_error("Unable to start heartbeat process (%s)." % heartbeat_command)
         return
 
     # If heartbeat is successfully started, set its handle now.
@@ -139,7 +139,7 @@ def update_source_code_if_needed():
 
             update_task.update_source_code()
     except Exception:
-        logs.log_error('Failed to update source.')
+        logs.log_error("Failed to update source.")
 
 
 def run_loop(bot_command, heartbeat_command):
@@ -156,44 +156,49 @@ def run_loop(bot_command, heartbeat_command):
             if data_handler.bot_run_timed_out():
                 break
         except Exception:
-            logs.log_error('Failed to check for bot run timeout.')
+            logs.log_error("Failed to check for bot run timeout.")
 
         sleep(LOOP_SLEEP_INTERVAL)
 
 
 def main():
-    root_directory = environment.get_value('ROOT_DIR')
+    root_directory = environment.get_value("ROOT_DIR")
     if not root_directory:
-        print('Please set ROOT_DIR environment variable to the root of the source '
-              'checkout before running. Exiting.')
-        print('For an example, check init.bash in the local directory.')
+        print(
+            "Please set ROOT_DIR environment variable to the root of the source "
+            "checkout before running. Exiting."
+        )
+        print("For an example, check init.bash in the local directory.")
         return
 
     environment.set_bot_environment()
     persistent_cache.initialize()
-    logs.configure('run')
+    logs.configure("run")
 
     # Create command strings to launch bot and heartbeat.
     base_directory = environment.get_startup_scripts_directory()
-    log_directory = environment.get_value('LOG_DIR')
-    bot_log = os.path.join(log_directory, 'bot.log')
+    log_directory = environment.get_value("LOG_DIR")
+    bot_log = os.path.join(log_directory, "bot.log")
 
     bot_script_path = os.path.join(base_directory, BOT_SCRIPT)
     bot_interpreter = shell.get_interpreter(bot_script_path)
     assert bot_interpreter
-    bot_command = '%s %s' % (bot_interpreter, bot_script_path)
+    bot_command = "%s %s" % (bot_interpreter, bot_script_path)
 
     heartbeat_script_path = os.path.join(base_directory, HEARTBEAT_SCRIPT)
     heartbeat_interpreter = shell.get_interpreter(heartbeat_script_path)
     assert heartbeat_interpreter
-    heartbeat_command = '%s %s %s' % (heartbeat_interpreter,
-                                      heartbeat_script_path, bot_log)
+    heartbeat_command = "%s %s %s" % (
+        heartbeat_interpreter,
+        heartbeat_script_path,
+        bot_log,
+    )
 
     run_loop(bot_command, heartbeat_command)
 
-    logs.log('Exit run.py')
+    logs.log("Exit run.py")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     with ndb_init.context():
         main()

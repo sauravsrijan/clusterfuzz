@@ -26,8 +26,8 @@ from fuzzing import strategy
 from metrics import logs
 from system import environment
 
-SANITIZER_START_REGEX = re.compile(r'.*ERROR: [A-z]+Sanitizer:.*')
-SANITIZER_SEPERATOR_REGEX = re.compile(r'^=+$')
+SANITIZER_START_REGEX = re.compile(r".*ERROR: [A-z]+Sanitizer:.*")
+SANITIZER_SEPERATOR_REGEX = re.compile(r"^=+$")
 
 
 class StatsGetter(object):
@@ -37,21 +37,23 @@ class StatsGetter(object):
 
     # Regex for finding stat names and values in fuzzer_stats and
     # extra_fuzzer_stats.
-    STATS_REGEX = r'(?P<stat_key>\S+)\s+: (?P<stat_val>\d+[.\d]*).*\n'
+    STATS_REGEX = r"(?P<stat_key>\S+)\s+: (?P<stat_val>\d+[.\d]*).*\n"
 
     # Mapping from names in AFL's stats file to those of Clusterfuzz's
     AFL_STATS_MAPPING = {
-        'exec_timeout': 'timeout_limit',
-        'stability': 'stability',
-        'unique_crashes': 'crash_count',
-        'unique_hangs': 'timeout_count',
+        "exec_timeout": "timeout_limit",
+        "stability": "stability",
+        "unique_crashes": "crash_count",
+        "unique_hangs": "timeout_count",
     }
 
     NO_INSTRUMENTATION_REGEX = re.compile(
-        r'PROGRAM ABORT :.*No instrumentation detected')
-    STARTUP_CRASH_REGEX = re.compile(r'target binary (crashed|terminated)')
+        r"PROGRAM ABORT :.*No instrumentation detected"
+    )
+    STARTUP_CRASH_REGEX = re.compile(r"target binary (crashed|terminated)")
     CORPUS_CRASH_REGEX = re.compile(
-        r'program crashed with one of the test cases provided')
+        r"program crashed with one of the test cases provided"
+    )
 
     def __init__(self, afl_stats_path, dict_path):
         """Set important attributes and initialize all stats to 0.
@@ -71,20 +73,20 @@ class StatsGetter(object):
 
         # Default values.
         self.stats = {
-            'actual_duration': 0,
-            'average_exec_per_sec': 0,
-            'bad_instrumentation': 0,
-            'corpus_crash_count': 0,
-            'crash_count': 0,
-            'dict_used': 0,
-            'log_lines_unwanted': 0,
-            'manual_dict_size': 0,
-            'new_units_added': 0,
-            'new_units_generated': 0,
-            'stability': 0.0,
-            'startup_crash_count': 0,
-            'timeout_count': 0,
-            'timeout_limit': 0,
+            "actual_duration": 0,
+            "average_exec_per_sec": 0,
+            "bad_instrumentation": 0,
+            "corpus_crash_count": 0,
+            "crash_count": 0,
+            "dict_used": 0,
+            "log_lines_unwanted": 0,
+            "manual_dict_size": 0,
+            "new_units_added": 0,
+            "new_units_generated": 0,
+            "stability": 0.0,
+            "startup_crash_count": 0,
+            "timeout_count": 0,
+            "timeout_limit": 0,
         }
 
     def set_afl_stats(self):
@@ -97,7 +99,8 @@ class StatsGetter(object):
             return
 
         afl_stats_string = engine_common.read_data_from_file(
-            self.afl_stats_path).decode('utf-8')
+            self.afl_stats_path
+        ).decode("utf-8")
         matches_iterator = re.finditer(self.STATS_REGEX, afl_stats_string)
         self.afl_stats = dict(match.groups() for match in matches_iterator)
 
@@ -125,7 +128,8 @@ class StatsGetter(object):
             # If afl_stat_value is in AFL_STATS_MAPPING, then get the clusterfuzz name
             # of the stat to lookup the stat's default value.
             clusterfuzz_stat_name = self.AFL_STATS_MAPPING.get(
-                afl_stat_name, afl_stat_name)
+                afl_stat_name, afl_stat_name
+            )
 
             return self.stats.get(clusterfuzz_stat_name, 0)
 
@@ -148,14 +152,16 @@ class StatsGetter(object):
 
         return count
 
-    def set_stats(self,
-                  actual_duration,
-                  new_units_generated,
-                  new_units_added,
-                  corpus_size,
-                  fuzzing_strategies,
-                  fuzzer_stderr,
-                  afl_fuzz_output=''):
+    def set_stats(
+        self,
+        actual_duration,
+        new_units_generated,
+        new_units_added,
+        corpus_size,
+        fuzzing_strategies,
+        fuzzer_stderr,
+        afl_fuzz_output="",
+    ):
         """Create a dict of statistics that can be uploaded to ClusterFuzz and save
         it in self.stats.
 
@@ -179,20 +185,23 @@ class StatsGetter(object):
         assert new_units_added <= new_units_generated
 
         # Set stats passed to this function as arguments.
-        self.stats['actual_duration'] = int(actual_duration)
-        self.stats['new_units_generated'] = new_units_generated
-        self.stats['new_units_added'] = new_units_added
-        self.stats['corpus_size'] = corpus_size
+        self.stats["actual_duration"] = int(actual_duration)
+        self.stats["new_units_generated"] = new_units_generated
+        self.stats["new_units_added"] = new_units_added
+        self.stats["corpus_size"] = corpus_size
 
         # Set log_lines_unwanted stat from parsing fuzzer stderr.
-        self.stats['log_lines_unwanted'] = self._get_unwanted_log_line_count(
-            fuzzer_stderr)
+        self.stats["log_lines_unwanted"] = self._get_unwanted_log_line_count(
+            fuzzer_stderr
+        )
 
         # Set dictionary stats if self.dict_path is set.
         if self.dict_path is not None:
-            self.stats['dict_used'] = 1
-            self.stats['manual_dict_size'], _ = (
-                dictionary_manager.get_stats_for_dictionary_file(self.dict_path))
+            self.stats["dict_used"] = 1
+            (
+                self.stats["manual_dict_size"],
+                _,
+            ) = dictionary_manager.get_stats_for_dictionary_file(self.dict_path)
 
         # Read and parse stats from AFL's afl_stats. Then use them to set and
         # calculate our own stats.
@@ -201,16 +210,19 @@ class StatsGetter(object):
             self.stats[clusterfuzz_stat] = self.get_afl_stat(afl_stat)
 
         try:
-            self.stats['average_exec_per_sec'] = int(
-                self.get_afl_stat('execs_done') // actual_duration)
+            self.stats["average_exec_per_sec"] = int(
+                self.get_afl_stat("execs_done") // actual_duration
+            )
 
         except ZeroDivisionError:  # Fail gracefully if actual_duration is 0.
-            self.stats['average_exec_per_sec'] = 0
-            logs.log_error('actual_duration is 0 in fuzzer_stats. '
-                           'average_exec_per_sec defaulting to 0.')
+            self.stats["average_exec_per_sec"] = 0
+            logs.log_error(
+                "actual_duration is 0 in fuzzer_stats. "
+                "average_exec_per_sec defaulting to 0."
+            )
 
         # Normalize |timeout_count| and |crash_count| to be either 0 or 1.
-        for stat_variable in ['crash_count', 'timeout_count']:
+        for stat_variable in ["crash_count", "timeout_count"]:
             self.stats[stat_variable] = int(bool(self.stats[stat_variable]))
 
         self.set_strategy_stats(fuzzing_strategies)
@@ -221,37 +233,35 @@ class StatsGetter(object):
         """Set stats gotten from the output of afl-fuzz, |afl_fuzz_output|."""
         # If there is no instrumentation, note it.
         if re.search(self.NO_INSTRUMENTATION_REGEX, afl_fuzz_output):
-            self.stats['bad_instrumentation'] = 1
+            self.stats["bad_instrumentation"] = 1
 
         # If there is a startup crash, note it.
         if re.search(self.STARTUP_CRASH_REGEX, afl_fuzz_output):
-            self.stats['startup_crash_count'] = 1
+            self.stats["startup_crash_count"] = 1
 
         # If there is a crashing input in corpus, note it.
         if re.search(self.CORPUS_CRASH_REGEX, afl_fuzz_output):
-            self.stats['corpus_crash_count'] = 1
+            self.stats["corpus_crash_count"] = 1
 
     def set_strategy_stats(self, fuzzing_strategies):
         """Sets strategy related stats for afl-fuzz to correct values based on
         |strategies|."""
 
-        self.stats['strategy_selection_method'] = environment.get_value(
-            'STRATEGY_SELECTION_METHOD', default_value='default')
+        self.stats["strategy_selection_method"] = environment.get_value(
+            "STRATEGY_SELECTION_METHOD", default_value="default"
+        )
 
         if fuzzing_strategies.use_corpus_subset:
-            self.stats['strategy_' + strategy.CORPUS_SUBSET_STRATEGY.name] = (
-                fuzzing_strategies.corpus_subset_size)
+            self.stats[
+                "strategy_" + strategy.CORPUS_SUBSET_STRATEGY.name
+            ] = fuzzing_strategies.corpus_subset_size
 
         if fuzzing_strategies.fast_cal == strategies.FastCal.MANUAL:
             self.stats[fuzzing_strategies.FAST_CAL_MANUAL_STRATEGY] = 1
         elif fuzzing_strategies.fast_cal == strategies.FastCal.RANDOM:
             self.stats[fuzzing_strategies.FAST_CAL_RANDOM_STRATEGY] = 1
 
-        if (fuzzing_strategies.generator_strategy == engine_common.Generator.RADAMSA
-            ):
-            self.stats['strategy_' +
-                       strategy.CORPUS_MUTATION_RADAMSA_STRATEGY.name] = 1
-        elif (fuzzing_strategies.generator_strategy ==
-              engine_common.Generator.ML_RNN):
-            self.stats['strategy_' +
-                       strategy.CORPUS_MUTATION_ML_RNN_STRATEGY.name] = 1
+        if fuzzing_strategies.generator_strategy == engine_common.Generator.RADAMSA:
+            self.stats["strategy_" + strategy.CORPUS_MUTATION_RADAMSA_STRATEGY.name] = 1
+        elif fuzzing_strategies.generator_strategy == engine_common.Generator.ML_RNN:
+            self.stats["strategy_" + strategy.CORPUS_MUTATION_ML_RNN_STRATEGY.name] = 1

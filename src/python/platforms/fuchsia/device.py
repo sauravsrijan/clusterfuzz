@@ -63,30 +63,33 @@ def _fetch_qemu_vars():
     qemu_vars = {}
 
     # First, ensure we have a resources directory.
-    fuchsia_resources_dir = environment.get_value('FUCHSIA_RESOURCES_DIR')
+    fuchsia_resources_dir = environment.get_value("FUCHSIA_RESOURCES_DIR")
     if not fuchsia_resources_dir:
-        raise errors.FuchsiaConfigError('Could not find FUCHSIA_RESOURCES_DIR')
+        raise errors.FuchsiaConfigError("Could not find FUCHSIA_RESOURCES_DIR")
 
     # Then, save and chmod the associated paths.
-    qemu_vars['fuchsia_resources_dir'] = fuchsia_resources_dir
-    qemu_vars['qemu_path'] = os.path.join(
-        fuchsia_resources_dir, 'qemu-for-fuchsia', 'bin', 'qemu-system-x86_64')
-    os.chmod(qemu_vars['qemu_path'], 0o550)
-    qemu_vars['kernel_path'] = os.path.join(fuchsia_resources_dir, 'target',
-                                            'x64', 'multiboot.bin')
-    os.chmod(qemu_vars['kernel_path'], 0o644)
-    qemu_vars['pkey_path'] = os.path.join(
-        fuchsia_resources_dir, '.ssh', 'pkey')
-    os.chmod(qemu_vars['pkey_path'], 0o400)
-    qemu_vars['sharefiles_path'] = os.path.join(
-        fuchsia_resources_dir, 'qemu-for-fuchsia', 'share', 'qemu')
-    qemu_vars['drive_path'] = os.path.join(fuchsia_resources_dir, 'target', 'x64',
-                                           'fvm.blk')
-    os.chmod(qemu_vars['drive_path'], 0o644)
-    qemu_vars['fuchsia_zbi'] = os.path.join(fuchsia_resources_dir, 'target',
-                                            'x64', 'fuchsia.zbi')
-    qemu_vars['initrd_path'] = os.path.join(fuchsia_resources_dir,
-                                            'fuchsia-ssh.zbi')
+    qemu_vars["fuchsia_resources_dir"] = fuchsia_resources_dir
+    qemu_vars["qemu_path"] = os.path.join(
+        fuchsia_resources_dir, "qemu-for-fuchsia", "bin", "qemu-system-x86_64"
+    )
+    os.chmod(qemu_vars["qemu_path"], 0o550)
+    qemu_vars["kernel_path"] = os.path.join(
+        fuchsia_resources_dir, "target", "x64", "multiboot.bin"
+    )
+    os.chmod(qemu_vars["kernel_path"], 0o644)
+    qemu_vars["pkey_path"] = os.path.join(fuchsia_resources_dir, ".ssh", "pkey")
+    os.chmod(qemu_vars["pkey_path"], 0o400)
+    qemu_vars["sharefiles_path"] = os.path.join(
+        fuchsia_resources_dir, "qemu-for-fuchsia", "share", "qemu"
+    )
+    qemu_vars["drive_path"] = os.path.join(
+        fuchsia_resources_dir, "target", "x64", "fvm.blk"
+    )
+    os.chmod(qemu_vars["drive_path"], 0o644)
+    qemu_vars["fuchsia_zbi"] = os.path.join(
+        fuchsia_resources_dir, "target", "x64", "fuchsia.zbi"
+    )
+    qemu_vars["initrd_path"] = os.path.join(fuchsia_resources_dir, "fuchsia-ssh.zbi")
     return qemu_vars
 
 
@@ -97,13 +100,17 @@ def initial_qemu_setup():
     This function does not run a VM, merely performs setup for a VM.
     """
     qemu_vars = _fetch_qemu_vars()
-    extend_fvm(qemu_vars['fuchsia_resources_dir'], qemu_vars['drive_path'])
-    add_keys_to_zbi(qemu_vars['fuchsia_resources_dir'], qemu_vars['initrd_path'],
-                    qemu_vars['fuchsia_zbi'])
+    extend_fvm(qemu_vars["fuchsia_resources_dir"], qemu_vars["drive_path"])
+    add_keys_to_zbi(
+        qemu_vars["fuchsia_resources_dir"],
+        qemu_vars["initrd_path"],
+        qemu_vars["fuchsia_zbi"],
+    )
 
 
 class QemuError(Exception):
     """Error for errors handling QEMU."""
+
     pass
 
 
@@ -123,8 +130,9 @@ class QemuProcess(object):
         self.logfile = None
 
         if not QemuProcess.LOG_PATH:
-            QemuProcess.LOG_PATH = os.path.join(tempfile.gettempdir(),
-                                                'fuchsia-qemu-log')
+            QemuProcess.LOG_PATH = os.path.join(
+                tempfile.gettempdir(), "fuchsia-qemu-log"
+            )
 
     def create(self):
         """Configures a QEMU process which can subsequently be `run`.
@@ -135,13 +143,14 @@ class QemuProcess(object):
 
         # Get a free port for the VM, so we can SSH in later.
         tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        tcp.bind(('localhost', 0))
+        tcp.bind(("localhost", 0))
         _, port = tcp.getsockname()
         tcp.close()
         # Fuzzing jobs that SSH into the QEMU VM need access to this env var.
-        environment.set_value('FUCHSIA_PORTNUM', port)
-        environment.set_value('FUCHSIA_RESOURCES_DIR',
-                              qemu_vars['fuchsia_resources_dir'])
+        environment.set_value("FUCHSIA_PORTNUM", port)
+        environment.set_value(
+            "FUCHSIA_RESOURCES_DIR", qemu_vars["fuchsia_resources_dir"]
+        )
 
         # yapf: disable
         qemu_args = [
@@ -168,38 +177,43 @@ class QemuProcess(object):
 
         # Detecing KVM is tricky, so use an environment variable to determine
         # whether to turn it on or not.
-        if environment.get_value('FUCHSIA_USE_KVM'):
-            qemu_args.extend(['-cpu', 'host,migratable=no'])
-            qemu_args.append('-enable-kvm')
+        if environment.get_value("FUCHSIA_USE_KVM"):
+            qemu_args.extend(["-cpu", "host,migratable=no"])
+            qemu_args.append("-enable-kvm")
         else:
             # Can't use host CPU since we don't necessarily have KVM on the machine.
             # Emulate a Haswell CPU with a few feature toggles. This mirrors the most
             # common configuration for Fuchsia VMs when using in-tree tools.
-            qemu_args.extend(['-cpu', 'Haswell,+smap,-check,-fsgsbase'])
+            qemu_args.extend(["-cpu", "Haswell,+smap,-check,-fsgsbase"])
 
         # Get the list of fuzzers for ClusterFuzz to choose from.
         host = Host.from_dir(
-            os.path.join(qemu_vars['fuchsia_resources_dir'], 'build', 'out',
-                         'default'))
-        Device(host, 'localhost', str(port))
-        Fuzzer.filter(host.fuzzers, '')
+            os.path.join(qemu_vars["fuchsia_resources_dir"], "build", "out", "default")
+        )
+        Device(host, "localhost", str(port))
+        Fuzzer.filter(host.fuzzers, "")
 
         # Fuzzing jobs that SSH into the QEMU VM need access to this env var.
-        environment.set_value('FUCHSIA_PKEY_PATH', qemu_vars['pkey_path'])
-        logs.log('Ready to run QEMU. Command: ' + qemu_vars['qemu_path'] + ' ' +
-                 str(qemu_args))
-        self.process_runner = new_process.ProcessRunner(qemu_vars['qemu_path'],
-                                                        qemu_args)
+        environment.set_value("FUCHSIA_PKEY_PATH", qemu_vars["pkey_path"])
+        logs.log(
+            "Ready to run QEMU. Command: "
+            + qemu_vars["qemu_path"]
+            + " "
+            + str(qemu_args)
+        )
+        self.process_runner = new_process.ProcessRunner(
+            qemu_vars["qemu_path"], qemu_args
+        )
 
     def run(self):
         """Actually runs a QEMU VM, assuming `create` has already been called."""
         if not self.process_runner:
-            raise QemuError(
-                'Attempted to `run` QEMU VM before calling `create`')
+            raise QemuError("Attempted to `run` QEMU VM before calling `create`")
 
-        self.logfile = open(QemuProcess.LOG_PATH, 'wb')
+        self.logfile = open(QemuProcess.LOG_PATH, "wb")
         self.popen = self.process_runner.run(
-            stdout=self.logfile, stderr=subprocess.PIPE)
+            stdout=self.logfile, stderr=subprocess.PIPE
+        )
         time.sleep(_QEMU_WAIT_SECONDS)
 
     def kill(self):
@@ -222,45 +236,56 @@ def start_qemu():
 
 def stop_qemu():
     """Stop qemu."""
-    process_handler.terminate_processes_matching_names('qemu-system-x86_64')
+    process_handler.terminate_processes_matching_names("qemu-system-x86_64")
 
 
 def extend_fvm(fuchsia_resources_dir, drive_path):
     """The FVM is minimally sized to begin with; extend it to make room for
     ephemeral packages etc."""
-    fvm_tool_path = os.path.join(fuchsia_resources_dir, 'build', 'out',
-                                 'default.zircon', 'tools', 'fvm')
+    fvm_tool_path = os.path.join(
+        fuchsia_resources_dir, "build", "out", "default.zircon", "tools", "fvm"
+    )
     os.chmod(fvm_tool_path, 0o500)
-    process = new_process.ProcessRunner(fvm_tool_path,
-                                        [drive_path, 'extend', '--length', '3G'])
+    process = new_process.ProcessRunner(
+        fvm_tool_path, [drive_path, "extend", "--length", "3G"]
+    )
     result = process.run_and_wait()
     if result.return_code or result.timed_out:
-        raise errors.FuchsiaSdkError('Failed to extend FVM: ' + result.output)
+        raise errors.FuchsiaSdkError("Failed to extend FVM: " + result.output)
 
 
 def add_keys_to_zbi(fuchsia_resources_dir, initrd_path, fuchsia_zbi):
     """Adds keys to the ZBI so we can SSH into it. See:
     fuchsia.googlesource.com/fuchsia/+/refs/heads/master/sdk/docs/ssh.md"""
-    zbi_tool = os.path.join(fuchsia_resources_dir, 'build', 'out',
-                            'default.zircon', 'tools', 'zbi')
+    zbi_tool = os.path.join(
+        fuchsia_resources_dir, "build", "out", "default.zircon", "tools", "zbi"
+    )
     os.chmod(zbi_tool, 0o500)
-    authorized_keys_path = os.path.join(fuchsia_resources_dir, '.ssh',
-                                        'authorized_keys')
-    process = new_process.ProcessRunner(zbi_tool, [
-        '-o', initrd_path, fuchsia_zbi, '-e',
-        'data/ssh/authorized_keys=' + authorized_keys_path
-    ])
+    authorized_keys_path = os.path.join(
+        fuchsia_resources_dir, ".ssh", "authorized_keys"
+    )
+    process = new_process.ProcessRunner(
+        zbi_tool,
+        [
+            "-o",
+            initrd_path,
+            fuchsia_zbi,
+            "-e",
+            "data/ssh/authorized_keys=" + authorized_keys_path,
+        ],
+    )
     result = process.run_and_wait()
     if result.return_code or result.timed_out:
-        raise errors.FuchsiaSdkError('Failed to add keys to Fuchsia ZBI: ' +
-                                     result.output)
+        raise errors.FuchsiaSdkError(
+            "Failed to add keys to Fuchsia ZBI: " + result.output
+        )
     os.chmod(initrd_path, 0o644)
 
 
 def get_application_launch_command(arguments, testcase_path):
     """Prepare a command to run on the host to launch on the device."""
     # TODO(flowerhack): Implement this.
-    return ''
+    return ""
 
 
 def reset_state():

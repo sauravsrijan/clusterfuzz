@@ -31,12 +31,13 @@ from system import shell
 
 # Model script directory.
 ML_RNN_SCRIPT_DIR = os.path.join(
-    os.path.dirname(__file__), os.pardir, 'fuzzers', 'ml', 'rnn')
+    os.path.dirname(__file__), os.pardir, "fuzzers", "ml", "rnn"
+)
 
 # Suffix of temporary directories to place training results.
-LOG_DIR_SUFFIX = '_log'
-MODEL_DIR_SUFFIX = '_model'
-CORPUS_DIR_SUFFIX = '_corpus'
+LOG_DIR_SUFFIX = "_log"
+MODEL_DIR_SUFFIX = "_model"
+CORPUS_DIR_SUFFIX = "_corpus"
 
 # Training timeout. In theory the longer the model is trained, the more accurate
 # it will be.
@@ -61,8 +62,7 @@ def get_last_saved_model(model_directory):
     model_paths = {}
 
     # Get a list of all meta files.
-    file_pattern = os.path.join(model_directory,
-                                '*' + constants.MODEL_META_SUFFIX)
+    file_pattern = os.path.join(model_directory, "*" + constants.MODEL_META_SUFFIX)
     meta_file_list = list(filter(os.path.isfile, glob.glob(file_pattern)))
     if not meta_file_list:
         return model_paths
@@ -86,9 +86,9 @@ def get_last_saved_model(model_directory):
 
         # Check if they exist.
         if os.path.exists(data_file_path) and os.path.exists(index_file_path):
-            model_paths['meta'] = meta_file_path
-            model_paths['data'] = data_file_path
-            model_paths['index'] = index_file_path
+            model_paths["meta"] = meta_file_path
+            model_paths["data"] = data_file_path
+            model_paths["index"] = index_file_path
             break
 
     return model_paths
@@ -108,15 +108,18 @@ def get_corpus(corpus_directory, fuzzer_name):
       True if corpus can be acquired, False otherwise.
     """
     # e.g. clusterfuzz-libfuzzer-backup
-    backup_bucket_name = environment.get_value('BACKUP_BUCKET')
+    backup_bucket_name = environment.get_value("BACKUP_BUCKET")
 
     # e.g. libfuzzer
-    corpus_fuzzer_name = environment.get_value('CORPUS_FUZZER_NAME_OVERRIDE')
+    corpus_fuzzer_name = environment.get_value("CORPUS_FUZZER_NAME_OVERRIDE")
 
     # Get GCS backup path.
     gcs_backup_path = corpus_manager.gcs_url_for_backup_file(
-        backup_bucket_name, corpus_fuzzer_name, fuzzer_name,
-        corpus_manager.LATEST_BACKUP_TIMESTAMP)
+        backup_bucket_name,
+        corpus_fuzzer_name,
+        fuzzer_name,
+        corpus_manager.LATEST_BACKUP_TIMESTAMP,
+    )
 
     # Get local backup path.
     local_backup_name = os.path.basename(gcs_backup_path)
@@ -125,7 +128,8 @@ def get_corpus(corpus_directory, fuzzer_name):
     # Download latest backup.
     if not storage.copy_file_from(gcs_backup_path, local_backup_path):
         logs.log_error(
-            'Failed to download corpus from GCS bucket %s.' % gcs_backup_path)
+            "Failed to download corpus from GCS bucket %s." % gcs_backup_path
+        )
         return False
 
     # Extract corpus from zip file.
@@ -158,12 +162,15 @@ def get_model_files_directory(directory, fuzzer_name):
 def get_gcs_model_directory(fuzzer_name):
     """Get gcs bucket path to store latest model."""
     # e.g. clusterfuzz-corpus
-    model_bucket_name = environment.get_value('CORPUS_BUCKET')
+    model_bucket_name = environment.get_value("CORPUS_BUCKET")
     if not model_bucket_name:
         return None
 
-    gcs_model_directory = 'gs://%s/%s/%s' % (
-        model_bucket_name, constants.RNN_MODEL_NAME, fuzzer_name)
+    gcs_model_directory = "gs://%s/%s/%s" % (
+        model_bucket_name,
+        constants.RNN_MODEL_NAME,
+        fuzzer_name,
+    )
 
     return gcs_model_directory
 
@@ -181,17 +188,17 @@ def upload_model_to_gcs(model_directory, fuzzer_name):
     # Get latest valid model.
     model_paths = get_last_saved_model(model_directory)
     if not model_paths:
-        logs.log_error('No valid RNN model is saved during training.')
+        logs.log_error("No valid RNN model is saved during training.")
         return
 
-    latest_meta_file = model_paths['meta']
-    latest_data_file = model_paths['data']
-    latest_index_file = model_paths['index']
+    latest_meta_file = model_paths["meta"]
+    latest_data_file = model_paths["data"]
+    latest_index_file = model_paths["index"]
 
     # Get GCS model path.
     gcs_model_directory = get_gcs_model_directory(fuzzer_name)
     if not gcs_model_directory:
-        logs.log_error('Failed to upload model: cannot get GCS model bucket.')
+        logs.log_error("Failed to upload model: cannot get GCS model bucket.")
         return
 
     # Basename of model files.
@@ -199,32 +206,36 @@ def upload_model_to_gcs(model_directory, fuzzer_name):
     data_file_name = constants.RNN_MODEL_NAME + constants.MODEL_DATA_SUFFIX
     index_file_name = constants.RNN_MODEL_NAME + constants.MODEL_INDEX_SUFFIX
 
-    gcs_meta_path = '%s/%s' % (gcs_model_directory, meta_file_name)
-    gcs_data_path = '%s/%s' % (gcs_model_directory, data_file_name)
-    gcs_index_path = '%s/%s' % (gcs_model_directory, index_file_name)
+    gcs_meta_path = "%s/%s" % (gcs_model_directory, meta_file_name)
+    gcs_data_path = "%s/%s" % (gcs_model_directory, data_file_name)
+    gcs_index_path = "%s/%s" % (gcs_model_directory, index_file_name)
 
-    logs.log('Uploading the model for %s: %s, %s, %s.' %
-             (fuzzer_name, meta_file_name, data_file_name, index_file_name))
+    logs.log(
+        "Uploading the model for %s: %s, %s, %s."
+        % (fuzzer_name, meta_file_name, data_file_name, index_file_name)
+    )
 
     # Upload files to GCS.
     result = (
-        storage.copy_file_to(latest_meta_file, gcs_meta_path) and
-        storage.copy_file_to(latest_data_file, gcs_data_path) and
-        storage.copy_file_to(latest_index_file, gcs_index_path))
+        storage.copy_file_to(latest_meta_file, gcs_meta_path)
+        and storage.copy_file_to(latest_data_file, gcs_data_path)
+        and storage.copy_file_to(latest_index_file, gcs_index_path)
+    )
 
     if result:
-        logs.log('Uploaded ML RNN model for fuzzer %s.' % fuzzer_name)
+        logs.log("Uploaded ML RNN model for fuzzer %s." % fuzzer_name)
     else:
-        logs.log_error(
-            'Failed to upload ML RNN model for fuzzer %s.' % fuzzer_name)
+        logs.log_error("Failed to upload ML RNN model for fuzzer %s." % fuzzer_name)
 
 
-def train_rnn(input_directory,
-              model_directory,
-              log_directory,
-              batch_size=None,
-              hidden_state_size=None,
-              hidden_layer_size=None):
+def train_rnn(
+    input_directory,
+    model_directory,
+    log_directory,
+    batch_size=None,
+    hidden_state_size=None,
+    hidden_layer_size=None,
+):
     """Train ML RNN model.
 
     Args:
@@ -253,19 +264,21 @@ def train_rnn(input_directory,
 
     # Optional argument.
     if batch_size:
-        args_list.append(
-            constants.BATCH_SIZE_ARGUMENT_PREFIX + str(batch_size))
+        args_list.append(constants.BATCH_SIZE_ARGUMENT_PREFIX + str(batch_size))
     if hidden_state_size:
-        args_list.append(constants.HIDDEN_STATE_ARGUMENT_PREFIX +
-                         str(hidden_state_size))
+        args_list.append(
+            constants.HIDDEN_STATE_ARGUMENT_PREFIX + str(hidden_state_size)
+        )
     if hidden_layer_size:
-        args_list.append(constants.HIDDEN_LAYER_ARGUMENT_PREFIX +
-                         str(hidden_layer_size))
+        args_list.append(
+            constants.HIDDEN_LAYER_ARGUMENT_PREFIX + str(hidden_layer_size)
+        )
 
     script_environment = os.environ.copy()
 
-    logs.log('Launching the training with the following arguments: "%s".' %
-             str(args_list))
+    logs.log(
+        'Launching the training with the following arguments: "%s".' % str(args_list)
+    )
 
     # Run process in rnn directory.
     rnn_trainer = new_process.ProcessRunner(sys.executable)
@@ -274,7 +287,8 @@ def train_rnn(input_directory,
         args_list,
         cwd=ML_RNN_SCRIPT_DIR,
         env=script_environment,
-        timeout=TRAINING_TIMEOUT)
+        timeout=TRAINING_TIMEOUT,
+    )
 
 
 def execute_task(fuzzer_name, job_type):
@@ -289,22 +303,22 @@ def execute_task(fuzzer_name, job_type):
     """
     if not job_type:
         logs.log_error(
-            'job_type is not set when training ML RNN for fuzzer %s.' % fuzzer_name)
+            "job_type is not set when training ML RNN for fuzzer %s." % fuzzer_name
+        )
         return
 
     # Directory to place training files, such as logs, models, corpus.
     # Use |FUZZ_INPUTS_DISK| since it is not size constrained.
-    temp_directory = environment.get_value('FUZZ_INPUTS_DISK')
+    temp_directory = environment.get_value("FUZZ_INPUTS_DISK")
 
     # Get corpus.
     corpus_directory = get_corpus_directory(temp_directory, fuzzer_name)
     shell.remove_directory(corpus_directory, recreate=True)
 
-    logs.log('Downloading corpus backup for %s.' % fuzzer_name)
+    logs.log("Downloading corpus backup for %s." % fuzzer_name)
 
     if not get_corpus(corpus_directory, fuzzer_name):
-        logs.log_error('Failed to download corpus backup for %s.' %
-                       fuzzer_name)
+        logs.log_error("Failed to download corpus backup for %s." % fuzzer_name)
         return
 
     # Get the directory to save models.
@@ -322,18 +336,20 @@ def execute_task(fuzzer_name, job_type):
     if result.return_code and not result.timed_out:
         if result.return_code == constants.ExitCode.CORPUS_TOO_SMALL:
             logs.log_warn(
-                'ML RNN training task for fuzzer %s aborted due to small corpus.' %
-                fuzzer_name)
+                "ML RNN training task for fuzzer %s aborted due to small corpus."
+                % fuzzer_name
+            )
         else:
             logs.log_error(
-                'ML RNN training task for fuzzer %s failed with ExitCode = %d.' %
-                (fuzzer_name, result.return_code),
-                output=result.output)
+                "ML RNN training task for fuzzer %s failed with ExitCode = %d."
+                % (fuzzer_name, result.return_code),
+                output=result.output,
+            )
         return
 
     # Timing out may be caused by large training corpus, but intermediate models
     # are frequently saved and can be uploaded.
     if result.timed_out:
-        logs.log_warn('ML RNN training task for %s timed out.' % fuzzer_name)
+        logs.log_warn("ML RNN training task for %s timed out." % fuzzer_name)
 
     upload_model_to_gcs(model_directory, fuzzer_name)

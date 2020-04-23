@@ -30,7 +30,7 @@ BATCH_SIZE = 500
 def to_dict(entity):
     """Convert a db.Model instance to a dict."""
     entity_dict = entity.to_dict()
-    entity_dict['id'] = entity.key.id()
+    entity_dict["id"] = entity.key.id()
 
     for k, v in six.iteritems(entity_dict):
         if isinstance(v, datetime.datetime):
@@ -47,19 +47,19 @@ def get_diff(before, after):
             if v != after[k]:
                 diffs.append((k, (v, after[k])))
         else:
-            diffs.append((k, (v, '<MISSING>')))
+            diffs.append((k, (v, "<MISSING>")))
 
     for k, v in six.iteritems(after):
         if k not in before:
-            diffs.append((k, ('<MISSING>', v)))
+            diffs.append((k, ("<MISSING>", v)))
 
     diffs.sort()
 
-    s = ''
+    s = ""
     for (key, (before_value, after_value)) in diffs:
-        s += '%s:\n' % key
-        s += '-%s\n' % before_value
-        s += '+%s\n\n' % after_value
+        s += "%s:\n" % key
+        s += "-%s\n" % before_value
+        s += "+%s\n\n" % after_value
 
     return s
 
@@ -77,8 +77,10 @@ def execute(args):
 
             diff = get_diff(before_testcase, after_testcase)
             if (count_diff % 10) == 0 and diff:
-                print('Migrate (dry=%s) id:%s\n%s' % (not args.non_dry_run,
-                                                      testcase.key.id(), diff))
+                print(
+                    "Migrate (dry=%s) id:%s\n%s"
+                    % (not args.non_dry_run, testcase.key.id(), diff)
+                )
 
             if diff:
                 count_diff += 1
@@ -91,7 +93,6 @@ def execute(args):
                     try:
                         testcase.put()
                     except Exception:
-                        print('Error: %s %s' %
-                              (testcase.key.id(), sys.exc_info()))
+                        print("Error: %s %s" % (testcase.key.id(), sys.exc_info()))
 
-    print('Done (count_diff=%d)' % count_diff)
+    print("Done (count_diff=%d)" % count_diff)

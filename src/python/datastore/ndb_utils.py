@@ -23,12 +23,16 @@ _MODIFY_BATCH_SIZE = 500
 
 def is_true(boolean_prop):
     """Helper for boolean property filters to avoid lint errors."""
-    return boolean_prop == True  # pylint: disable=g-explicit-bool-comparison,singleton-comparison
+    return (
+        boolean_prop == True
+    )  # pylint: disable=g-explicit-bool-comparison,singleton-comparison
 
 
 def is_false(boolean_prop):
     """Helper for boolean property filters to avoid lint errors."""
-    return boolean_prop == False  # pylint: disable=g-explicit-bool-comparison,singleton-comparison
+    return (
+        boolean_prop == False
+    )  # pylint: disable=g-explicit-bool-comparison,singleton-comparison
 
 
 def get_all_from_model(model):
@@ -41,7 +45,7 @@ def get_all_from_query(query, **kwargs):
     expirations on App Engine."""
     # TODO(ochang): Queries no longer expire with new NDB. Remove this and all
     # fix up callers.
-    kwargs.pop('batch_size', None)  # No longer supported.
+    kwargs.pop("batch_size", None)  # No longer supported.
     for entity in query.iter(**kwargs):
         yield entity
 
@@ -50,7 +54,7 @@ def _gen_chunks(values, size):
     """Generate chunks of iterable."""
     values = list(values)
     for i in range(0, len(values), size):
-        yield values[i:i + size]
+        yield values[i : i + size]
 
 
 def get_multi(keys):

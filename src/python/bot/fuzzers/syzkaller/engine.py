@@ -21,7 +21,7 @@ from metrics import profiler
 from system import environment
 import os
 
-BIN_FOLDER_PATH = 'bin'
+BIN_FOLDER_PATH = "bin"
 
 
 class SyzkallerError(Exception):
@@ -32,10 +32,8 @@ class SyzkallerOptions(engine.FuzzOptions):
     """Represents options passed to the engine. Can be overridden to provide more
     options."""
 
-    def __init__(self, corpus_dir, arguments, strategies, fuzz_corpus_dirs,
-                 extra_env):
-        super(SyzkallerOptions, self).__init__(
-            corpus_dir, arguments, strategies)
+    def __init__(self, corpus_dir, arguments, strategies, fuzz_corpus_dirs, extra_env):
+        super(SyzkallerOptions, self).__init__(corpus_dir, arguments, strategies)
         self.fuzz_corpus_dirs = fuzz_corpus_dirs
         self.extra_env = extra_env
 
@@ -45,7 +43,7 @@ class SyzkallerEngine(engine.Engine):
 
     @property
     def name(self):
-        return 'syzkaller'
+        return "syzkaller"
 
     def prepare(self, corpus_dir, target_path, unused_build_dir):
         """Prepare for a fuzzing session, by generating options and making
@@ -59,10 +57,9 @@ class SyzkallerEngine(engine.Engine):
         Returns:
           A FuzzOptions object.
         """
-        syzkaller_path = os.path.join(
-            environment.get_value('BUILD_DIR'), 'syzkaller')
+        syzkaller_path = os.path.join(environment.get_value("BUILD_DIR"), "syzkaller")
         if not os.path.exists(syzkaller_path):
-            raise SyzkallerError('syzkaller not found in build')
+            raise SyzkallerError("syzkaller not found in build")
         binary_full_path = os.path.join(syzkaller_path, BIN_FOLDER_PATH)
         for filename in os.listdir(binary_full_path):
             os.chmod(os.path.join(binary_full_path, filename), 0o755)
@@ -91,11 +88,11 @@ class SyzkallerEngine(engine.Engine):
         Returns:
           A FuzzResult object.
         """
-        profiler.start_if_needed('syzkaller_kasan')
+        profiler.start_if_needed("syzkaller_kasan")
         syzkaller_runner = runner.get_runner(target_path)
 
         # Directory to place new units.
-        self._create_temp_corpus_dir('new')
+        self._create_temp_corpus_dir("new")
 
         return syzkaller_runner.fuzz(max_time, additional_args=options.arguments)
 
@@ -113,8 +110,15 @@ class SyzkallerEngine(engine.Engine):
         """
         raise NotImplementedError
 
-    def minimize_corpus(self, target_path, arguments, input_dirs, output_dir,
-                        unused_reproducers_dir, unused_max_time):
+    def minimize_corpus(
+        self,
+        target_path,
+        arguments,
+        input_dirs,
+        output_dir,
+        unused_reproducers_dir,
+        unused_max_time,
+    ):
         """Optional (but recommended): run corpus minimization.
 
         Args:
@@ -131,8 +135,9 @@ class SyzkallerEngine(engine.Engine):
         """
         raise NotImplementedError
 
-    def minimize_testcase(self, target_path, arguments, input_path, output_path,
-                          max_time):
+    def minimize_testcase(
+        self, target_path, arguments, input_path, output_path, max_time
+    ):
         """Optional (but recommended): Minimize a testcase.
 
         Args:

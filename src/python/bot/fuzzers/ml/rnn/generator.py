@@ -16,6 +16,7 @@
 try:
     # ClusterFuzz dependencies.
     from python.base import modules
+
     modules.fix_module_search_paths()
 except ImportError:
     pass
@@ -42,18 +43,22 @@ GENERATION_MAX_COUNT = 5000
 def download_model_from_gcs(local_model_directory, fuzzer_name):
     """Pull model from GCS bucket and put them in specified model directory."""
     # ML model is stored in corpus bucket.
-    gcs_corpus_bucket = environment.get_value('CORPUS_BUCKET')
+    gcs_corpus_bucket = environment.get_value("CORPUS_BUCKET")
     if not gcs_corpus_bucket:
-        logs.log('Corpus bucket is not set. Skip generation.')
+        logs.log("Corpus bucket is not set. Skip generation.")
         return False
 
     # Get cloud storage path.
     # e.g. gs://clusterfuzz-corpus/rnn/libpng_read_fuzzer
-    gcs_model_directory = 'gs://%s/%s/%s' % (
-        gcs_corpus_bucket, constants.RNN_MODEL_NAME, fuzzer_name)
+    gcs_model_directory = "gs://%s/%s/%s" % (
+        gcs_corpus_bucket,
+        constants.RNN_MODEL_NAME,
+        fuzzer_name,
+    )
 
-    logs.log('GCS model directory for fuzzer %s is %s.' % (fuzzer_name,
-                                                           gcs_model_directory))
+    logs.log(
+        "GCS model directory for fuzzer %s is %s." % (fuzzer_name, gcs_model_directory)
+    )
 
     # RNN model consists of three files.
     meta_filename = constants.RNN_MODEL_NAME + constants.MODEL_META_SUFFIX
@@ -61,15 +66,19 @@ def download_model_from_gcs(local_model_directory, fuzzer_name):
     index_filename = constants.RNN_MODEL_NAME + constants.MODEL_INDEX_SUFFIX
 
     # Cloud file paths.
-    gcs_meta_path = '%s/%s' % (gcs_model_directory, meta_filename)
-    gcs_data_path = '%s/%s' % (gcs_model_directory, data_filename)
-    gcs_index_path = '%s/%s' % (gcs_model_directory, index_filename)
+    gcs_meta_path = "%s/%s" % (gcs_model_directory, meta_filename)
+    gcs_data_path = "%s/%s" % (gcs_model_directory, data_filename)
+    gcs_index_path = "%s/%s" % (gcs_model_directory, index_filename)
 
     # Check if model exists.
-    if not (storage.exists(gcs_meta_path) and storage.exists(gcs_data_path) and
-            storage.exists(gcs_index_path)):
-        logs.log('ML RNN model for fuzzer %s does not exist. Skip generation.' %
-                 fuzzer_name)
+    if not (
+        storage.exists(gcs_meta_path)
+        and storage.exists(gcs_data_path)
+        and storage.exists(gcs_index_path)
+    ):
+        logs.log(
+            "ML RNN model for fuzzer %s does not exist. Skip generation." % fuzzer_name
+        )
         return False
 
     # Local file paths.
@@ -79,13 +88,15 @@ def download_model_from_gcs(local_model_directory, fuzzer_name):
 
     # Download model files.
     result = (
-        storage.copy_file_from(gcs_meta_path, local_meta_path) and
-        storage.copy_file_from(gcs_data_path, local_data_path) and
-        storage.copy_file_from(gcs_index_path, local_index_path))
+        storage.copy_file_from(gcs_meta_path, local_meta_path)
+        and storage.copy_file_from(gcs_data_path, local_data_path)
+        and storage.copy_file_from(gcs_index_path, local_index_path)
+    )
 
     if not result:
-        logs.log('Failed to download RNN model for fuzzer %s. Skip generation.' %
-                 fuzzer_name)
+        logs.log(
+            "Failed to download RNN model for fuzzer %s. Skip generation." % fuzzer_name
+        )
         return False
 
     return True
@@ -102,7 +113,7 @@ def prepare_model_directory(fuzzer_name):
       files(e.g. rnn.meta), the path should be '/tmp/model/rnn'.
     """
     # Get temporary directory.
-    temp_directory = environment.get_value('BOT_TMPDIR')
+    temp_directory = environment.get_value("BOT_TMPDIR")
 
     # Create model directory.
     model_directory = os.path.join(temp_directory, fuzzer_name)
@@ -115,13 +126,15 @@ def prepare_model_directory(fuzzer_name):
     return os.path.join(model_directory, constants.RNN_MODEL_NAME)
 
 
-def run(input_directory,
-        output_directory,
-        model_path,
-        generation_timeout,
-        generation_count=None,
-        hidden_state_size=None,
-        hidden_layer_size=None):
+def run(
+    input_directory,
+    output_directory,
+    model_path,
+    generation_timeout,
+    generation_count=None,
+    hidden_state_size=None,
+    hidden_layer_size=None,
+):
     """Generate inputs with specified model paramters.
 
     Args:
@@ -140,8 +153,7 @@ def run(input_directory,
       ProcessRunner.run_and_wait().
     """
     # Get generation script path.
-    script_path = os.path.join(ML_RNN_SCRIPT_DIR,
-                               constants.GENERATION_SCRIPT_NAME)
+    script_path = os.path.join(ML_RNN_SCRIPT_DIR, constants.GENERATION_SCRIPT_NAME)
 
     # Wrap commmand arguments.
     args_list = [
@@ -152,19 +164,23 @@ def run(input_directory,
     ]
 
     if generation_count:
-        args_list.append(constants.GENERATION_COUNT_ARGUMENT_PREFIX +
-                         str(generation_count))
+        args_list.append(
+            constants.GENERATION_COUNT_ARGUMENT_PREFIX + str(generation_count)
+        )
     else:
-        args_list.append(constants.GENERATION_COUNT_ARGUMENT_PREFIX +
-                         str(GENERATION_MAX_COUNT))
+        args_list.append(
+            constants.GENERATION_COUNT_ARGUMENT_PREFIX + str(GENERATION_MAX_COUNT)
+        )
 
     # Optional arguments.
     if hidden_state_size:
-        args_list.append(constants.HIDDEN_STATE_ARGUMENT_PREFIX +
-                         str(hidden_state_size))
+        args_list.append(
+            constants.HIDDEN_STATE_ARGUMENT_PREFIX + str(hidden_state_size)
+        )
     if hidden_layer_size:
-        args_list.append(constants.HIDDEN_LAYER_ARGUMENT_PREFIX +
-                         str(hidden_layer_size))
+        args_list.append(
+            constants.HIDDEN_LAYER_ARGUMENT_PREFIX + str(hidden_layer_size)
+        )
 
     script_environment = os.environ.copy()
 
@@ -174,7 +190,8 @@ def run(input_directory,
         args_list,
         cwd=ML_RNN_SCRIPT_DIR,
         env=script_environment,
-        timeout=generation_timeout)
+        timeout=generation_timeout,
+    )
 
 
 def execute(input_directory, output_directory, fuzzer_name, generation_timeout):
@@ -195,14 +212,14 @@ def execute(input_directory, output_directory, fuzzer_name, generation_timeout):
       generation_timeout: Time in seconds for the generator to run. Normally it
           takes <1s to generate an input, assuming the input length is <4KB.
     """
-    if environment.platform() != 'LINUX':
-        logs.log('Unsupported platform for ML RNN generation, skipping.')
+    if environment.platform() != "LINUX":
+        logs.log("Unsupported platform for ML RNN generation, skipping.")
         return
 
     # Validate corpus folder.
     file_count = shell.get_directory_file_count(input_directory)
     if not file_count:
-        logs.log('Corpus is empty. Skip generation.')
+        logs.log("Corpus is empty. Skip generation.")
         return
 
     # Number of existing new inputs. They are possibly generated by other
@@ -215,36 +232,39 @@ def execute(input_directory, output_directory, fuzzer_name, generation_timeout):
     if not model_path:
         return
 
-    result = run(input_directory, output_directory, model_path,
-                 generation_timeout)
+    result = run(input_directory, output_directory, model_path, generation_timeout)
 
     # Generation process exited abnormally but not caused by timeout, meaning
     # error occurred during execution.
     if result.return_code and not result.timed_out:
         if result.return_code == constants.ExitCode.CORPUS_TOO_SMALL:
             logs.log_warn(
-                'ML RNN generation for fuzzer %s aborted due to small corpus.' %
-                fuzzer_name)
+                "ML RNN generation for fuzzer %s aborted due to small corpus."
+                % fuzzer_name
+            )
         else:
             logs.log_error(
-                'ML RNN generation for fuzzer %s failed with ExitCode = %d.' %
-                (fuzzer_name, result.return_code),
-                output=result.output)
+                "ML RNN generation for fuzzer %s failed with ExitCode = %d."
+                % (fuzzer_name, result.return_code),
+                output=result.output,
+            )
         return
 
     # Timeout is not error, if we have new units generated.
     if result.timed_out:
-        logs.log_warn('ML RNN generation for fuzzer %s timed out.' %
-                      fuzzer_name)
+        logs.log_warn("ML RNN generation for fuzzer %s timed out." % fuzzer_name)
 
     new_corpus_units = (
-        shell.get_directory_file_count(output_directory) - old_corpus_units)
-    new_corpus_bytes = (
-        shell.get_directory_size(output_directory) - old_corpus_bytes)
+        shell.get_directory_file_count(output_directory) - old_corpus_units
+    )
+    new_corpus_bytes = shell.get_directory_size(output_directory) - old_corpus_bytes
     if new_corpus_units:
-        logs.log('Added %d new inputs (%d bytes) using ML RNN generator for %s.' %
-                 (new_corpus_units, new_corpus_bytes, fuzzer_name))
+        logs.log(
+            "Added %d new inputs (%d bytes) using ML RNN generator for %s."
+            % (new_corpus_units, new_corpus_bytes, fuzzer_name)
+        )
     else:
         logs.log_error(
-            'ML RNN generator did not produce any inputs for %s' % fuzzer_name,
-            output=result.output)
+            "ML RNN generator did not produce any inputs for %s" % fuzzer_name,
+            output=result.output,
+        )

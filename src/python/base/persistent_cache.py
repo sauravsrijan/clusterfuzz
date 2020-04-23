@@ -25,13 +25,13 @@ from system import environment
 
 # For any given value file, if a file with the same name with this added
 # extension exists, it is not cleared during initialization.
-PERSIST_FILE_EXTENSION = '.persist'
+PERSIST_FILE_EXTENSION = ".persist"
 
 
 def initialize():
     """Initialize the persistent cache, creating the directory used to store the
     values."""
-    cache_directory_path = environment.get_value('CACHE_DIR')
+    cache_directory_path = environment.get_value("CACHE_DIR")
     if os.path.exists(cache_directory_path):
         clear_values()
     else:
@@ -40,7 +40,7 @@ def initialize():
 
 def clear_values(clear_all=False):
     """Remove all values."""
-    cache_directory_path = environment.get_value('CACHE_DIR')
+    cache_directory_path = environment.get_value("CACHE_DIR")
     if not os.path.exists(cache_directory_path):
         return
 
@@ -72,26 +72,29 @@ def get_value(key, default_value=None, constructor=None):
         return default_value
 
     try:
-        with open(value_path, 'rb') as f:
+        with open(value_path, "rb") as f:
             value_str = f.read()
     except IOError:
-        logs.log_error('Failed to read %s from persistent cache.' % key)
+        logs.log_error("Failed to read %s from persistent cache." % key)
         return default_value
 
     try:
         value = json_utils.loads(value_str)
     except Exception:
-        logs.log_warn('Non-serializable value read from cache key %s: "%s"' %
-                      (key, value_str))
+        logs.log_warn(
+            'Non-serializable value read from cache key %s: "%s"' % (key, value_str)
+        )
         return default_value
 
     if constructor:
         try:
             value = constructor(value)
         except Exception:
-            logs.log_warn('Failed to construct value "%s" using %s '
-                          'and key "%s" in persistent cache. Using default value %s.'
-                          % (value, constructor, key, default_value))
+            logs.log_warn(
+                'Failed to construct value "%s" using %s '
+                'and key "%s" in persistent cache. Using default value %s.'
+                % (value, constructor, key, default_value)
+            )
             return default_value
 
     return value
@@ -101,9 +104,8 @@ def get_value_file_path(key):
     """Return the full path to the value file for the given key."""
     # Not using utils.string_hash here to avoid a circular dependency.
     # TODO(mbarbella): Avoid this once utils.py is broken into multiple files.
-    key_filename = 'cache-%s.json' % hashlib.sha1(
-        str(key).encode()).hexdigest()
-    cache_directory_path = environment.get_value('CACHE_DIR')
+    key_filename = "cache-%s.json" % hashlib.sha1(str(key).encode()).hexdigest()
+    cache_directory_path = environment.get_value("CACHE_DIR")
     return os.path.join(cache_directory_path, key_filename)
 
 
@@ -116,14 +118,15 @@ def set_value(key, value, persist_across_reboots=False):
         value_str = json_utils.dumps(value)
     except Exception:
         logs.log_error(
-            'Non-serializable value stored to cache key %s: "%s"' % (key, value))
+            'Non-serializable value stored to cache key %s: "%s"' % (key, value)
+        )
         return
 
     try:
-        with open(value_path, 'wb') as f:
+        with open(value_path, "wb") as f:
             f.write(value_str.encode())
     except IOError:
-        logs.log_error('Failed to write %s to persistent cache.' % key)
+        logs.log_error("Failed to write %s to persistent cache." % key)
 
     if not persist_across_reboots:
         return
@@ -133,7 +136,8 @@ def set_value(key, value, persist_across_reboots=False):
         return
 
     try:
-        open(persist_value_path, 'wb').close()
+        open(persist_value_path, "wb").close()
     except IOError:
         logs.log_error(
-            'Failed to write presistent metadata file for cache key %s' % key)
+            "Failed to write presistent metadata file for cache key %s" % key
+        )

@@ -30,20 +30,20 @@ def admins_from_iam_policy(iam_policy):
     # administrator is a user who has the Viewer, Editor, or Owner primitive role,
     # or the App Engine App Admin predefined role
     roles = [
-        'roles/editor',
-        'roles/owner',
-        'roles/viewer',
-        'roles/appengine.appAdmin',
+        "roles/editor",
+        "roles/owner",
+        "roles/viewer",
+        "roles/appengine.appAdmin",
     ]
 
     admins = []
-    for binding in iam_policy['bindings']:
-        if binding['role'] not in roles:
+    for binding in iam_policy["bindings"]:
+        if binding["role"] not in roles:
             continue
 
-        for member in binding['members']:
-            user_type, email = member.split(':', 2)
-            if user_type == 'user':
+        for member in binding["members"]:
+            user_type, email = member.split(":", 2)
+            if user_type == "user":
                 admins.append(email)
 
     return admins
@@ -57,7 +57,7 @@ def update_admins(new_admins):
     existing_admin_emails = set()
     for admin in existing_admins:
         if admin.email not in new_admins:
-            logs.log('Removing admin ' + admin.email)
+            logs.log("Removing admin " + admin.email)
             to_remove.append(admin.key)
 
         existing_admin_emails.add(admin.email)
@@ -68,7 +68,7 @@ def update_admins(new_admins):
     for admin in new_admins:
         if admin not in existing_admin_emails:
             to_add.append(data_types.Admin(id=admin, email=admin))
-            logs.log('Adding admin ' + admin)
+            logs.log("Adding admin " + admin)
 
     ndb_utils.put_multi(to_add)
 
@@ -79,11 +79,13 @@ class Handler(base_handler.Handler):
     @handler.check_cron()
     def get(self):
         """Handle a get request."""
-        resource_manager = googleapiclient.discovery.build('cloudresourcemanager',
-                                                           'v1')
+        resource_manager = googleapiclient.discovery.build("cloudresourcemanager", "v1")
         project_id = utils.get_application_id()
-        policy = resource_manager.projects().getIamPolicy(
-            resource=project_id, body={}).execute()
+        policy = (
+            resource_manager.projects()
+            .getIamPolicy(resource=project_id, body={})
+            .execute()
+        )
 
         admins = admins_from_iam_policy(policy)
         update_admins(admins)

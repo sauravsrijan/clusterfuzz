@@ -20,22 +20,23 @@ import os
 import functools
 import builtins
 from future import standard_library
+
 standard_library.install_aliases()
 
-WINDOWS_PREFIX_PATH = '\\\\?\\'
+WINDOWS_PREFIX_PATH = "\\\\?\\"
 _ORIGINAL_MAP = {}
 
-VALID_PATCHEE_TYPES = ['builtin_function_or_method', 'function', 'MagicMock']
+VALID_PATCHEE_TYPES = ["builtin_function_or_method", "function", "MagicMock"]
 
 
 def _patch_single(obj, attr, fn):
     """Patch the attr of the obj and save the original implementation."""
     if (obj, attr) in _ORIGINAL_MAP:
-        raise Exception('You cannot patch %s.%s more than once.' % (obj, attr))
+        raise Exception("You cannot patch %s.%s more than once." % (obj, attr))
 
     _ORIGINAL_MAP[(obj, attr)] = getattr(obj, attr)
     setattr(obj, attr, fn)
-    setattr(getattr(obj, attr), '__path_patcher__', True)
+    setattr(getattr(obj, attr), "__path_patcher__", True)
 
     if obj == builtins and six.PY2:
         # Necessary for Python 2 with python-future
@@ -54,27 +55,26 @@ def _unpatch_single(obj, attr):
 
 def _is_windows():
     """Return true if it's on windows."""
-    return sys.platform.startswith('win')
+    return sys.platform.startswith("win")
 
 
 def _short_name_modifier(original_path):
     """Get the short path of `path` on windows."""
     # These paths don't work with prefix, skip.
-    if original_path in ['.', '..']:
+    if original_path in [".", ".."]:
         return original_path
 
     path = original_path
     if not path.startswith(WINDOWS_PREFIX_PATH):
         path = WINDOWS_PREFIX_PATH + path
 
-    path = path.replace('/', '\\')
+    path = path.replace("/", "\\")
 
     import ctypes
     from ctypes import wintypes
 
     get_short_path = ctypes.windll.kernel32.GetShortPathNameW
-    get_short_path.argtypes = [
-        wintypes.LPCWSTR, wintypes.LPWSTR, wintypes.DWORD]
+    get_short_path.argtypes = [wintypes.LPCWSTR, wintypes.LPWSTR, wintypes.DWORD]
     get_short_path.restype = wintypes.DWORD
 
     # When passing (path, None, 0), the return value is the size of the buffer
@@ -97,8 +97,9 @@ def _short_name_modifier(original_path):
     actual_length = get_short_path(path, output_buffer, buffer_length)
     if expected_length != actual_length:
         raise Exception(
-            "The short-path length %d of %s doesn't equal the expected length %d." %
-            (actual_length, path, expected_length))
+            "The short-path length %d of %s doesn't equal the expected length %d."
+            % (actual_length, path, expected_length)
+        )
 
     return output_buffer.value
 
@@ -108,8 +109,7 @@ def _wrap(fn, *modifiers):
       first argument."""
     type_class = type(fn)
     if type_class.__name__ not in VALID_PATCHEE_TYPES:
-        raise ValueError('%s (%s) cannot be patched.' %
-                         (fn.__name__, type_class))
+        raise ValueError("%s (%s) cannot be patched." % (fn.__name__, type_class))
 
     @functools.wraps(fn)
     def _wrapped(path, *args, **kwargs):
@@ -125,7 +125,6 @@ def _wrap_file():
     """Wrap the `file` class' constructor with _short_name_modifier."""
 
     class WrappedFile(builtins.file):
-
         def __init__(self, name, *args, **kwargs):
             self.original_name = name
             short_name = _short_name_modifier(name)
@@ -148,17 +147,15 @@ def patch():
     if _ORIGINAL_MAP:
         return
 
-    _patch_single(os, 'listdir', _wrap(os.listdir, _short_name_modifier))
-    _patch_single(os, 'makedirs', _wrap(os.makedirs, _short_name_modifier))
-    _patch_single(os, 'mkdir', _wrap(os.mkdir, _short_name_modifier))
-    _patch_single(os, 'stat', _wrap(os.stat, _short_name_modifier))
-    _patch_single(os.path, 'exists', _wrap(
-        os.path.exists, _short_name_modifier))
-    _patch_single(os.path, 'isfile', _wrap(
-        os.path.isfile, _short_name_modifier))
-    _patch_single(os.path, 'isdir', _wrap(os.path.isdir, _short_name_modifier))
-    _patch_single(builtins, 'open', _wrap(builtins.open, _short_name_modifier))
-    _patch_single(builtins, 'file', _wrap_file())
+    _patch_single(os, "listdir", _wrap(os.listdir, _short_name_modifier))
+    _patch_single(os, "makedirs", _wrap(os.makedirs, _short_name_modifier))
+    _patch_single(os, "mkdir", _wrap(os.mkdir, _short_name_modifier))
+    _patch_single(os, "stat", _wrap(os.stat, _short_name_modifier))
+    _patch_single(os.path, "exists", _wrap(os.path.exists, _short_name_modifier))
+    _patch_single(os.path, "isfile", _wrap(os.path.isfile, _short_name_modifier))
+    _patch_single(os.path, "isdir", _wrap(os.path.isdir, _short_name_modifier))
+    _patch_single(builtins, "open", _wrap(builtins.open, _short_name_modifier))
+    _patch_single(builtins, "file", _wrap_file())
 
 
 def unpatch():

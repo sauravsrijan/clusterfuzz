@@ -31,25 +31,24 @@ MEMCACHE_TTL_IN_SECONDS = 30 * 60
 
 def _sort_by_name(item):
     """Sort key function."""
-    return item['name']
+    return item["name"]
 
 
 def _get_engine_names(job_name):
     """Return the (engine display name, engine name) for the job."""
-    if job_name.startswith('afl_'):
-        return 'AFL', 'afl'
+    if job_name.startswith("afl_"):
+        return "AFL", "afl"
 
-    if job_name.startswith('libfuzzer_'):
-        return 'libFuzzer', 'libFuzzer'
+    if job_name.startswith("libfuzzer_"):
+        return "libFuzzer", "libFuzzer"
 
-    return 'Unknown', 'Unknown'
+    return "Unknown", "Unknown"
 
 
 @memoize.wrap(memoize.Memcache(MEMCACHE_TTL_IN_SECONDS))
 def get_single_fuzz_target_or_none(project, engine_name):
     """Return the name of the single child fuzzer for the project, or None."""
-    fuzz_targets = data_handler.get_fuzz_targets(
-        engine=engine_name, project=project)
+    fuzz_targets = data_handler.get_fuzz_targets(engine=engine_name, project=project)
     fuzz_target_name = None
 
     for fuzz_target in fuzz_targets:
@@ -66,33 +65,33 @@ def _get_project_results_for_jobs(jobs):
     """Return projects for jobs."""
     projects = {}
     for job in sorted(jobs, key=lambda j: j.name):
-        project_name = job.get_environment().get('PROJECT_NAME', job.name)
+        project_name = job.get_environment().get("PROJECT_NAME", job.name)
         if project_name not in projects:
-            projects[project_name] = {'name': project_name, 'jobs': []}
+            projects[project_name] = {"name": project_name, "jobs": []}
 
-        if utils.string_is_true(job.get_environment().get('CORPUS_PRUNE')):
-            projects[project_name]['coverage_job'] = job.name
+        if utils.string_is_true(job.get_environment().get("CORPUS_PRUNE")):
+            projects[project_name]["coverage_job"] = job.name
 
         engine_display_name, engine_name = _get_engine_names(job.name)
-        projects[project_name]['jobs'].append({
-            'engine_display_name':
-                engine_display_name,
-            'engine_name':
-                engine_name,
-            'sanitizer_string':
-                environment.get_memory_tool_display_string(job.name),
-            'name':
-                job.name,
-            'single_target':
-                get_single_fuzz_target_or_none(project_name, engine_name),
-            'has_stats':
-                True
-        })
+        projects[project_name]["jobs"].append(
+            {
+                "engine_display_name": engine_display_name,
+                "engine_name": engine_name,
+                "sanitizer_string": environment.get_memory_tool_display_string(
+                    job.name
+                ),
+                "name": job.name,
+                "single_target": get_single_fuzz_target_or_none(
+                    project_name, engine_name
+                ),
+                "has_stats": True,
+            }
+        )
 
     projects = list(projects.values())
     projects.sort(key=_sort_by_name)
     for project in projects:
-        project['jobs'].sort(key=_sort_by_name)
+        project["jobs"].sort(key=_sort_by_name)
 
     return projects
 
@@ -127,10 +126,7 @@ def get_results():
         projects = _get_project_results_for_external_user(external_jobs)
 
     results = {
-        'info': {
-            'projects': projects,
-            'is_internal_user': is_user,
-        },
+        "info": {"projects": projects, "is_internal_user": is_user,},
     }
     return results
 
@@ -141,7 +137,7 @@ class Handler(base_handler.Handler):
     @handler.get(handler.HTML)
     def get(self):
         """GET handler."""
-        self.render('oss-fuzz-home.html', get_results())
+        self.render("oss-fuzz-home.html", get_results())
 
 
 class RefreshCacheHandler(base_handler.Handler):

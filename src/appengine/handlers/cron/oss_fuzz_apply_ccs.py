@@ -30,9 +30,11 @@ def get_open_testcases_with_bugs():
     """Return iterator to open testcases with bugs."""
     return data_types.Testcase.query(
         ndb_utils.is_true(data_types.Testcase.open),
-        data_types.Testcase.status == 'Processed',
-        data_types.Testcase.bug_information != '').order(  # pylint: disable=g-explicit-bool-comparison
-            data_types.Testcase.bug_information, data_types.Testcase.key)
+        data_types.Testcase.status == "Processed",
+        data_types.Testcase.bug_information != "",
+    ).order(  # pylint: disable=g-explicit-bool-comparison
+        data_types.Testcase.bug_information, data_types.Testcase.key
+    )
 
 
 class Handler(base_handler.Handler):
@@ -49,26 +51,26 @@ class Handler(base_handler.Handler):
             return external_users.cc_users_for_job(job_type, security_flag)
 
         for testcase in get_open_testcases_with_bugs():
-            issue_tracker = issue_tracker_utils.get_issue_tracker_for_testcase(
-                testcase)
+            issue_tracker = issue_tracker_utils.get_issue_tracker_for_testcase(testcase)
             if not issue_tracker:
-                logging.error('Failed to get issue tracker manager for %s',
-                              testcase.key.id())
+                logging.error(
+                    "Failed to get issue tracker manager for %s", testcase.key.id()
+                )
                 continue
 
             policy = issue_tracker_policy.get(issue_tracker.project)
-            reported_label = policy.label('reported')
+            reported_label = policy.label("reported")
             if not reported_label:
                 return
 
             reported_pattern = issue_filer.get_label_pattern(reported_label)
 
             try:
-                issue = issue_tracker.get_original_issue(
-                    testcase.bug_information)
+                issue = issue_tracker.get_original_issue(testcase.bug_information)
             except:
-                logging.error('Error occurred when fetching issue %s.',
-                              testcase.bug_information)
+                logging.error(
+                    "Error occurred when fetching issue %s.", testcase.bug_information
+                )
                 continue
 
             if not issue or not issue.is_open:
@@ -81,19 +83,20 @@ class Handler(base_handler.Handler):
                 continue
 
             for cc in new_ccs:
-                logging.info('CCing %s on %s', cc, issue.id)
+                logging.info("CCing %s on %s", cc, issue.id)
                 issue.ccs.add(cc)
 
             comment = None
 
             if not issue.labels.has_with_pattern(reported_pattern):
                 # Add reported label and deadline comment if necessary.
-                for result in issue_filer.apply_substitutions(policy, reported_label,
-                                                              testcase):
+                for result in issue_filer.apply_substitutions(
+                    policy, reported_label, testcase
+                ):
                     issue.labels.add(result)
 
-                if policy.label('restrict_view') in issue.labels:
-                    logging.info('Adding deadline comment on %s', issue.id)
+                if policy.label("restrict_view") in issue.labels:
+                    logging.info("Adding deadline comment on %s", issue.id)
                     comment = policy.deadline_policy_message
 
             issue.save(new_comment=comment, notify=True)

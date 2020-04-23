@@ -26,20 +26,20 @@ from google_cloud_utils import storage
 from metrics import logs
 from system import environment
 
-LIST_FILE_BASENAME = 'file_list.txt'
+LIST_FILE_BASENAME = "file_list.txt"
 TESTCASES_PER_DAY = 1000
 
 
-def upload_testcases_if_needed(fuzzer_name, testcase_list, testcase_directory,
-                               data_directory):
+def upload_testcases_if_needed(
+    fuzzer_name, testcase_list, testcase_directory, data_directory
+):
     """Upload test cases from the list to a cloud storage bucket."""
     # Since builtin fuzzers have a coverage minimized corpus, no need to upload
     # test case samples for them.
     if fuzzer_name in builtin_fuzzers.BUILTIN_FUZZERS:
         return
 
-    bucket_name = local_config.ProjectConfig().get(
-        'coverage.fuzzer-testcases.bucket')
+    bucket_name = local_config.ProjectConfig().get("coverage.fuzzer-testcases.bucket")
     if not bucket_name:
         return
 
@@ -48,8 +48,7 @@ def upload_testcases_if_needed(fuzzer_name, testcase_list, testcase_directory,
     has_testcases_in_data_directory = False
     for testcase_path in testcase_list:
         if testcase_path.startswith(testcase_directory):
-            files_list.append(os.path.relpath(
-                testcase_path, testcase_directory))
+            files_list.append(os.path.relpath(testcase_path, testcase_directory))
             has_testcases_in_testcase_directory = True
         elif testcase_path.startswith(data_directory):
             files_list.append(os.path.relpath(testcase_path, data_directory))
@@ -58,8 +57,9 @@ def upload_testcases_if_needed(fuzzer_name, testcase_list, testcase_directory,
         return
 
     formatted_date = str(utils.utcnow().date())
-    gcs_base_url = 'gs://{bucket_name}/{date}/{fuzzer_name}/'.format(
-        bucket_name=bucket_name, date=formatted_date, fuzzer_name=fuzzer_name)
+    gcs_base_url = "gs://{bucket_name}/{date}/{fuzzer_name}/".format(
+        bucket_name=bucket_name, date=formatted_date, fuzzer_name=fuzzer_name
+    )
 
     runner = gsutil.GSUtilRunner()
     batch_directory_blobs = storage.list_blobs(gcs_base_url)
@@ -71,8 +71,11 @@ def upload_testcases_if_needed(fuzzer_name, testcase_list, testcase_directory,
         list_gcs_url = storage.get_cloud_storage_file_path(bucket_name, blob)
         data = storage.read_data(list_gcs_url)
         if not data:
-            logs.log_error('Read no data from test case list at {gcs_url}'.format(
-                gcs_url=list_gcs_url))
+            logs.log_error(
+                "Read no data from test case list at {gcs_url}".format(
+                    gcs_url=list_gcs_url
+                )
+            )
             continue
 
         total_testcases += len(data.splitlines())
@@ -86,12 +89,11 @@ def upload_testcases_if_needed(fuzzer_name, testcase_list, testcase_directory,
     files_list = files_list[:testcases_limit]
 
     # Upload each batch of tests to its own unique sub-bucket.
-    identifier = environment.get_value('BOT_NAME') + str(utils.utcnow())
+    identifier = environment.get_value("BOT_NAME") + str(utils.utcnow())
     gcs_base_url += utils.string_hash(identifier)
 
-    list_gcs_url = gcs_base_url + '/' + LIST_FILE_BASENAME
-    if not storage.write_data('\n'.join(files_list).encode('utf-8'),
-                              list_gcs_url):
+    list_gcs_url = gcs_base_url + "/" + LIST_FILE_BASENAME
+    if not storage.write_data("\n".join(files_list).encode("utf-8"), list_gcs_url):
         return
 
     if has_testcases_in_testcase_directory:
@@ -103,14 +105,18 @@ def upload_testcases_if_needed(fuzzer_name, testcase_list, testcase_directory,
         runner.rsync(
             data_directory,
             gcs_base_url,
-            exclusion_pattern=('(?!.*{fuzz_prefix})'.format(
-                fuzz_prefix=testcase_manager.FUZZ_PREFIX)))
+            exclusion_pattern=(
+                "(?!.*{fuzz_prefix})".format(fuzz_prefix=testcase_manager.FUZZ_PREFIX)
+            ),
+        )
 
         # Sync all possible resource dependencies as a best effort. It matches
         # |resources-| prefix that a fuzzer can use to indicate resources. Also, it
         # matches resources directory that Chromium web_tests use for dependencies.
-        runner.rsync(
-            data_directory, gcs_base_url, exclusion_pattern='(?!.*resource)')
+        runner.rsync(data_directory, gcs_base_url, exclusion_pattern="(?!.*resource)")
 
-    logs.log('Synced {count} test cases to {gcs_url}.'.format(
-        count=len(files_list), gcs_url=gcs_base_url))
+    logs.log(
+        "Synced {count} test cases to {gcs_url}.".format(
+            count=len(files_list), gcs_url=gcs_base_url
+        )
+    )

@@ -25,7 +25,7 @@ from metrics import logs
 from system import environment
 
 # Used to prepare targets to be passed to utils.random_weighted_choice.
-WeightedTarget = collections.namedtuple('WeightedTarget', ['target', 'weight'])
+WeightedTarget = collections.namedtuple("WeightedTarget", ["target", "weight"])
 
 
 def update_mappings_for_fuzzer(fuzzer, mappings=None):
@@ -48,8 +48,10 @@ def update_mappings_for_fuzzer(fuzzer, mappings=None):
 
         job = data_types.Job.query(data_types.Job.name == job_name).get()
         if not job:
-            logs.log_error('An unknown job %s was selected for fuzzer %s.' %
-                           (job_name, fuzzer.name))
+            logs.log_error(
+                "An unknown job %s was selected for fuzzer %s."
+                % (job_name, fuzzer.name)
+            )
             continue
 
         mapping = data_types.FuzzerJob()
@@ -77,7 +79,7 @@ def update_platform_for_job(job_name, new_platform):
 def get_fuzz_task_payload(platform=None):
     """Select a fuzzer that can run on this platform."""
     if not platform:
-        queue_override = environment.get_value('QUEUE_OVERRIDE')
+        queue_override = environment.get_value("QUEUE_OVERRIDE")
         platform = queue_override if queue_override else environment.platform()
 
     query = data_types.FuzzerJob.query()
@@ -87,8 +89,7 @@ def get_fuzz_task_payload(platform=None):
     if not mappings:
         return None, None
 
-    selection = utils.random_weighted_choice(
-        mappings, weight_attribute='actual_weight')
+    selection = utils.random_weighted_choice(mappings, weight_attribute="actual_weight")
     return selection.fuzzer, selection.job
 
 
@@ -106,17 +107,18 @@ def select_fuzz_target(targets, target_weights):
 
 def get_fuzz_target_weights():
     """Get a list of fuzz target weights based on the current fuzzer."""
-    job_type = environment.get_value('JOB_NAME')
+    job_type = environment.get_value("JOB_NAME")
 
     target_jobs = list(fuzz_target_utils.get_fuzz_target_jobs(job=job_type))
-    fuzz_targets = fuzz_target_utils.get_fuzz_targets_for_target_jobs(
-        target_jobs)
+    fuzz_targets = fuzz_target_utils.get_fuzz_targets_for_target_jobs(target_jobs)
 
     weights = {}
     for fuzz_target, target_job in zip(fuzz_targets, target_jobs):
         if not fuzz_target:
-            logs.log_error('Skipping weight assignment for fuzz target %s.' %
-                           target_job.fuzz_target_name)
+            logs.log_error(
+                "Skipping weight assignment for fuzz target %s."
+                % target_job.fuzz_target_name
+            )
             continue
 
         weights[fuzz_target.binary] = target_job.weight

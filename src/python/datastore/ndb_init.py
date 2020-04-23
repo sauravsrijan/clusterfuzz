@@ -46,8 +46,7 @@ def _client():
                     # NDB doesn't like newstrs. On Python 3, keeping this breaks because
                     # the bytes gets propgated down to a DNS resolution on
                     # "b'datastore.googleapis.com'" which doesn't work.
-                    _ndb_client.host = utils.newstr_to_native_str(
-                        _ndb_client.host)
+                    _ndb_client.host = utils.newstr_to_native_str(_ndb_client.host)
 
     return _ndb_client
 
@@ -63,10 +62,10 @@ def context():
 
     with _client().context() as ndb_context:
         from google.cloud.ndb import _retry
+
         # Add an additional code to retry on.
         if grpc.StatusCode.UNKNOWN not in _retry.TRANSIENT_CODES:
-            _retry.TRANSIENT_CODES = _retry.TRANSIENT_CODES + (
-                grpc.StatusCode.UNKNOWN,)
+            _retry.TRANSIENT_CODES = _retry.TRANSIENT_CODES + (grpc.StatusCode.UNKNOWN,)
 
         # Disable NDB caching, as NDB on GCE VMs do not use memcache and therefore
         # can't invalidate the memcache cache.

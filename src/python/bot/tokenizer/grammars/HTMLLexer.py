@@ -29,7 +29,7 @@ def serializedATN():
         buf.write(u"\21\t\21\4\22\t\22\4\23\t\23\4\24\t\24\4\25\t\25\4\26")
         buf.write(u"\t\26\4\27\t\27\4\30\t\30\4\31\t\31\4\32\t\32\4\33\t")
         buf.write(u"\33\4\34\t\34\4\35\t\35\4\36\t\36\4\37\t\37\4 \t \4!")
-        buf.write(u"\t!\4\"\t\"\3\2\3\2\3\2\3\2\3\2\3\2\7\2P\n\2\f\2\16\2")
+        buf.write(u'\t!\4"\t"\3\2\3\2\3\2\3\2\3\2\3\2\7\2P\n\2\f\2\16\2')
         buf.write(u"S\13\2\3\2\3\2\3\2\3\2\3\3\3\3\3\3\3\3\3\3\7\3^\n\3\f")
         buf.write(u"\3\16\3a\13\3\3\3\3\3\3\3\3\4\3\4\3\4\3\4\3\4\3\4\3\4")
         buf.write(u"\7\4m\n\4\f\4\16\4p\13\4\3\4\3\4\3\5\3\5\3\5\3\5\3\5")
@@ -59,27 +59,27 @@ def serializedATN():
         buf.write(u"\n\35\3\36\6\36\u0155\n\36\r\36\16\36\u0156\3\36\5\36")
         buf.write(u"\u015a\n\36\3\37\3\37\6\37\u015e\n\37\r\37\16\37\u015f")
         buf.write(u"\3 \6 \u0163\n \r \16 \u0164\3 \5 \u0168\n \3!\3!\7!")
-        buf.write(u"\u016c\n!\f!\16!\u016f\13!\3!\3!\3\"\3\"\7\"\u0175\n")
-        buf.write(u"\"\f\"\16\"\u0178\13\"\3\"\3\"\17Q_n\u0080\u008d\u0098")
+        buf.write(u'\u016c\n!\f!\16!\u016f\13!\3!\3!\3"\3"\7"\u0175\n')
+        buf.write(u'"\f"\16"\u0178\13"\3"\3"\17Q_n\u0080\u008d\u0098')
         buf.write(u"\u00a3\u00be\u00cf\u0107\u0119\u0125\u0136\2#\7\3\t\4")
         buf.write(u"\13\5\r\6\17\7\21\b\23\t\25\n\27\13\31\f\33\r\35\16\37")
-        buf.write(u"\17!\20#\21%\22\'\23)\2+\2-\2/\2\61\24\63\25\65\26\67")
+        buf.write(u"\17!\20#\21%\22'\23)\2+\2-\2/\2\61\24\63\25\65\26\67")
         buf.write(u"\279\30;\31=\2?\2A\2C\2E\2G\2\7\2\3\4\5\6\16\4\2\13\13")
-        buf.write(u"\"\"\3\2>>\5\2\13\f\17\17\"\"\5\2\62;CHch\3\2\62;\4\2")
+        buf.write(u'""\3\2>>\5\2\13\f\17\17""\5\2\62;CHch\3\2\62;\4\2')
         buf.write(u"/\60aa\5\2\u00b9\u00b9\u0302\u0371\u2041\u2042\n\2<<")
         buf.write(u"C\\c|\u2072\u2191\u2c02\u2ff1\u3003\ud801\uf902\ufdd1")
-        buf.write(u"\ufdf2\uffff\3\2\"\"\t\2%%-=??AAC\\aac|\4\2$$>>\4\2)")
+        buf.write(u'\ufdf2\uffff\3\2""\t\2%%-=??AAC\\aac|\4\2$$>>\4\2)')
         buf.write(u")>>\2\u018e\2\7\3\2\2\2\2\t\3\2\2\2\2\13\3\2\2\2\2\r")
         buf.write(u"\3\2\2\2\2\17\3\2\2\2\2\21\3\2\2\2\2\23\3\2\2\2\2\25")
         buf.write(u"\3\2\2\2\2\27\3\2\2\2\2\31\3\2\2\2\2\33\3\2\2\2\3\35")
         buf.write(u"\3\2\2\2\3\37\3\2\2\2\3!\3\2\2\2\3#\3\2\2\2\3%\3\2\2")
-        buf.write(u"\2\3\'\3\2\2\2\4\61\3\2\2\2\4\63\3\2\2\2\5\65\3\2\2\2")
+        buf.write(u"\2\3'\3\2\2\2\4\61\3\2\2\2\4\63\3\2\2\2\5\65\3\2\2\2")
         buf.write(u"\5\67\3\2\2\2\69\3\2\2\2\6;\3\2\2\2\7I\3\2\2\2\tX\3\2")
         buf.write(u"\2\2\13e\3\2\2\2\rs\3\2\2\2\17\u0087\3\2\2\2\21\u00a8")
         buf.write(u"\3\2\2\2\23\u00af\3\2\2\2\25\u00b3\3\2\2\2\27\u00c5\3")
         buf.write(u"\2\2\2\31\u00d6\3\2\2\2\33\u00db\3\2\2\2\35\u00df\3\2")
         buf.write(u"\2\2\37\u00e3\3\2\2\2!\u00e8\3\2\2\2#\u00ea\3\2\2\2%")
-        buf.write(u"\u00ee\3\2\2\2\'\u00f5\3\2\2\2)\u00f7\3\2\2\2+\u00f9")
+        buf.write(u"\u00ee\3\2\2\2'\u00f5\3\2\2\2)\u00f7\3\2\2\2+\u00f9")
         buf.write(u"\3\2\2\2-\u00ff\3\2\2\2/\u0102\3\2\2\2\61\u0107\3\2\2")
         buf.write(u"\2\63\u0119\3\2\2\2\65\u0125\3\2\2\2\67\u0136\3\2\2\2")
         buf.write(u"9\u0142\3\2\2\2;\u014e\3\2\2\2=\u0151\3\2\2\2?\u0154")
@@ -107,11 +107,11 @@ def serializedATN():
         buf.write(u"\2\u0096\u0095\3\2\2\2\u0097\u009a\3\2\2\2\u0098\u0099")
         buf.write(u"\3\2\2\2\u0098\u0096\3\2\2\2\u0099\u009b\3\2\2\2\u009a")
         buf.write(u"\u0098\3\2\2\2\u009b\u009c\7A\2\2\u009c\u00a9\7@\2\2")
-        buf.write(u"\u009d\u009e\7>\2\2\u009e\u009f\7\'\2\2\u009f\u00a3\3")
+        buf.write(u"\u009d\u009e\7>\2\2\u009e\u009f\7'\2\2\u009f\u00a3\3")
         buf.write(u"\2\2\2\u00a0\u00a2\13\2\2\2\u00a1\u00a0\3\2\2\2\u00a2")
         buf.write(u"\u00a5\3\2\2\2\u00a3\u00a4\3\2\2\2\u00a3\u00a1\3\2\2")
         buf.write(u"\2\u00a4\u00a6\3\2\2\2\u00a5\u00a3\3\2\2\2\u00a6\u00a7")
-        buf.write(u"\7\'\2\2\u00a7\u00a9\7@\2\2\u00a8\u0092\3\2\2\2\u00a8")
+        buf.write(u"\7'\2\2\u00a7\u00a9\7@\2\2\u00a8\u0092\3\2\2\2\u00a8")
         buf.write(u"\u009d\3\2\2\2\u00a9\22\3\2\2\2\u00aa\u00b0\t\2\2\2\u00ab")
         buf.write(u"\u00ad\7\17\2\2\u00ac\u00ab\3\2\2\2\u00ac\u00ad\3\2\2")
         buf.write(u"\2\u00ad\u00ae\3\2\2\2\u00ae\u00b0\7\f\2\2\u00af\u00aa")
@@ -137,7 +137,7 @@ def serializedATN():
         buf.write(u"\7@\2\2\u00e0\u00e1\3\2\2\2\u00e1\u00e2\b\r\5\2\u00e2")
         buf.write(u"\36\3\2\2\2\u00e3\u00e4\7\61\2\2\u00e4\u00e5\7@\2\2\u00e5")
         buf.write(u"\u00e6\3\2\2\2\u00e6\u00e7\b\16\5\2\u00e7 \3\2\2\2\u00e8")
-        buf.write(u"\u00e9\7\61\2\2\u00e9\"\3\2\2\2\u00ea\u00eb\7?\2\2\u00eb")
+        buf.write(u'\u00e9\7\61\2\2\u00e9"\3\2\2\2\u00ea\u00eb\7?\2\2\u00eb')
         buf.write(u"\u00ec\3\2\2\2\u00ec\u00ed\b\20\6\2\u00ed$\3\2\2\2\u00ee")
         buf.write(u"\u00f2\5/\26\2\u00ef\u00f1\5-\25\2\u00f0\u00ef\3\2\2")
         buf.write(u"\2\u00f1\u00f4\3\2\2\2\u00f2\u00f0\3\2\2\2\u00f2\u00f3")
@@ -175,21 +175,21 @@ def serializedATN():
         buf.write(u"\2\2\u0141\u0144\3\2\2\2\u0142\u0140\3\2\2\2\u0142\u0143")
         buf.write(u"\3\2\2\2\u0143\u0145\3\2\2\2\u0144\u0142\3\2\2\2\u0145")
         buf.write(u"\u0146\5;\34\2\u0146\u0147\3\2\2\2\u0147\u0148\b\33\5")
-        buf.write(u"\2\u0148:\3\2\2\2\u0149\u014f\5E!\2\u014a\u014f\5G\"")
+        buf.write(u'\2\u0148:\3\2\2\2\u0149\u014f\5E!\2\u014a\u014f\5G"')
         buf.write(u"\2\u014b\u014f\5?\36\2\u014c\u014f\5A\37\2\u014d\u014f")
         buf.write(u"\5C \2\u014e\u0149\3\2\2\2\u014e\u014a\3\2\2\2\u014e")
         buf.write(u"\u014b\3\2\2\2\u014e\u014c\3\2\2\2\u014e\u014d\3\2\2")
         buf.write(u"\2\u014f<\3\2\2\2\u0150\u0152\t\13\2\2\u0151\u0150\3")
         buf.write(u"\2\2\2\u0152>\3\2\2\2\u0153\u0155\5=\35\2\u0154\u0153")
         buf.write(u"\3\2\2\2\u0155\u0156\3\2\2\2\u0156\u0154\3\2\2\2\u0156")
-        buf.write(u"\u0157\3\2\2\2\u0157\u0159\3\2\2\2\u0158\u015a\7\"\2")
+        buf.write(u'\u0157\3\2\2\2\u0157\u0159\3\2\2\2\u0158\u015a\7"\2')
         buf.write(u"\2\u0159\u0158\3\2\2\2\u0159\u015a\3\2\2\2\u015a@\3\2")
         buf.write(u"\2\2\u015b\u015d\7%\2\2\u015c\u015e\t\5\2\2\u015d\u015c")
         buf.write(u"\3\2\2\2\u015e\u015f\3\2\2\2\u015f\u015d\3\2\2\2\u015f")
         buf.write(u"\u0160\3\2\2\2\u0160B\3\2\2\2\u0161\u0163\t\6\2\2\u0162")
         buf.write(u"\u0161\3\2\2\2\u0163\u0164\3\2\2\2\u0164\u0162\3\2\2")
         buf.write(u"\2\u0164\u0165\3\2\2\2\u0165\u0167\3\2\2\2\u0166\u0168")
-        buf.write(u"\7\'\2\2\u0167\u0166\3\2\2\2\u0167\u0168\3\2\2\2\u0168")
+        buf.write(u"\7'\2\2\u0167\u0166\3\2\2\2\u0167\u0168\3\2\2\2\u0168")
         buf.write(u"D\3\2\2\2\u0169\u016d\7$\2\2\u016a\u016c\n\f\2\2\u016b")
         buf.write(u"\u016a\3\2\2\2\u016c\u016f\3\2\2\2\u016d\u016b\3\2\2")
         buf.write(u"\2\u016d\u016e\3\2\2\2\u016e\u0170\3\2\2\2\u016f\u016d")
@@ -244,26 +244,70 @@ class HTMLLexer(Lexer):
 
     modeNames = [u"DEFAULT_MODE", u"TAG", u"SCRIPT", u"STYLE", u"ATTVALUE"]
 
-    literalNames = [u"<INVALID>",
-                    u"'<'", u"'>'", u"'/>'", u"'/'", u"'='"]
+    literalNames = [u"<INVALID>", u"'<'", u"'>'", u"'/>'", u"'/'", u"'='"]
 
-    symbolicNames = [u"<INVALID>",
-                     u"HTML_COMMENT", u"HTML_CONDITIONAL_COMMENT", u"XML_DECLARATION",
-                     u"CDATA", u"DTD", u"SCRIPTLET", u"SEA_WS", u"SCRIPT_OPEN", u"STYLE_OPEN",
-                     u"TAG_OPEN", u"HTML_TEXT", u"TAG_CLOSE", u"TAG_SLASH_CLOSE",
-                     u"TAG_SLASH", u"TAG_EQUALS", u"TAG_NAME", u"TAG_WHITESPACE",
-                     u"SCRIPT_BODY", u"SCRIPT_SHORT_BODY", u"STYLE_BODY", u"STYLE_SHORT_BODY",
-                     u"ATTVALUE_VALUE", u"ATTRIBUTE"]
+    symbolicNames = [
+        u"<INVALID>",
+        u"HTML_COMMENT",
+        u"HTML_CONDITIONAL_COMMENT",
+        u"XML_DECLARATION",
+        u"CDATA",
+        u"DTD",
+        u"SCRIPTLET",
+        u"SEA_WS",
+        u"SCRIPT_OPEN",
+        u"STYLE_OPEN",
+        u"TAG_OPEN",
+        u"HTML_TEXT",
+        u"TAG_CLOSE",
+        u"TAG_SLASH_CLOSE",
+        u"TAG_SLASH",
+        u"TAG_EQUALS",
+        u"TAG_NAME",
+        u"TAG_WHITESPACE",
+        u"SCRIPT_BODY",
+        u"SCRIPT_SHORT_BODY",
+        u"STYLE_BODY",
+        u"STYLE_SHORT_BODY",
+        u"ATTVALUE_VALUE",
+        u"ATTRIBUTE",
+    ]
 
-    ruleNames = [u"HTML_COMMENT", u"HTML_CONDITIONAL_COMMENT", u"XML_DECLARATION",
-                 u"CDATA", u"DTD", u"SCRIPTLET", u"SEA_WS", u"SCRIPT_OPEN",
-                 u"STYLE_OPEN", u"TAG_OPEN", u"HTML_TEXT", u"TAG_CLOSE",
-                 u"TAG_SLASH_CLOSE", u"TAG_SLASH", u"TAG_EQUALS", u"TAG_NAME",
-                 u"TAG_WHITESPACE", u"HEXDIGIT", u"DIGIT", u"TAG_NameChar",
-                 u"TAG_NameStartChar", u"SCRIPT_BODY", u"SCRIPT_SHORT_BODY",
-                 u"STYLE_BODY", u"STYLE_SHORT_BODY", u"ATTVALUE_VALUE",
-                 u"ATTRIBUTE", u"ATTCHAR", u"ATTCHARS", u"HEXCHARS", u"DECCHARS",
-                 u"DOUBLE_QUOTE_STRING", u"SINGLE_QUOTE_STRING"]
+    ruleNames = [
+        u"HTML_COMMENT",
+        u"HTML_CONDITIONAL_COMMENT",
+        u"XML_DECLARATION",
+        u"CDATA",
+        u"DTD",
+        u"SCRIPTLET",
+        u"SEA_WS",
+        u"SCRIPT_OPEN",
+        u"STYLE_OPEN",
+        u"TAG_OPEN",
+        u"HTML_TEXT",
+        u"TAG_CLOSE",
+        u"TAG_SLASH_CLOSE",
+        u"TAG_SLASH",
+        u"TAG_EQUALS",
+        u"TAG_NAME",
+        u"TAG_WHITESPACE",
+        u"HEXDIGIT",
+        u"DIGIT",
+        u"TAG_NameChar",
+        u"TAG_NameStartChar",
+        u"SCRIPT_BODY",
+        u"SCRIPT_SHORT_BODY",
+        u"STYLE_BODY",
+        u"STYLE_SHORT_BODY",
+        u"ATTVALUE_VALUE",
+        u"ATTRIBUTE",
+        u"ATTCHAR",
+        u"ATTCHARS",
+        u"HEXCHARS",
+        u"DECCHARS",
+        u"DOUBLE_QUOTE_STRING",
+        u"SINGLE_QUOTE_STRING",
+    ]
 
     grammarFileName = u"HTMLLexer.g4"
 
@@ -271,6 +315,7 @@ class HTMLLexer(Lexer):
         super(HTMLLexer, self).__init__(input, output=output)
         self.checkVersion("4.7.1")
         self._interp = LexerATNSimulator(
-            self, self.atn, self.decisionsToDFA, PredictionContextCache())
+            self, self.atn, self.decisionsToDFA, PredictionContextCache()
+        )
         self._actions = None
         self._predicates = None

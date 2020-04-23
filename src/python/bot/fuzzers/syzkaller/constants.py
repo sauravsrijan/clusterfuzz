@@ -16,11 +16,10 @@ Should not have any dependancies.
 """
 
 # Regex to find testcase path from a crash.
-KASAN_CRASH_TESTCASE_REGEX = (r'.*Test unit written to\s*'
-                              r'(Read|Write) of .*')
+KASAN_CRASH_TESTCASE_REGEX = r".*Test unit written to\s*" r"(Read|Write) of .*"
 
-SYZKALLER_WORK_FOLDER = '/tmp/syzkaller'
+SYZKALLER_WORK_FOLDER = "/tmp/syzkaller"
 
-VMLINUX_FOLDER = '/tmp/syzkaller/vmlinux'
+VMLINUX_FOLDER = "/tmp/syzkaller/vmlinux"
 
 CLEAN_EXIT_SECS = 10

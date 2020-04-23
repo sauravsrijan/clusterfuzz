@@ -24,23 +24,23 @@ from handlers.cron import grouper
 from tests.test_libs import test_utils
 
 
-@test_utils.with_cloud_emulators('datastore')
+@test_utils.with_cloud_emulators("datastore")
 class GrouperTest(unittest.TestCase):
     """Grouper tests."""
 
     def setUp(self):
         self.testcases = [
             test_utils.create_generic_testcase(),
-            test_utils.create_generic_testcase()
+            test_utils.create_generic_testcase(),
         ]
 
     def test_same_crash_different_security(self):
         """Test that crashes with same crash states, but different security
           flags."""
         self.testcases[0].security_flag = False
-        self.testcases[0].crash_state = 'abc\ndef'
+        self.testcases[0].crash_state = "abc\ndef"
         self.testcases[1].security_flag = True
-        self.testcases[1].crash_state = 'abc\ndef'
+        self.testcases[1].crash_state = "abc\ndef"
 
         for t in self.testcases:
             t.put()
@@ -57,7 +57,7 @@ class GrouperTest(unittest.TestCase):
         de-duplicated with one of them removed."""
         for index, t in enumerate(self.testcases):
             t.security_flag = True
-            t.crash_state = 'abc\ndef'
+            t.crash_state = "abc\ndef"
             t.timestamp = datetime.datetime.utcfromtimestamp(index)
             t.put()
 
@@ -74,12 +74,12 @@ class GrouperTest(unittest.TestCase):
     def test_unminimized(self):
         """Test that unminimized testcase is not processed for grouping."""
         self.testcases[0].security_flag = True
-        self.testcases[0].crash_state = 'abc\ndef'
-        self.testcases[0].crash_type = 'Heap-buffer-overflow\nREAD {*}'
+        self.testcases[0].crash_state = "abc\ndef"
+        self.testcases[0].crash_type = "Heap-buffer-overflow\nREAD {*}"
         self.testcases[0].minimized_keys = None
         self.testcases[1].security_flag = True
-        self.testcases[1].crash_state = 'abc\ndef'
-        self.testcases[1].crash_type = 'Heap-buffer-overflow\nREAD 3'
+        self.testcases[1].crash_state = "abc\ndef"
+        self.testcases[1].crash_type = "Heap-buffer-overflow\nREAD 3"
 
         for t in self.testcases:
             t.put()
@@ -100,9 +100,9 @@ class GrouperTest(unittest.TestCase):
         """Test that crashes with different crash states and same security flags
           don't get grouped together."""
         self.testcases[0].security_flag = True
-        self.testcases[0].crash_state = 'abc\ndef'
+        self.testcases[0].crash_state = "abc\ndef"
         self.testcases[1].security_flag = True
-        self.testcases[1].crash_state = 'uvw\nxyz'
+        self.testcases[1].crash_state = "uvw\nxyz"
 
         for t in self.testcases:
             t.put()
@@ -130,12 +130,12 @@ class GrouperTest(unittest.TestCase):
         """Test that the crashes with same unique crash type and same state get
         de-duplicated with one of them removed.."""
         self.testcases[0].security_flag = False
-        self.testcases[0].crash_type = 'Timeout'
-        self.testcases[0].crash_state = 'abcde'
+        self.testcases[0].crash_type = "Timeout"
+        self.testcases[0].crash_state = "abcde"
         self.testcases[0].timestamp = datetime.datetime.utcfromtimestamp(0)
         self.testcases[1].security_flag = False
-        self.testcases[1].crash_type = 'Timeout'
-        self.testcases[1].crash_state = 'abcde'
+        self.testcases[1].crash_type = "Timeout"
+        self.testcases[1].crash_state = "abcde"
         self.testcases[1].timestamp = datetime.datetime.utcfromtimestamp(1)
 
         for t in self.testcases:
@@ -155,11 +155,11 @@ class GrouperTest(unittest.TestCase):
         """Test that the crashes with same unique crash type but different state
         don't get grouped together."""
         self.testcases[0].security_flag = False
-        self.testcases[0].crash_type = 'Timeout'
-        self.testcases[0].crash_state = 'abcdef'
+        self.testcases[0].crash_type = "Timeout"
+        self.testcases[0].crash_state = "abcdef"
         self.testcases[1].security_flag = False
-        self.testcases[1].crash_type = 'Timeout'
-        self.testcases[1].crash_state = 'abcde'
+        self.testcases[1].crash_type = "Timeout"
+        self.testcases[1].crash_state = "abcde"
 
         for t in self.testcases:
             t.put()
@@ -175,11 +175,11 @@ class GrouperTest(unittest.TestCase):
         """Test that the crashes with different unique crash type but same state
         don't get grouped together."""
         self.testcases[0].security_flag = False
-        self.testcases[0].crash_type = 'Timeout'
-        self.testcases[0].crash_state = 'abcde'
+        self.testcases[0].crash_type = "Timeout"
+        self.testcases[0].crash_state = "abcde"
         self.testcases[1].security_flag = False
-        self.testcases[1].crash_type = 'Out-of-memory'
-        self.testcases[1].crash_state = 'abcde'
+        self.testcases[1].crash_type = "Out-of-memory"
+        self.testcases[1].crash_state = "abcde"
 
         for t in self.testcases:
             t.put()
@@ -195,11 +195,11 @@ class GrouperTest(unittest.TestCase):
         """Test that the crashes with different unique crash type and different
         state don't get grouped together."""
         self.testcases[0].security_flag = False
-        self.testcases[0].crash_type = 'Timeout'
-        self.testcases[0].crash_state = 'abcdef'
+        self.testcases[0].crash_type = "Timeout"
+        self.testcases[0].crash_state = "abcdef"
         self.testcases[1].security_flag = False
-        self.testcases[1].crash_type = 'Out-of-memory'
-        self.testcases[1].crash_state = 'abcde'
+        self.testcases[1].crash_type = "Out-of-memory"
+        self.testcases[1].crash_state = "abcde"
 
         for t in self.testcases:
             t.put()
@@ -215,11 +215,11 @@ class GrouperTest(unittest.TestCase):
         """Test that the crashes with different crash types (one of them unique) and
         similar crash state don't get grouped together."""
         self.testcases[0].security_flag = False
-        self.testcases[0].crash_type = 'Timeout'
-        self.testcases[0].crash_state = 'abcdef'
+        self.testcases[0].crash_type = "Timeout"
+        self.testcases[0].crash_state = "abcdef"
         self.testcases[1].security_flag = False
-        self.testcases[1].crash_type = 'TimeoutX'
-        self.testcases[1].crash_state = 'abcde'
+        self.testcases[1].crash_type = "TimeoutX"
+        self.testcases[1].crash_state = "abcde"
 
         for t in self.testcases:
             t.put()
@@ -235,13 +235,13 @@ class GrouperTest(unittest.TestCase):
         """Test that the crashes with different project names and similar crash
         state don't get grouped together."""
         self.testcases[0].security_flag = False
-        self.testcases[0].crash_type = 'Heap-buffer-overflow'
-        self.testcases[0].crash_state = 'abcdef'
-        self.testcases[0].project_name = 'project1'
+        self.testcases[0].crash_type = "Heap-buffer-overflow"
+        self.testcases[0].crash_state = "abcdef"
+        self.testcases[0].project_name = "project1"
         self.testcases[1].security_flag = False
-        self.testcases[1].crash_type = 'Heap-buffer-overflow'
-        self.testcases[1].crash_state = 'abcde'
-        self.testcases[1].project_name = 'project2'
+        self.testcases[1].crash_type = "Heap-buffer-overflow"
+        self.testcases[1].crash_state = "abcde"
+        self.testcases[1].project_name = "project2"
 
         for t in self.testcases:
             t.put()
@@ -254,7 +254,7 @@ class GrouperTest(unittest.TestCase):
             self.assertTrue(self.testcases[index].is_leader)
 
 
-@test_utils.with_cloud_emulators('datastore')
+@test_utils.with_cloud_emulators("datastore")
 class GroupExceedMaxTestcasesTest(unittest.TestCase):
     """Grouper test when a group exceeds maximum number of testcases."""
 
@@ -263,14 +263,14 @@ class GroupExceedMaxTestcasesTest(unittest.TestCase):
         testcases."""
         for i in range(1, 31):
             testcase = test_utils.create_generic_testcase()
-            testcase.crash_type = 'Heap-buffer-overflow'
-            testcase.crash_state = 'abcdefgh' + str(i)
-            testcase.project_name = 'project'
+            testcase.crash_type = "Heap-buffer-overflow"
+            testcase.crash_state = "abcdefgh" + str(i)
+            testcase.project_name = "project"
             testcase.one_time_crasher_flag = False
 
             # Attach actual issues to some testcases.
             if i in [3, 4, 5]:
-                testcase.bug_information = '123'
+                testcase.bug_information = "123"
 
             # Make some testcases unreproducible.
             if i in [1, 2, 3]:
@@ -288,6 +288,7 @@ class GroupExceedMaxTestcasesTest(unittest.TestCase):
         # [3] is not removed since it has bug attached (even though unreproducible).
         # [6, 7, 8] are removed to account for max group size. Even though they
         # are reproducible, they are the ones with least weight.
-        expected_testcase_ids = [3, 4, 5] + list(range(
-            9, 31)) + [unrelated_testcase.key.id()]
+        expected_testcase_ids = (
+            [3, 4, 5] + list(range(9, 31)) + [unrelated_testcase.key.id()]
+        )
         self.assertEqual(expected_testcase_ids, testcase_ids)

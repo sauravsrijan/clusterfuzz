@@ -34,17 +34,17 @@ from system.environment import local_noop
 # Thead local globals.
 _local = threading.local()
 
-_DEFAULT_REDIS_HOST = 'localhost'
+_DEFAULT_REDIS_HOST = "localhost"
 _DEFAULT_REDIS_PORT = 6379
 
 
 def _redis_client():
     """Get the redis client."""
-    if hasattr(_local, 'redis'):
+    if hasattr(_local, "redis"):
         return _local.redis
 
-    host = os.getenv('REDIS_HOST', _DEFAULT_REDIS_HOST)
-    port = os.getenv('REDIS_PORT', _DEFAULT_REDIS_PORT)
+    host = os.getenv("REDIS_HOST", _DEFAULT_REDIS_HOST)
+    port = os.getenv("REDIS_PORT", _DEFAULT_REDIS_PORT)
     _local.redis = redis.Redis(host=host, port=port)
     return _local.redis
 
@@ -138,10 +138,10 @@ class Memcache(object):
         """Put (key, value) into cache."""
         try:
             _redis_client().set(
-                json.dumps(key), json.dumps(value), ex=self.ttl_in_seconds)
+                json.dumps(key), json.dumps(value), ex=self.ttl_in_seconds
+            )
         except redis.RedisError:
-            logs.log_error('Failed to store key in cache.',
-                           key=key, value=value)
+            logs.log_error("Failed to store key in cache.", key=key, value=value)
 
     @local_noop
     @bot_noop
@@ -150,7 +150,7 @@ class Memcache(object):
         try:
             value_raw = _redis_client().get(json.dumps(key))
         except redis.RedisError:
-            logs.log_error('Failed to retrieve key from cache.', key=key)
+            logs.log_error("Failed to retrieve key from cache.", key=key)
             return None
 
         if value_raw is None:
@@ -173,7 +173,7 @@ def _default_key(func, args, kwargs):
         for key, value in six.iteritems(kwargs)
     }
 
-    return 'memoize:%s' % [func.__name__, args, sorted(kwargs.items())]
+    return "memoize:%s" % [func.__name__, args, sorted(kwargs.items())]
 
 
 def wrap(engine):
@@ -187,7 +187,7 @@ def wrap(engine):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             """Wrapper function."""
-            force_update = kwargs.pop('__memoize_force__', False)
+            force_update = kwargs.pop("__memoize_force__", False)
 
             key = engine.get_key(func, args, kwargs)
             result = engine.get(key)
