@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-function run_bot () {
+function run_bot() {
   serial=$1
   device_index=$2
   bot_directory=$INSTALL_DIRECTORY/bots/$(echo "$serial" | sed s/:/-/)
@@ -30,7 +30,7 @@ function run_bot () {
     "$ADB_PATH"/adb -s "$serial" wait-for-device
 
     echo "Running ClusterFuzz instance for bot $serial."
-    OS_OVERRIDE="ANDROID" ANDROID_SERIAL="$serial" PATH="$PATH" NFS_ROOT="$NFS_ROOT" GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS" ROOT_DIR="$bot_directory/clusterfuzz" PYTHONPATH="$PYTHONPATH" GSUTIL_PATH="$GSUTIL_PATH" BOT_NAME="android-$(hostname)-$serial" HTTP_PORT_1="$((device_index+8000))" HTTP_PORT_2="$((device_index+8080))" python "$bot_directory"/clusterfuzz/src/python/bot/startup/run.py || true
+    OS_OVERRIDE="ANDROID" ANDROID_SERIAL="$serial" PATH="$PATH" NFS_ROOT="$NFS_ROOT" GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS" ROOT_DIR="$bot_directory/clusterfuzz" PYTHONPATH="$PYTHONPATH" GSUTIL_PATH="$GSUTIL_PATH" BOT_NAME="android-$(hostname)-$serial" HTTP_PORT_1="$((device_index + 8000))" HTTP_PORT_2="$((device_index + 8080))" python "$bot_directory"/clusterfuzz/src/python/bot/startup/run.py || true
 
     echo "ClusterFuzz instance for bot $serial quit unexpectedly. Waiting for device."
   done
@@ -46,7 +46,7 @@ if [ -z "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
   exit 1
 fi
 
-NFS_ROOT=  # Fill in NFS information if available.
+NFS_ROOT= # Fill in NFS information if available.
 GOOGLE_CLOUD_SDK=google-cloud-sdk
 GOOGLE_CLOUD_SDK_ARCHIVE=google-cloud-sdk-232.0.0-linux-x86_64.tar.gz
 INSTALL_DIRECTORY=${INSTALL_DIRECTORY:-${HOME}}
@@ -93,7 +93,7 @@ unzip -q clusterfuzz-source.zip
 
 echo "Installing ClusterFuzz package dependencies using pipenv."
 cd clusterfuzz
-if ! python3 -m pip > /dev/null ; then
+if ! python3 -m pip >/dev/null; then
   curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
   python3 get-pip.py
 fi
@@ -107,7 +107,7 @@ if [ -z "$ANDROID_SERIAL" ]; then
   device_index=0
   for serial in "$("$ADB_PATH"/adb devices | awk -F' ' '{ print $1 }' | egrep -v '^(|List)$')"; do
     run_bot "$serial" "$device_index" &
-    device_index=$((device_index+1))
+    device_index=$((device_index + 1))
   done
 else
   run_bot "$ANDROID_SERIAL" &

@@ -43,7 +43,7 @@ if [ ! -e "$version_file" ] || [ "$(cat "$version_file")" != "$current_version" 
 fi
 
 # Check if we have a valid pipenv.
-if ! pipenv graph 2>&1 > /dev/null; then
+if ! pipenv graph 2>&1 >/dev/null; then
   dependencies_installed="false"
 fi
 
@@ -57,14 +57,14 @@ if [ "$dependencies_installed" != "true" ]; then
   echo "You may see several password prompts to install required packages."
   sleep 5
   "$ROOT_DIRECTORY"/local/install_deps.bash --only-reproduce "$additional_deps_args" || { exit 1; }
-  echo -n "$current_version" > "$version_file"
+  echo -n "$current_version" >"$version_file"
 fi
 
 # Only sync if necessary.
 pip_sync_file=$CLUSTERFUZZ_CONFIG_DIR/pip_sync
 if [ ! -e "$pip_sync_file" ] || [ "$ROOT_DIRECTORY"/Pipfile.lock -nt "$pip_sync_file" ]; then
   pipenv sync --dev
-  echo 1 > "$pip_sync_file"
+  echo 1 >"$pip_sync_file"
 fi
 
 source "$(pipenv --venv)/bin/activate"

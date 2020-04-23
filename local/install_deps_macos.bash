@@ -14,12 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if ! which gcloud > /dev/null 2>&1; then
+if ! which gcloud >/dev/null 2>&1; then
   echo 'Please install the google cloud SDK (https://cloud.google.com/sdk/install)'
   exit 1
 fi
 
-if ! which brew > /dev/null 2>&1; then
+if ! which brew >/dev/null 2>&1; then
   echo 'Please install homebrew (https://brew.sh).'
   exit 1
 fi
@@ -36,12 +36,12 @@ npm install -g bower polymer-bundler
 bower install
 
 gcloud components install --quiet \
-    app-engine-go \
-    app-engine-python \
-    app-engine-python-extras \
-    beta \
-    cloud-datastore-emulator \
-    pubsub-emulator
+  app-engine-go \
+  app-engine-python \
+  app-engine-python-extras \
+  beta \
+  cloud-datastore-emulator \
+  pubsub-emulator
 
 # Bootstrap code structure.
 python butler.py bootstrap

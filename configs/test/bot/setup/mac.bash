@@ -23,7 +23,7 @@ if [ -z "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
   exit 1
 fi
 
-NFS_ROOT=  # Fill in NFS information if available.
+NFS_ROOT= # Fill in NFS information if available.
 GOOGLE_CLOUD_SDK=google-cloud-sdk
 GOOGLE_CLOUD_SDK_ARCHIVE=google-cloud-sdk-232.0.0-darwin-x86_64.tar.gz
 INSTALL_DIRECTORY=${INSTALL_DIRECTORY:-${HOME}}
@@ -81,7 +81,7 @@ unzip -q clusterfuzz-source.zip
 
 echo "Installing ClusterFuzz package dependencies using pipenv."
 cd clusterfuzz
-if ! python3 -m pip > /dev/null ; then
+if ! python3 -m pip >/dev/null; then
   curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
   python3 get-pip.py
 fi

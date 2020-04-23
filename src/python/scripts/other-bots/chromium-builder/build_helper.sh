@@ -35,7 +35,7 @@ src_dir=$BUILD_DIR/chromium
 build_subdir=out/$build_name
 build_dir=$src_dir/src/$build_subdir
 build_file=$BUILD_DIR/$build_name.zip
-cpus=$((`getconf _NPROCESSORS_ONLN` / 2 + 1))
+cpus=$(($(getconf _NPROCESSORS_ONLN) / 2 + 1))
 
 # Clear build files.
 rm -rf "$build_file" "$build_dir"
@@ -76,12 +76,11 @@ gn gen "$build_subdir" "--args=$gn_args"
 autoninja -C "$build_subdir" chromium_builder_asan
 
 # Clear unneeded files from build directory.
-unneeded_dirnames=( ".deps" ".landmines" ".ninja_deps" ".ninja_log"
-                    ".sconsign.dblite" "appcache" "gen" "glue" "lib.host"
-                    "mksnapshot" "obj" "obj.host" "obj.target" "src"
-                    "thinlto-cache" )
-for unneeded_dirname in "${unneeded_dirnames[@]}"
-do
+unneeded_dirnames=(".deps" ".landmines" ".ninja_deps" ".ninja_log"
+  ".sconsign.dblite" "appcache" "gen" "glue" "lib.host"
+  "mksnapshot" "obj" "obj.host" "obj.target" "src"
+  "thinlto-cache")
+for unneeded_dirname in "${unneeded_dirnames[@]}"; do
   rm -rf "$build_dir/$unneeded_dirname"
 done
 

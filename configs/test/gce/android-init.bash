@@ -14,8 +14,8 @@
 # limitations under the License.
 
 # Fill NFS server information if available.
-NFS_CLUSTER_NAME=  # E.g. 10.0.0.2 is default for Cloud filestore.
-NFS_VOLUME_NAME=   # Fill this based on NFS config.
+NFS_CLUSTER_NAME= # E.g. 10.0.0.2 is default for Cloud filestore.
+NFS_VOLUME_NAME=  # Fill this based on NFS config.
 NFS_DIR=/mnt/nfs
 
 # Create clusterfuzz user (uid=1337).
@@ -24,11 +24,11 @@ HOME=/home/$USER
 useradd -mU -u 1337 "$USER"
 usermod -aG kvm "$USER"
 usermod -aG cvdnetwork "$USER"
-echo "$USER ALL=NOPASSWD: ALL" >> /etc/sudoers
+echo "$USER ALL=NOPASSWD: ALL" >>/etc/sudoers
 
 # Setup helper variables.
 ANDROID_SERIAL=127.0.0.1:6520
-CVD_DIR=$HOME  # To avoid custom params in launch_cvd for various image type locations.
+CVD_DIR=$HOME # To avoid custom params in launch_cvd for various image type locations.
 DEPLOYMENT_BUCKET=$(curl -H "Metadata-Flavor: Google" \
   http://metadata.google.internal/computeMetadata/v1/project/attributes/deployment-bucket)
 DEVICE_BRANCH=$(curl -H "Metadata-Flavor: Google" \
@@ -75,8 +75,8 @@ echo "Increasing default file limit."
 ulimit -n 65536
 
 echo "Fixing hugepages bug."
-echo never > /sys/kernel/mm/transparent_hugepage/enabled
-echo never > /sys/kernel/mm/transparent_hugepage/defrag
+echo never >/sys/kernel/mm/transparent_hugepage/enabled
+echo never >/sys/kernel/mm/transparent_hugepage/defrag
 
 echo "Disabling hung task checking."
 sysctl kernel.hung_task_timeout_secs=0
@@ -96,7 +96,7 @@ echo "
   bind 127.0.0.1
   tag bot
 </source>
-" > /etc/google-fluentd/config.d/clusterfuzz.conf
+" >/etc/google-fluentd/config.d/clusterfuzz.conf
 sed -i 's/flush_interval 5s/flush_interval 60s/' \
   /etc/google-fluentd/google-fluentd.conf
 sudo service google-fluentd restart
@@ -112,19 +112,19 @@ else
   echo "Setting up NFS."
   mkdir -p "$NFS_DIR"
   sed -i "s/browse_mode = no/browse_mode = yes/" /etc/autofs.conf
-  echo "$NFS_DIR   /etc/auto.nfs" >> /etc/auto.master
+  echo "$NFS_DIR   /etc/auto.nfs" >>/etc/auto.master
   service autofs stop
-  echo "$NFS_VOLUME_NAME -intr,hard,rsize=65536,wsize=65536,mountproto=tcp,vers=3,noacl,noatime,nodiratime $NFS_CLUSTER_NAME:/$NFS_VOLUME_NAME" > /etc/auto.nfs
+  echo "$NFS_VOLUME_NAME -intr,hard,rsize=65536,wsize=65536,mountproto=tcp,vers=3,noacl,noatime,nodiratime $NFS_CLUSTER_NAME:/$NFS_VOLUME_NAME" >/etc/auto.nfs
   service autofs start
 
-  set +e  # Ignore errors in this block since NFS server can be flaky.
+  set +e # Ignore errors in this block since NFS server can be flaky.
   ls "$NFS_ROOT"
   chown "$USER:$USER" "$NFS_ROOT"
   set -e
 fi
 
 echo "Changing user shell to clusterfuzz."
-exec sudo -i -u clusterfuzz bash - << eof
+exec sudo -i -u clusterfuzz bash - <<eof
 
 echo "Creating directory $INSTALL_DIRECTORY."
 mkdir -p "$INSTALL_DIRECTORY"
