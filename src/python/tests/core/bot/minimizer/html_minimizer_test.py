@@ -59,7 +59,7 @@ class HTMLMinimizerTest(unittest.TestCase):
     function a() {
         var a = 0;
     }
-    
+
     function b() {
         var b = document.createTextNode("PASS");
     }"""

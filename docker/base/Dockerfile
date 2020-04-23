@@ -112,4 +112,3 @@ RUN cd /data && \
     mv /usr/local/bin/pip3.7 /usr/local/bin/pip && \
     pipenv install --deploy --system
 CMD ["bash", "-ex", "/data/start.sh"]
-

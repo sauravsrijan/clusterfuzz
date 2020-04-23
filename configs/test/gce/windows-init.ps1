@@ -317,5 +317,3 @@ cmd /c c:\python37\python -m pip install pywinauto==0.6.8
 Write-Host "Run scripts"
 c:\autologin.bat
 c:\PsExec.exe \\$hostName -accepteula -h -i 0 -username `""$domain\$username"`" -password `""$password"`" c:\startup.bat
-
-
