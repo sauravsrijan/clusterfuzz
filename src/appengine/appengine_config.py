@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """appengine_config initialises before the server starts."""
+import google
+import six
 import os
 import sys
 
@@ -37,46 +39,44 @@ IS_RUNNING_IN_PRODUCTION = (
 config_modules_path = os.path.join('config', 'modules')
 
 if IS_RUNNING_IN_PRODUCTION or IS_RUNNING_IN_DEV_APPSERVER:
-  vendor.add('third_party', 0)
-  vendor.add('python', 0)
-  if os.path.exists(config_modules_path):
-    vendor.add(config_modules_path, 0)
+    vendor.add('third_party', 0)
+    vendor.add('python', 0)
+    if os.path.exists(config_modules_path):
+        vendor.add(config_modules_path, 0)
 else:
-  sys.path.insert(0, 'third_party')
-  sys.path.insert(0, 'python')
-  if os.path.exists(config_modules_path):
-    sys.path.insert(0, config_modules_path)
+    sys.path.insert(0, 'third_party')
+    sys.path.insert(0, 'python')
+    if os.path.exists(config_modules_path):
+        sys.path.insert(0, config_modules_path)
 
 if IS_RUNNING_IN_PRODUCTION:
-  import pkg_resources
-  reload(pkg_resources)
+    import pkg_resources
+    reload(pkg_resources)
 elif IS_RUNNING_IN_DEV_APPSERVER:
-  import pkg_resources
-  pkg_resources.working_set.add_entry('third_party')
+    import pkg_resources
+    pkg_resources.working_set.add_entry('third_party')
 
 try:
-  # Run any module initialization code.
-  import module_init
-  module_init.appengine()
+    # Run any module initialization code.
+    import module_init
+    module_init.appengine()
 except ImportError:
-  pass
+    pass
 
 # https://github.com/googleapis/python-ndb/issues/249
-import six
 reload(six)
 
 # Adding the protobuf module to the google module. Otherwise, we couldn't
 # import google.protobuf because google.appengine already took the name.
-import google
 google.__path__.insert(0, os.path.join('third_party', 'google'))
 
 # In tests this is done in test_utils.with_cloud_emulators.
 if IS_RUNNING_IN_PRODUCTION or IS_RUNNING_IN_DEV_APPSERVER:
-  # Use the App Engine Requests adapter. This makes sure that Requests uses
-  # URLFetch. This is a workaround till we migrate to Python 3 on App Engine
-  # Flex.
-  import requests_toolbelt.adapters.appengine
-  requests_toolbelt.adapters.appengine.monkeypatch()
+    # Use the App Engine Requests adapter. This makes sure that Requests uses
+    # URLFetch. This is a workaround till we migrate to Python 3 on App Engine
+    # Flex.
+    import requests_toolbelt.adapters.appengine
+    requests_toolbelt.adapters.appengine.monkeypatch()
 
-  import firebase_admin
-  firebase_admin.initialize_app()
+    import firebase_admin
+    firebase_admin.initialize_app()

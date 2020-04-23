@@ -55,124 +55,124 @@ DEADLINE_NOTE = (
 
 
 class IssueTrackerManager(object):
-  """Mock issue tracker manager."""
+    """Mock issue tracker manager."""
 
-  def __init__(self, project_name):
-    self.project_name = project_name
-    self.last_issue = None
-    self.modified_issues = {}
+    def __init__(self, project_name):
+        self.project_name = project_name
+        self.last_issue = None
+        self.modified_issues = {}
 
-  def save(self, issue, *args, **kwargs):  # pylint: disable=unused-argument
-    """Save a issue."""
-    self.modified_issues[issue.id] = issue
+    def save(self, issue, *args, **kwargs):  # pylint: disable=unused-argument
+        """Save a issue."""
+        self.modified_issues[issue.id] = issue
 
 
 def get_original_issue(self, issue_id):
-  """Get original issue."""
-  issue_id = int(issue_id)
+    """Get original issue."""
+    issue_id = int(issue_id)
 
-  issue = Issue()
-  issue.open = True
-  issue.itm = self._itm  # pylint: disable=protected-access
-  issue.id = issue_id
+    issue = Issue()
+    issue.open = True
+    issue.itm = self._itm  # pylint: disable=protected-access
+    issue.id = issue_id
 
-  if issue_id == 1337:
-    issue.add_cc('user@example.com')
-    issue.add_label('Restrict-View-Commit')
-  elif issue_id == 1338:
-    issue.add_cc('user@example.com')
-    issue.add_cc('user2@example.com')
-  elif issue_id == 1340:
-    issue.add_label('reported-2015-01-01')
+    if issue_id == 1337:
+        issue.add_cc('user@example.com')
+        issue.add_label('Restrict-View-Commit')
+    elif issue_id == 1338:
+        issue.add_cc('user@example.com')
+        issue.add_cc('user2@example.com')
+    elif issue_id == 1340:
+        issue.add_label('reported-2015-01-01')
 
-  return monorail.Issue(issue)
+    return monorail.Issue(issue)
 
 
 @test_utils.with_cloud_emulators('datastore')
 class OssFuzzApplyCcsTest(unittest.TestCase):
-  """Test OssFuzzApplyCcs."""
+    """Test OssFuzzApplyCcs."""
 
-  def setUp(self):
-    test_helpers.patch_environ(self)
-    self.app = webtest.TestApp(
-        webapp2.WSGIApplication([('/apply-ccs', oss_fuzz_apply_ccs.Handler)]))
+    def setUp(self):
+        test_helpers.patch_environ(self)
+        self.app = webtest.TestApp(
+            webapp2.WSGIApplication([('/apply-ccs', oss_fuzz_apply_ccs.Handler)]))
 
-    data_types.ExternalUserPermission(
-        email='user@example.com',
-        entity_name='job',
-        entity_kind=data_types.PermissionEntityKind.JOB,
-        is_prefix=False,
-        auto_cc=data_types.AutoCCType.ALL).put()
+        data_types.ExternalUserPermission(
+            email='user@example.com',
+            entity_name='job',
+            entity_kind=data_types.PermissionEntityKind.JOB,
+            is_prefix=False,
+            auto_cc=data_types.AutoCCType.ALL).put()
 
-    data_types.ExternalUserPermission(
-        email='user2@example.com',
-        entity_name='job',
-        entity_kind=data_types.PermissionEntityKind.JOB,
-        is_prefix=False,
-        auto_cc=data_types.AutoCCType.ALL).put()
+        data_types.ExternalUserPermission(
+            email='user2@example.com',
+            entity_name='job',
+            entity_kind=data_types.PermissionEntityKind.JOB,
+            is_prefix=False,
+            auto_cc=data_types.AutoCCType.ALL).put()
 
-    test_helpers.patch(self, [
-        'base.utils.utcnow',
-        'handlers.base_handler.Handler.is_cron',
-        'libs.issue_management.issue_tracker.IssueTracker.get_original_issue',
-        'libs.issue_management.issue_tracker_policy.get',
-        'libs.issue_management.issue_tracker_utils.'
-        'get_issue_tracker_for_testcase',
-    ])
+        test_helpers.patch(self, [
+            'base.utils.utcnow',
+            'handlers.base_handler.Handler.is_cron',
+            'libs.issue_management.issue_tracker.IssueTracker.get_original_issue',
+            'libs.issue_management.issue_tracker_policy.get',
+            'libs.issue_management.issue_tracker_utils.'
+            'get_issue_tracker_for_testcase',
+        ])
 
-    self.itm = IssueTrackerManager('oss-fuzz')
-    self.mock.get_issue_tracker_for_testcase.return_value = (
-        monorail.IssueTracker(self.itm))
-    self.mock.utcnow.return_value = datetime.datetime(2016, 1, 1)
-    self.mock.get.return_value = OSS_FUZZ_POLICY
-    self.mock.get_original_issue.side_effect = get_original_issue
+        self.itm = IssueTrackerManager('oss-fuzz')
+        self.mock.get_issue_tracker_for_testcase.return_value = (
+            monorail.IssueTracker(self.itm))
+        self.mock.utcnow.return_value = datetime.datetime(2016, 1, 1)
+        self.mock.get.return_value = OSS_FUZZ_POLICY
+        self.mock.get_original_issue.side_effect = get_original_issue
 
-    data_types.Testcase(
-        open=True, status='Processed', bug_information='1337',
-        job_type='job').put()
+        data_types.Testcase(
+            open=True, status='Processed', bug_information='1337',
+            job_type='job').put()
 
-    data_types.Testcase(
-        open=True, status='Processed', bug_information='1338',
-        job_type='job').put()
+        data_types.Testcase(
+            open=True, status='Processed', bug_information='1338',
+            job_type='job').put()
 
-    data_types.Testcase(
-        open=True, status='Processed', bug_information='1339',
-        job_type='job').put()
+        data_types.Testcase(
+            open=True, status='Processed', bug_information='1339',
+            job_type='job').put()
 
-    data_types.Testcase(
-        open=True, status='Processed', bug_information='1340',
-        job_type='job').put()
+        data_types.Testcase(
+            open=True, status='Processed', bug_information='1340',
+            job_type='job').put()
 
-  def test_execute(self):
-    """Tests executing of cron job."""
-    self.app.get('/apply-ccs')
-    self.assertEqual(len(self.itm.modified_issues), 3)
+    def test_execute(self):
+        """Tests executing of cron job."""
+        self.app.get('/apply-ccs')
+        self.assertEqual(len(self.itm.modified_issues), 3)
 
-    issue_1337 = self.itm.modified_issues[1337]
-    six.assertCountEqual(self, issue_1337.cc, [
-        'user@example.com',
-        'user2@example.com',
-    ])
+        issue_1337 = self.itm.modified_issues[1337]
+        six.assertCountEqual(self, issue_1337.cc, [
+            'user@example.com',
+            'user2@example.com',
+        ])
 
-    self.assertTrue(issue_1337.has_label_matching('reported-2016-01-01'))
-    self.assertEqual(issue_1337.comment, DEADLINE_NOTE)
+        self.assertTrue(issue_1337.has_label_matching('reported-2016-01-01'))
+        self.assertEqual(issue_1337.comment, DEADLINE_NOTE)
 
-    self.assertNotIn(1338, self.itm.modified_issues)
+        self.assertNotIn(1338, self.itm.modified_issues)
 
-    issue_1339 = self.itm.modified_issues[1339]
-    six.assertCountEqual(self, issue_1339.cc, [
-        'user@example.com',
-        'user2@example.com',
-    ])
+        issue_1339 = self.itm.modified_issues[1339]
+        six.assertCountEqual(self, issue_1339.cc, [
+            'user@example.com',
+            'user2@example.com',
+        ])
 
-    self.assertTrue(issue_1339.has_label_matching('reported-2016-01-01'))
-    self.assertEqual(issue_1339.comment, '')
+        self.assertTrue(issue_1339.has_label_matching('reported-2016-01-01'))
+        self.assertEqual(issue_1339.comment, '')
 
-    issue_1340 = self.itm.modified_issues[1340]
-    six.assertCountEqual(self, issue_1340.cc, [
-        'user@example.com',
-        'user2@example.com',
-    ])
-    self.assertTrue(issue_1340.has_label_matching('reported-2015-01-01'))
-    self.assertFalse(issue_1340.has_label_matching('reported-2016-01-01'))
-    self.assertEqual(issue_1340.comment, '')
+        issue_1340 = self.itm.modified_issues[1340]
+        six.assertCountEqual(self, issue_1340.cc, [
+            'user@example.com',
+            'user2@example.com',
+        ])
+        self.assertTrue(issue_1340.has_label_matching('reported-2015-01-01'))
+        self.assertFalse(issue_1340.has_label_matching('reported-2016-01-01'))
+        self.assertEqual(issue_1340.comment, '')

@@ -44,9 +44,9 @@ PLATFORMS = collections.OrderedDict([
 ])
 
 if sys.version_info.major == 2:
-  ABIS = {'linux': 'cp27mu', 'windows': 'cp27m', 'macos': 'cp27m'}
+    ABIS = {'linux': 'cp27mu', 'windows': 'cp27m', 'macos': 'cp27m'}
 else:
-  ABIS = {'linux': 'cp37m', 'windows': 'cp37m', 'macos': 'cp37m'}
+    ABIS = {'linux': 'cp37m', 'windows': 'cp37m', 'macos': 'cp37m'}
 
 # Config directory to use for tests.
 TEST_CONFIG_DIR = os.path.join('configs', 'test')

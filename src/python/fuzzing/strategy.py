@@ -25,7 +25,8 @@ Strategy = namedtuple('Strategy', 'name probability manually_enable')
 # Number of testcases to use for the corpus subset strategy.
 # See https://crbug.com/682311 for more information.
 # Size 100 has a slightly higher chance as it seems to be the best one so far.
-CORPUS_SUBSET_NUM_TESTCASES = [10, 20, 50, 75, 75, 100, 100, 100, 125, 125, 150]
+CORPUS_SUBSET_NUM_TESTCASES = [10, 20, 50,
+                               75, 75, 100, 100, 100, 125, 125, 150]
 
 # Supported fuzzing strategies.
 CORPUS_MUTATION_RADAMSA_STRATEGY = Strategy(
@@ -67,7 +68,7 @@ LIBFUZZER_STRATEGY_LIST = [
     PEACH_GRAMMAR_MUTATION_STRATEGY,
 ]
 
-#TODO: Add more syzkaller strategies
+# TODO: Add more syzkaller strategies
 SYZKALLER_STRATEGY_LIST = [
     CORPUS_SUBSET_STRATEGY,
 ]

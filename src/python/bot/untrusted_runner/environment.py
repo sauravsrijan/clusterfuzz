@@ -19,12 +19,12 @@ import re
 import six
 
 try:
-  from . import file_host
-  from . import host
-  from protos import untrusted_runner_pb2
+    from . import file_host
+    from . import host
+    from protos import untrusted_runner_pb2
 except ImportError:
-  # TODO(ochang): Fix this.
-  pass
+    # TODO(ochang): Fix this.
+    pass
 
 FORWARDED_ENVIRONMENT_VARIABLES = [
     re.compile(pattern) for pattern in (
@@ -67,65 +67,65 @@ REBASED_ENVIRONMENT_VARIABLES = set([
 
 
 def is_forwarded_environment_variable(environment_variable):
-  """Return whether or not |environment_variable| should be forwarded."""
-  return any(
-      pattern.match(environment_variable)
-      for pattern in FORWARDED_ENVIRONMENT_VARIABLES)
+    """Return whether or not |environment_variable| should be forwarded."""
+    return any(
+        pattern.match(environment_variable)
+        for pattern in FORWARDED_ENVIRONMENT_VARIABLES)
 
 
 def should_rebase_environment_value(environment_variable):
-  """Return whether or not |environment_variable|'s value should be rebased."""
-  return environment_variable in REBASED_ENVIRONMENT_VARIABLES
+    """Return whether or not |environment_variable|'s value should be rebased."""
+    return environment_variable in REBASED_ENVIRONMENT_VARIABLES
 
 
 def update_environment(env):
-  """Update worker's environment."""
-  processed_env = {}
-  for key, value in six.iteritems(env):
-    if should_rebase_environment_value(key):
-      value = file_host.rebase_to_worker_root(value)
+    """Update worker's environment."""
+    processed_env = {}
+    for key, value in six.iteritems(env):
+        if should_rebase_environment_value(key):
+            value = file_host.rebase_to_worker_root(value)
 
-    processed_env[key] = value
+        processed_env[key] = value
 
-  request = untrusted_runner_pb2.UpdateEnvironmentRequest(env=processed_env)
-  host.stub().UpdateEnvironment(request)
+    request = untrusted_runner_pb2.UpdateEnvironmentRequest(env=processed_env)
+    host.stub().UpdateEnvironment(request)
 
 
 def set_environment_vars(env, source_env):
-  """Copy allowed environment variables from |source_env|."""
-  if not source_env:
-    return
+    """Copy allowed environment variables from |source_env|."""
+    if not source_env:
+        return
 
-  for name, value in six.iteritems(source_env):
-    if is_forwarded_environment_variable(name):
-      # Avoid creating circular dependencies from importing environment by
-      # using os.getenv.
-      if os.getenv('TRUSTED_HOST') and should_rebase_environment_value(name):
-        value = file_host.rebase_to_worker_root(value)
+    for name, value in six.iteritems(source_env):
+        if is_forwarded_environment_variable(name):
+            # Avoid creating circular dependencies from importing environment by
+            # using os.getenv.
+            if os.getenv('TRUSTED_HOST') and should_rebase_environment_value(name):
+                value = file_host.rebase_to_worker_root(value)
 
-      env[name] = value
+            env[name] = value
 
 
 def get_env_for_untrusted_process(overrides):
-  """Return environment for running an untrusted process."""
-  env = {}
-  if overrides is not None:
-    set_environment_vars(env, overrides)
-  else:
-    set_environment_vars(env, os.environ)
-  return env
+    """Return environment for running an untrusted process."""
+    env = {}
+    if overrides is not None:
+        set_environment_vars(env, overrides)
+    else:
+        set_environment_vars(env, os.environ)
+    return env
 
 
 def forward_environment_variable(key, value):
-  """Forward the environment variable if needed."""
-  if not host.is_initialized():
-    return
+    """Forward the environment variable if needed."""
+    if not host.is_initialized():
+        return
 
-  if is_forwarded_environment_variable(key):
-    update_environment({key: value})
+    if is_forwarded_environment_variable(key):
+        update_environment({key: value})
 
 
 def reset_environment():
-  """Reset environment variables."""
-  request = untrusted_runner_pb2.ResetEnvironmentRequest()
-  host.stub().ResetEnvironment(request)
+    """Reset environment variables."""
+    request = untrusted_runner_pb2.ResetEnvironmentRequest()
+    host.stub().ResetEnvironment(request)

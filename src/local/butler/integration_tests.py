@@ -13,61 +13,62 @@
 # limitations under the License.
 """py_unittest.py runs tests under src/appengine and butler/tests"""
 from __future__ import print_function
+from python.tests.test_libs import test_utils
+from local.butler import constants
+from local.butler import common
+import urllib.request
+import urllib.error
+import time
+import sys
 from future import standard_library
 standard_library.install_aliases()
-import sys
-import time
-import urllib.error
-import urllib.request
 
-from local.butler import common
-from local.butler import constants
-from python.tests.test_libs import test_utils
 
 RUN_SERVER_TIMEOUT = 120
 
 
 def execute(_):
-  """Run integration tests."""
-  if sys.version_info.major == 2:
-    print('Skipping integration_tests on Python 2.')
-    return
+    """Run integration tests."""
+    if sys.version_info.major == 2:
+        print('Skipping integration_tests on Python 2.')
+        return
 
-  command = 'run_server'
-  indicator = b'Booting worker'
+    command = 'run_server'
+    indicator = b'Booting worker'
 
-  try:
-    lines = []
-    server = common.execute_async(
-        'python -u butler.py {} --skip-install-deps'.format(command))
-    test_utils.wait_for_emulator_ready(
-        server,
-        command,
-        indicator,
-        timeout=RUN_SERVER_TIMEOUT,
-        output_lines=lines)
+    try:
+        lines = []
+        server = common.execute_async(
+            'python -u butler.py {} --skip-install-deps'.format(command))
+        test_utils.wait_for_emulator_ready(
+            server,
+            command,
+            indicator,
+            timeout=RUN_SERVER_TIMEOUT,
+            output_lines=lines)
 
-    # Sleep a small amount of time to ensure the server is definitely ready.
-    time.sleep(1)
+        # Sleep a small amount of time to ensure the server is definitely ready.
+        time.sleep(1)
 
-    # Call setup ourselves instead of passing --bootstrap since we have no idea
-    # when that finishes.
-    # TODO(ochang): Make bootstrap a separate butler command and just call that.
-    common.execute(
-        ('python butler.py run setup '
-         '--non-dry-run --local --config-dir={config_dir}'
-        ).format(config_dir=constants.TEST_CONFIG_DIR),
-        exit_on_error=False)
+        # Call setup ourselves instead of passing --bootstrap since we have no idea
+        # when that finishes.
+        # TODO(ochang): Make bootstrap a separate butler command and just call that.
+        common.execute(
+            ('python butler.py run setup '
+             '--non-dry-run --local --config-dir={config_dir}'
+             ).format(config_dir=constants.TEST_CONFIG_DIR),
+            exit_on_error=False)
 
-    request = urllib.request.urlopen('http://' + constants.DEV_APPSERVER_HOST)
-    request.read()  # Raises exception on error
-  except Exception:
-    print('Error occurred:')
-    print(b''.join(lines))
-    raise
-  finally:
-    server.terminate()
+        request = urllib.request.urlopen(
+            'http://' + constants.DEV_APPSERVER_HOST)
+        request.read()  # Raises exception on error
+    except Exception:
+        print('Error occurred:')
+        print(b''.join(lines))
+        raise
+    finally:
+        server.terminate()
 
-  # TODO(ochang): Test that bot runs, and do a basic fuzzing session to ensure
-  # things work end to end.
-  print('All end-to-end integration tests passed.')
+    # TODO(ochang): Test that bot runs, and do a basic fuzzing session to ensure
+    # things work end to end.
+    print('All end-to-end integration tests passed.')

@@ -209,7 +209,7 @@ class HTMLLexer(Lexer):
 
     atn = ATNDeserializer().deserialize(serializedATN())
 
-    decisionsToDFA = [ DFA(ds, i) for i, ds in enumerate(atn.decisionToState) ]
+    decisionsToDFA = [DFA(ds, i) for i, ds in enumerate(atn.decisionToState)]
 
     TAG = 1
     SCRIPT = 2
@@ -240,38 +240,37 @@ class HTMLLexer(Lexer):
     ATTVALUE_VALUE = 22
     ATTRIBUTE = 23
 
-    channelNames = [ u"DEFAULT_TOKEN_CHANNEL", u"HIDDEN" ]
+    channelNames = [u"DEFAULT_TOKEN_CHANNEL", u"HIDDEN"]
 
-    modeNames = [ u"DEFAULT_MODE", u"TAG", u"SCRIPT", u"STYLE", u"ATTVALUE" ]
+    modeNames = [u"DEFAULT_MODE", u"TAG", u"SCRIPT", u"STYLE", u"ATTVALUE"]
 
-    literalNames = [ u"<INVALID>",
-            u"'<'", u"'>'", u"'/>'", u"'/'", u"'='" ]
+    literalNames = [u"<INVALID>",
+                    u"'<'", u"'>'", u"'/>'", u"'/'", u"'='"]
 
-    symbolicNames = [ u"<INVALID>",
-            u"HTML_COMMENT", u"HTML_CONDITIONAL_COMMENT", u"XML_DECLARATION", 
-            u"CDATA", u"DTD", u"SCRIPTLET", u"SEA_WS", u"SCRIPT_OPEN", u"STYLE_OPEN", 
-            u"TAG_OPEN", u"HTML_TEXT", u"TAG_CLOSE", u"TAG_SLASH_CLOSE", 
-            u"TAG_SLASH", u"TAG_EQUALS", u"TAG_NAME", u"TAG_WHITESPACE", 
-            u"SCRIPT_BODY", u"SCRIPT_SHORT_BODY", u"STYLE_BODY", u"STYLE_SHORT_BODY", 
-            u"ATTVALUE_VALUE", u"ATTRIBUTE" ]
+    symbolicNames = [u"<INVALID>",
+                     u"HTML_COMMENT", u"HTML_CONDITIONAL_COMMENT", u"XML_DECLARATION",
+                     u"CDATA", u"DTD", u"SCRIPTLET", u"SEA_WS", u"SCRIPT_OPEN", u"STYLE_OPEN",
+                     u"TAG_OPEN", u"HTML_TEXT", u"TAG_CLOSE", u"TAG_SLASH_CLOSE",
+                     u"TAG_SLASH", u"TAG_EQUALS", u"TAG_NAME", u"TAG_WHITESPACE",
+                     u"SCRIPT_BODY", u"SCRIPT_SHORT_BODY", u"STYLE_BODY", u"STYLE_SHORT_BODY",
+                     u"ATTVALUE_VALUE", u"ATTRIBUTE"]
 
-    ruleNames = [ u"HTML_COMMENT", u"HTML_CONDITIONAL_COMMENT", u"XML_DECLARATION", 
-                  u"CDATA", u"DTD", u"SCRIPTLET", u"SEA_WS", u"SCRIPT_OPEN", 
-                  u"STYLE_OPEN", u"TAG_OPEN", u"HTML_TEXT", u"TAG_CLOSE", 
-                  u"TAG_SLASH_CLOSE", u"TAG_SLASH", u"TAG_EQUALS", u"TAG_NAME", 
-                  u"TAG_WHITESPACE", u"HEXDIGIT", u"DIGIT", u"TAG_NameChar", 
-                  u"TAG_NameStartChar", u"SCRIPT_BODY", u"SCRIPT_SHORT_BODY", 
-                  u"STYLE_BODY", u"STYLE_SHORT_BODY", u"ATTVALUE_VALUE", 
-                  u"ATTRIBUTE", u"ATTCHAR", u"ATTCHARS", u"HEXCHARS", u"DECCHARS", 
-                  u"DOUBLE_QUOTE_STRING", u"SINGLE_QUOTE_STRING" ]
+    ruleNames = [u"HTML_COMMENT", u"HTML_CONDITIONAL_COMMENT", u"XML_DECLARATION",
+                 u"CDATA", u"DTD", u"SCRIPTLET", u"SEA_WS", u"SCRIPT_OPEN",
+                 u"STYLE_OPEN", u"TAG_OPEN", u"HTML_TEXT", u"TAG_CLOSE",
+                 u"TAG_SLASH_CLOSE", u"TAG_SLASH", u"TAG_EQUALS", u"TAG_NAME",
+                 u"TAG_WHITESPACE", u"HEXDIGIT", u"DIGIT", u"TAG_NameChar",
+                 u"TAG_NameStartChar", u"SCRIPT_BODY", u"SCRIPT_SHORT_BODY",
+                 u"STYLE_BODY", u"STYLE_SHORT_BODY", u"ATTVALUE_VALUE",
+                 u"ATTRIBUTE", u"ATTCHAR", u"ATTCHARS", u"HEXCHARS", u"DECCHARS",
+                 u"DOUBLE_QUOTE_STRING", u"SINGLE_QUOTE_STRING"]
 
     grammarFileName = u"HTMLLexer.g4"
 
     def __init__(self, input=None, output=sys.stdout):
         super(HTMLLexer, self).__init__(input, output=output)
         self.checkVersion("4.7.1")
-        self._interp = LexerATNSimulator(self, self.atn, self.decisionsToDFA, PredictionContextCache())
+        self._interp = LexerATNSimulator(
+            self, self.atn, self.decisionsToDFA, PredictionContextCache())
         self._actions = None
         self._predicates = None
-
-

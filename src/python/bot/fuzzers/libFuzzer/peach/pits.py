@@ -20,16 +20,16 @@ from system import environment
 
 
 def get_path(grammar):
-  """Return the path of the peach pit for the given grammar. Return None if the
-  Pit does not exist or the grammar is None."""
+    """Return the path of the peach pit for the given grammar. Return None if the
+    Pit does not exist or the grammar is None."""
 
-  pit_dir = os.path.join(environment.get_platform_resources_directory(),
-                         'peach', 'pits')
-  pit_path = os.path.join(pit_dir, grammar + '.xml')
+    pit_dir = os.path.join(environment.get_platform_resources_directory(),
+                           'peach', 'pits')
+    pit_path = os.path.join(pit_dir, grammar + '.xml')
 
-  if not os.path.exists(pit_path):
-    logs.log_error(
-        'Pit file for "%s" grammar is not found.' % grammar, pit_path=pit_path)
-    return None
+    if not os.path.exists(pit_path):
+        logs.log_error(
+            'Pit file for "%s" grammar is not found.' % grammar, pit_path=pit_path)
+        return None
 
-  return pit_path
+    return pit_path

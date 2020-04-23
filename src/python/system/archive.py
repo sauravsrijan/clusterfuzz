@@ -37,307 +37,310 @@ ARCHIVE_FILE_EXTENSIONS = (
 
 
 class ArchiveType(object):
-  """Type of the archive."""
-  UNKNOWN = 0
-  ZIP = 1
-  TAR = 2
-  TAR_LZMA = 3
+    """Type of the archive."""
+    UNKNOWN = 0
+    ZIP = 1
+    TAR = 2
+    TAR_LZMA = 3
 
 
 class ArchiveFile(object):
-  """File in an archive."""
+    """File in an archive."""
 
-  def __init__(self, name, size, handle):
-    self.name = name
-    self.size = size
-    self.handle = handle
+    def __init__(self, name, size, handle):
+        self.name = name
+        self.size = size
+        self.handle = handle
 
 
 def iterator(archive_path,
              archive_obj=None,
              file_match_callback=None,
              should_extract=True):
-  """Return an iterator for files in an archive. Extracts files if
-  |should_extract| is True."""
-  archive_type = get_archive_type(archive_path)
+    """Return an iterator for files in an archive. Extracts files if
+    |should_extract| is True."""
+    archive_type = get_archive_type(archive_path)
 
-  if not file_match_callback:
-    file_match_callback = lambda _: True
+    if not file_match_callback:
+        def file_match_callback(_): return True
 
-  def maybe_extract(extract_func, info):
-    """Returns an extracted file or None if it is not supposed to be extracted.
-    """
-    if should_extract:
-      return extract_func(info)
-    return None
+    def maybe_extract(extract_func, info):
+        """Returns an extracted file or None if it is not supposed to be extracted.
+        """
+        if should_extract:
+            return extract_func(info)
+        return None
 
-  if archive_type == ArchiveType.ZIP:
-    try:
-      with zipfile.ZipFile(archive_obj or archive_path) as zip_file:
-        for info in zip_file.infolist():
-          if not file_match_callback(info.filename):
-            continue
+    if archive_type == ArchiveType.ZIP:
+        try:
+            with zipfile.ZipFile(archive_obj or archive_path) as zip_file:
+                for info in zip_file.infolist():
+                    if not file_match_callback(info.filename):
+                        continue
 
-          yield ArchiveFile(info.filename, info.file_size,
-                            maybe_extract(zip_file.open, info))
+                    yield ArchiveFile(info.filename, info.file_size,
+                                      maybe_extract(zip_file.open, info))
 
-    except (zipfile.BadZipfile, zipfile.LargeZipFile):
-      logs.log_error('Bad zip file %s.' % archive_path)
+        except (zipfile.BadZipfile, zipfile.LargeZipFile):
+            logs.log_error('Bad zip file %s.' % archive_path)
 
-  elif archive_type == ArchiveType.TAR:
-    try:
-      if archive_obj:
-        tar_file = tarfile.open(fileobj=archive_obj)
-      else:
-        tar_file = tarfile.open(archive_path)
+    elif archive_type == ArchiveType.TAR:
+        try:
+            if archive_obj:
+                tar_file = tarfile.open(fileobj=archive_obj)
+            else:
+                tar_file = tarfile.open(archive_path)
 
-      for info in tar_file.getmembers():
-        if not file_match_callback(info.name):
-          continue
+            for info in tar_file.getmembers():
+                if not file_match_callback(info.name):
+                    continue
 
-        yield ArchiveFile(info.name, info.size,
-                          maybe_extract(tar_file.extractfile, info))
-      tar_file.close()
-    except tarfile.TarError:
-      logs.log_error('Bad tar file %s.' % archive_path)
+                yield ArchiveFile(info.name, info.size,
+                                  maybe_extract(tar_file.extractfile, info))
+            tar_file.close()
+        except tarfile.TarError:
+            logs.log_error('Bad tar file %s.' % archive_path)
 
-  elif archive_type == ArchiveType.TAR_LZMA:
-    # Import lzma here so that if lzma installation fails (as it may on
-    # Windows), other archives can still be opened.
-    # TODO(metzman): Determine if this actually fails on Windows and move
-    # this to the top of the file if it doesn't.
-    from backports import lzma
+    elif archive_type == ArchiveType.TAR_LZMA:
+        # Import lzma here so that if lzma installation fails (as it may on
+        # Windows), other archives can still be opened.
+        # TODO(metzman): Determine if this actually fails on Windows and move
+        # this to the top of the file if it doesn't.
+        from backports import lzma
 
-    assert archive_obj is None, "LZMAFile doesn't support opening file handles."
-    try:
-      with lzma.LZMAFile(archive_path) as lzma_file, \
-            tarfile.open(fileobj=lzma_file) as tar_file:
+        assert archive_obj is None, "LZMAFile doesn't support opening file handles."
+        try:
+            with lzma.LZMAFile(archive_path) as lzma_file, \
+                    tarfile.open(fileobj=lzma_file) as tar_file:
 
-        error_filepaths = []
-        for info in tar_file.getmembers():
-          if not file_match_callback(info.name):
-            continue
+                error_filepaths = []
+                for info in tar_file.getmembers():
+                    if not file_match_callback(info.name):
+                        continue
 
-          try:
-            yield ArchiveFile(info.name, info.size,
-                              maybe_extract(tar_file.extractfile, info))
+                    try:
+                        yield ArchiveFile(info.name, info.size,
+                                          maybe_extract(tar_file.extractfile, info))
 
-          except KeyError:  # Handle broken links gracefully.
-            error_filepaths.append(info.name)
-            yield ArchiveFile(info.name, info.size, None)
+                    except KeyError:  # Handle broken links gracefully.
+                        error_filepaths.append(info.name)
+                        yield ArchiveFile(info.name, info.size, None)
 
-        if error_filepaths:
-          logs.log_warn(
-              'Check archive %s for broken links.' % archive_path,
-              error_filepaths=error_filepaths)
+                if error_filepaths:
+                    logs.log_warn(
+                        'Check archive %s for broken links.' % archive_path,
+                        error_filepaths=error_filepaths)
 
-    except (lzma.LZMAError, tarfile.TarError):
-      logs.log_error('Bad lzma file %s.' % archive_path)
+        except (lzma.LZMAError, tarfile.TarError):
+            logs.log_error('Bad lzma file %s.' % archive_path)
 
-  else:
-    logs.log_error('Unsupported compression type for file %s.' % archive_path)
+    else:
+        logs.log_error(
+            'Unsupported compression type for file %s.' % archive_path)
 
 
 def extracted_size(archive_path, archive_obj=None, file_match_callback=None):
-  """Return the total extracted size of the archive."""
-  return sum(
-      f.size for f in iterator(
-          archive_path, archive_obj, file_match_callback, should_extract=False))
+    """Return the total extracted size of the archive."""
+    return sum(
+        f.size for f in iterator(
+            archive_path, archive_obj, file_match_callback, should_extract=False))
 
 
 def get_archive_type(archive_path):
-  """Get the type of the archive."""
+    """Get the type of the archive."""
 
-  def has_extension(extensions):
-    """Returns True if |archive_path| endswith an extension in |extensions|."""
-    for extension in extensions:
-      if archive_path.endswith(extension):
-        return True
-    return False
+    def has_extension(extensions):
+        """Returns True if |archive_path| endswith an extension in |extensions|."""
+        for extension in extensions:
+            if archive_path.endswith(extension):
+                return True
+        return False
 
-  if has_extension(ZIP_FILE_EXTENSIONS):
-    return ArchiveType.ZIP
+    if has_extension(ZIP_FILE_EXTENSIONS):
+        return ArchiveType.ZIP
 
-  if has_extension(TAR_FILE_EXTENSIONS):
-    return ArchiveType.TAR
+    if has_extension(TAR_FILE_EXTENSIONS):
+        return ArchiveType.TAR
 
-  if has_extension(LZMA_FILE_EXTENSIONS):
-    return ArchiveType.TAR_LZMA
+    if has_extension(LZMA_FILE_EXTENSIONS):
+        return ArchiveType.TAR_LZMA
 
-  return ArchiveType.UNKNOWN
+    return ArchiveType.UNKNOWN
 
 
 def get_file_list(archive_path, archive_obj=None, file_match_callback=None):
-  """List all files in an archive."""
-  return [
-      f.name for f in iterator(
-          archive_path, archive_obj, file_match_callback, should_extract=False)
-  ]
+    """List all files in an archive."""
+    return [
+        f.name for f in iterator(
+            archive_path, archive_obj, file_match_callback, should_extract=False)
+    ]
 
 
 def get_first_file_matching(search_string, archive_obj, archive_path):
-  """Returns the first file with a name matching search string in archive."""
-  for current_file in get_file_list(archive_path, archive_obj):
-    # Exclude MAC resouce forks.
-    if current_file.startswith('__MACOSX/'):
-      continue
+    """Returns the first file with a name matching search string in archive."""
+    for current_file in get_file_list(archive_path, archive_obj):
+        # Exclude MAC resouce forks.
+        if current_file.startswith('__MACOSX/'):
+            continue
 
-    if search_string in current_file:
-      return current_file
+        if search_string in current_file:
+            return current_file
 
-  return None
+    return None
 
 
 def is_archive(filename):
-  """Return true if the file is an archive."""
-  return get_archive_type(filename) != ArchiveType.UNKNOWN
+    """Return true if the file is an archive."""
+    return get_archive_type(filename) != ArchiveType.UNKNOWN
 
 
 def unpack(archive_path,
            output_directory,
            trusted=False,
            file_match_callback=None):
-  """Extracts an archive into the target directory."""
-  if not os.path.exists(archive_path):
-    logs.log_error('Archive %s not found.' % archive_path)
-    return False
-
-  # If the output directory is a symlink, get its actual path since we will be
-  # doing directory traversal checks later when unpacking the archive.
-  output_directory = os.path.realpath(output_directory)
-
-  archive_filename = os.path.basename(archive_path)
-  error_occurred = False
-
-  # Choose to unpack all files or ones matching a particular regex.
-  file_list = get_file_list(
-      archive_path, file_match_callback=file_match_callback)
-
-  archive_file_unpack_count = 0
-  archive_file_total_count = len(file_list)
-
-  # If the archive is not trusted, do file path checks to make
-  # sure this archive is safe and is not attempting to do path
-  # traversals.
-  if not trusted:
-    for filename in file_list:
-      absolute_file_path = os.path.join(output_directory,
-                                        os.path.normpath(filename))
-      real_file_path = os.path.realpath(absolute_file_path)
-
-      if real_file_path == output_directory:
-        # Workaround for https://bugs.python.org/issue28488.
-        # Ignore directories named '.'.
-        continue
-
-      if real_file_path != absolute_file_path:
-        logs.log_error(
-            'Directory traversal attempted while unpacking archive %s '
-            '(file path=%s, actual file path=%s). Aborting.' %
-            (archive_path, absolute_file_path, real_file_path))
+    """Extracts an archive into the target directory."""
+    if not os.path.exists(archive_path):
+        logs.log_error('Archive %s not found.' % archive_path)
         return False
 
-  archive_type = get_archive_type(archive_filename)
+    # If the output directory is a symlink, get its actual path since we will be
+    # doing directory traversal checks later when unpacking the archive.
+    output_directory = os.path.realpath(output_directory)
 
-  # Extract based on file's extension.
-  if archive_type == ArchiveType.ZIP:
-    zip_file_handle = open(archive_path, 'rb')
-    zip_archive = zipfile.ZipFile(zip_file_handle)
+    archive_filename = os.path.basename(archive_path)
+    error_occurred = False
 
-    for filename in file_list:
-      try:
-        extracted_path = zip_archive.extract(filename, output_directory)
+    # Choose to unpack all files or ones matching a particular regex.
+    file_list = get_file_list(
+        archive_path, file_match_callback=file_match_callback)
 
-        # Preserve permissions for regular files. 640 is the default
-        # permission for extract. If we need execute permission, we need
-        # to chmod it explicitly. Also, get rid of suid bit for security
-        # reasons.
-        external_attr = zip_archive.getinfo(filename).external_attr >> 16
-        if oct(external_attr).startswith(FILE_ATTRIBUTE):
-          old_mode = external_attr & 0o7777
-          new_mode = external_attr & 0o777
-          new_mode |= 0o440
-          needs_execute_permission = external_attr & 100
+    archive_file_unpack_count = 0
+    archive_file_total_count = len(file_list)
 
-          if new_mode != old_mode or needs_execute_permission:
-            # Default extract condition is 640 which is safe.
-            # |new_mode| might have read+write+execute bit for
-            # others, so remove those.
-            new_mode &= 0o770
+    # If the archive is not trusted, do file path checks to make
+    # sure this archive is safe and is not attempting to do path
+    # traversals.
+    if not trusted:
+        for filename in file_list:
+            absolute_file_path = os.path.join(output_directory,
+                                              os.path.normpath(filename))
+            real_file_path = os.path.realpath(absolute_file_path)
 
-            os.chmod(extracted_path, new_mode)
+            if real_file_path == output_directory:
+                # Workaround for https://bugs.python.org/issue28488.
+                # Ignore directories named '.'.
+                continue
 
-        # Create symlink if needed (only on unix platforms).
-        if (trusted and hasattr(os, 'symlink') and
-            oct(external_attr).startswith(SYMLINK_ATTRIBUTE)):
-          symlink_source = zip_archive.read(filename)
-          if os.path.exists(extracted_path):
-            os.remove(extracted_path)
-          os.symlink(symlink_source, extracted_path)
+            if real_file_path != absolute_file_path:
+                logs.log_error(
+                    'Directory traversal attempted while unpacking archive %s '
+                    '(file path=%s, actual file path=%s). Aborting.' %
+                    (archive_path, absolute_file_path, real_file_path))
+                return False
 
-        # Keep heartbeat happy by updating with our progress.
-        archive_file_unpack_count += 1
-        if archive_file_unpack_count % 1000 == 0:
-          logs.log('Unpacked %d/%d.' % (archive_file_unpack_count,
-                                        archive_file_total_count))
+    archive_type = get_archive_type(archive_filename)
 
-      except:
-        # In case of errors, we try to extract whatever we can without errors.
-        error_occurred = True
-        continue
+    # Extract based on file's extension.
+    if archive_type == ArchiveType.ZIP:
+        zip_file_handle = open(archive_path, 'rb')
+        zip_archive = zipfile.ZipFile(zip_file_handle)
 
-    logs.log('Unpacked %d/%d.' % (archive_file_unpack_count,
-                                  archive_file_total_count))
-    zip_archive.close()
-    zip_file_handle.close()
+        for filename in file_list:
+            try:
+                extracted_path = zip_archive.extract(
+                    filename, output_directory)
 
-    if error_occurred:
-      logs.log_error(
-          'Failed to extract everything from archive %s.' % archive_filename)
+                # Preserve permissions for regular files. 640 is the default
+                # permission for extract. If we need execute permission, we need
+                # to chmod it explicitly. Also, get rid of suid bit for security
+                # reasons.
+                external_attr = zip_archive.getinfo(
+                    filename).external_attr >> 16
+                if oct(external_attr).startswith(FILE_ATTRIBUTE):
+                    old_mode = external_attr & 0o7777
+                    new_mode = external_attr & 0o777
+                    new_mode |= 0o440
+                    needs_execute_permission = external_attr & 100
 
-  elif archive_type == ArchiveType.TAR or archive_type == ArchiveType.TAR_LZMA:
-    if archive_type == ArchiveType.TAR_LZMA:
-      # Import lzma here so that if lzma installation fails (as it may on
-      # Windows), other archives can still be opened.
-      # TODO(metzman): Determine if this actually fails on Windows and move this
-      # to the top of the file if it doesn't.
-      from backports import lzma
+                    if new_mode != old_mode or needs_execute_permission:
+                        # Default extract condition is 640 which is safe.
+                        # |new_mode| might have read+write+execute bit for
+                        # others, so remove those.
+                        new_mode &= 0o770
 
-      lzma_file = lzma.LZMAFile(archive_path)
-      tar_archive = tarfile.open(fileobj=lzma_file)
-    else:
-      tar_archive = tarfile.open(archive_path)
+                        os.chmod(extracted_path, new_mode)
 
-    try:
-      tar_archive.extractall(path=output_directory)
-    except:
-      # In case of errors, we try to extract whatever we can without errors.
-      error_occurred = True
-      logs.log_error(
-          'Failed to extract everything from archive %s, trying one at a time.'
-          % archive_filename)
-      for filename in file_list:
+                # Create symlink if needed (only on unix platforms).
+                if (trusted and hasattr(os, 'symlink') and
+                        oct(external_attr).startswith(SYMLINK_ATTRIBUTE)):
+                    symlink_source = zip_archive.read(filename)
+                    if os.path.exists(extracted_path):
+                        os.remove(extracted_path)
+                    os.symlink(symlink_source, extracted_path)
+
+                # Keep heartbeat happy by updating with our progress.
+                archive_file_unpack_count += 1
+                if archive_file_unpack_count % 1000 == 0:
+                    logs.log('Unpacked %d/%d.' % (archive_file_unpack_count,
+                                                  archive_file_total_count))
+
+            except:
+                # In case of errors, we try to extract whatever we can without errors.
+                error_occurred = True
+                continue
+
+        logs.log('Unpacked %d/%d.' % (archive_file_unpack_count,
+                                      archive_file_total_count))
+        zip_archive.close()
+        zip_file_handle.close()
+
+        if error_occurred:
+            logs.log_error(
+                'Failed to extract everything from archive %s.' % archive_filename)
+
+    elif archive_type == ArchiveType.TAR or archive_type == ArchiveType.TAR_LZMA:
+        if archive_type == ArchiveType.TAR_LZMA:
+            # Import lzma here so that if lzma installation fails (as it may on
+            # Windows), other archives can still be opened.
+            # TODO(metzman): Determine if this actually fails on Windows and move this
+            # to the top of the file if it doesn't.
+            from backports import lzma
+
+            lzma_file = lzma.LZMAFile(archive_path)
+            tar_archive = tarfile.open(fileobj=lzma_file)
+        else:
+            tar_archive = tarfile.open(archive_path)
+
         try:
-          tar_archive.extract(filename, output_directory)
+            tar_archive.extractall(path=output_directory)
         except:
-          continue
+            # In case of errors, we try to extract whatever we can without errors.
+            error_occurred = True
+            logs.log_error(
+                'Failed to extract everything from archive %s, trying one at a time.'
+                % archive_filename)
+            for filename in file_list:
+                try:
+                    tar_archive.extract(filename, output_directory)
+                except:
+                    continue
 
-        # Keep heartbeat happy by updating with our progress.
-        archive_file_unpack_count += 1
-        if archive_file_unpack_count % 1000 == 0:
-          logs.log('Unpacked %d/%d.' % (archive_file_unpack_count,
-                                        archive_file_total_count))
+                # Keep heartbeat happy by updating with our progress.
+                archive_file_unpack_count += 1
+                if archive_file_unpack_count % 1000 == 0:
+                    logs.log('Unpacked %d/%d.' % (archive_file_unpack_count,
+                                                  archive_file_total_count))
 
-      logs.log('Unpacked %d/%d.' % (archive_file_unpack_count,
-                                    archive_file_total_count))
+            logs.log('Unpacked %d/%d.' % (archive_file_unpack_count,
+                                          archive_file_total_count))
 
-    tar_archive.close()
-    if archive_type == ArchiveType.TAR_LZMA:
-      lzma_file.close()
+        tar_archive.close()
+        if archive_type == ArchiveType.TAR_LZMA:
+            lzma_file.close()
 
-  else:
-    logs.log_error(
-        'Unsupported compression type for file %s.' % archive_filename)
-    return False
+    else:
+        logs.log_error(
+            'Unsupported compression type for file %s.' % archive_filename)
+        return False
 
-  return not error_occurred
+    return not error_occurred

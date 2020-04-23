@@ -103,48 +103,48 @@ TEMPLATES = {
 
 
 class BaseBuiltinFuzzerDefaults(object):
-  """Default values for a builtin Fuzzer data_type. Note this class should be
-  inherited and should not be used directly."""
+    """Default values for a builtin Fuzzer data_type. Note this class should be
+    inherited and should not be used directly."""
 
-  def __init__(self):
-    # Set defaults for any builtin fuzzer.
-    self.revision = 1
-    self.file_size = 'builtin'
-    self.source = 'builtin'
-    self.builtin = True
+    def __init__(self):
+        # Set defaults for any builtin fuzzer.
+        self.revision = 1
+        self.file_size = 'builtin'
+        self.source = 'builtin'
+        self.builtin = True
 
-    # Create attributes that must be set by child classes.
-    self.name = None
-    self.stats_column_descriptions = None
-    self.stats_columns = None
-    self.key_id = None
+        # Create attributes that must be set by child classes.
+        self.name = None
+        self.stats_column_descriptions = None
+        self.stats_columns = None
+        self.key_id = None
 
-  def create_fuzzer(self):
-    """Create a Fuzzer data_type with columns set to the defaults specified by
-    this object."""
-    assert self.name is not None
-    return data_types.Fuzzer(
-        id=self.key_id,
-        revision=self.revision,
-        file_size=self.file_size,
-        source=self.source,
-        name=self.name,
-        builtin=self.builtin,
-        stats_column_descriptions=self.stats_column_descriptions,
-        stats_columns=self.stats_columns)
+    def create_fuzzer(self):
+        """Create a Fuzzer data_type with columns set to the defaults specified by
+        this object."""
+        assert self.name is not None
+        return data_types.Fuzzer(
+            id=self.key_id,
+            revision=self.revision,
+            file_size=self.file_size,
+            source=self.source,
+            name=self.name,
+            builtin=self.builtin,
+            stats_column_descriptions=self.stats_column_descriptions,
+            stats_columns=self.stats_columns)
 
 
 class LibFuzzerDefaults(BaseBuiltinFuzzerDefaults):
-  """Default values for libFuzzer."""
+    """Default values for libFuzzer."""
 
-  def __init__(self):
-    super(LibFuzzerDefaults, self).__init__()
-    # Override empty values from parent.
-    self.name = 'libFuzzer'
-    self.key_id = 1337
-    # Use single quotes since the string ends in a double quote.
-    # pylint: disable=line-too-long
-    self.stats_column_descriptions = '''fuzzer: "Fuzz target"
+    def __init__(self):
+        super(LibFuzzerDefaults, self).__init__()
+        # Override empty values from parent.
+        self.name = 'libFuzzer'
+        self.key_id = 1337
+        # Use single quotes since the string ends in a double quote.
+        # pylint: disable=line-too-long
+        self.stats_column_descriptions = '''fuzzer: "Fuzz target"
 perf_report: "Link to performance analysis report"
 tests_executed: "Number of testcases executed during this time period"
 new_crashes: "Number of new unique crashes observed during this time period"
@@ -165,7 +165,7 @@ total_fuzzing_time_hrs: "Total time in hours for which the fuzzer(s) ran. Will b
 logs: "Link to fuzzing logs"
 corpus_backup: "Backup copy of the minimized corpus generated based on code coverage"'''
 
-    self.stats_columns = """_PERFORMANCE_REPORT as perf_report,
+        self.stats_columns = """_PERFORMANCE_REPORT as perf_report,
 sum(t.number_of_executed_units) as tests_executed,
 custom(j.new_crashes) as new_crashes,
 _EDGE_COV as edge_coverage,
@@ -187,16 +187,16 @@ _CORPUS_BACKUP as corpus_backup,"""
 
 
 class AflDefaults(BaseBuiltinFuzzerDefaults):
-  """Default values for AFL."""
+    """Default values for AFL."""
 
-  def __init__(self):
-    super(AflDefaults, self).__init__()
-    # Override empty values from parent.
-    self.name = 'afl'
-    self.key_id = 1338
-    # Use single quotes since the string ends in a double quote.
-    # pylint: disable=line-too-long
-    self.stats_column_descriptions = '''fuzzer: "Fuzz target"
+    def __init__(self):
+        super(AflDefaults, self).__init__()
+        # Override empty values from parent.
+        self.name = 'afl'
+        self.key_id = 1338
+        # Use single quotes since the string ends in a double quote.
+        # pylint: disable=line-too-long
+        self.stats_column_descriptions = '''fuzzer: "Fuzz target"
 new_crashes: "Number of new unique crashes observed during this time period"
 edge_coverage: "Edge coverage for this fuzz target (number of edges / total)"
 cov_report: "Link to coverage report"
@@ -212,7 +212,7 @@ total_fuzzing_time_hrs: "Total time in hours for which the fuzzer(s) ran. Will b
 logs: "Link to fuzzing logs"
 corpus_backup: "Backup copy of the minimized corpus generated based on code coverage"'''
 
-    self.stats_columns = """custom(j.new_crashes) as new_crashes,
+        self.stats_columns = """custom(j.new_crashes) as new_crashes,
 _EDGE_COV as edge_coverage,
 _COV_REPORT as cov_report,
 _CORPUS_SIZE as corpus_size,
@@ -229,109 +229,110 @@ _CORPUS_BACKUP as corpus_backup,"""
 
 
 class HonggfuzzDefaults(BaseBuiltinFuzzerDefaults):
-  """Default values for honggfuzz."""
+    """Default values for honggfuzz."""
 
-  def __init__(self):
-    super(HonggfuzzDefaults, self).__init__()
-    self.name = 'honggfuzz'
-    self.key_id = 1339
+    def __init__(self):
+        super(HonggfuzzDefaults, self).__init__()
+        self.name = 'honggfuzz'
+        self.key_id = 1339
 
 
 class SyzkallerDefaults(BaseBuiltinFuzzerDefaults):
-  """Default values for syzkaller."""
+    """Default values for syzkaller."""
 
-  def __init__(self):
-    super(SyzkallerDefaults, self).__init__()
-    # Override empty values from parent.
-    self.name = 'syzkaller'
-    self.key_id = 1340
+    def __init__(self):
+        super(SyzkallerDefaults, self).__init__()
+        # Override empty values from parent.
+        self.name = 'syzkaller'
+        self.key_id = 1340
 
 
 def setup_config(non_dry_run):
-  """Set up configuration."""
-  config = data_types.Config.query().get()
-  if not config:
-    config = data_types.Config()
+    """Set up configuration."""
+    config = data_types.Config.query().get()
+    if not config:
+        config = data_types.Config()
 
-    if non_dry_run:
-      print('Creating config')
-      config.put()
-    else:
-      print('Skip creating config (dry-run mode)')
+        if non_dry_run:
+            print('Creating config')
+            config.put()
+        else:
+            print('Skip creating config (dry-run mode)')
 
 
 def setup_fuzzers(non_dry_run):
-  """Set up fuzzers."""
-  for fuzzer_defaults in [
-      AflDefaults(),
-      LibFuzzerDefaults(),
-      HonggfuzzDefaults(),
-      SyzkallerDefaults()
-  ]:
-    fuzzer = data_types.Fuzzer.query(
-        data_types.Fuzzer.name == fuzzer_defaults.name).get()
-    if fuzzer:
-      print(fuzzer_defaults.name, 'fuzzer already exists')
-      if non_dry_run:
-        print('Updating stats metrics.')
-        fuzzer.stats_columns = fuzzer_defaults.stats_columns
-        fuzzer.stats_column_descriptions = (
-            fuzzer_defaults.stats_column_descriptions)
-        fuzzer.put()
+    """Set up fuzzers."""
+    for fuzzer_defaults in [
+        AflDefaults(),
+        LibFuzzerDefaults(),
+        HonggfuzzDefaults(),
+        SyzkallerDefaults()
+    ]:
+        fuzzer = data_types.Fuzzer.query(
+            data_types.Fuzzer.name == fuzzer_defaults.name).get()
+        if fuzzer:
+            print(fuzzer_defaults.name, 'fuzzer already exists')
+            if non_dry_run:
+                print('Updating stats metrics.')
+                fuzzer.stats_columns = fuzzer_defaults.stats_columns
+                fuzzer.stats_column_descriptions = (
+                    fuzzer_defaults.stats_column_descriptions)
+                fuzzer.put()
 
-      continue
+            continue
 
-    if non_dry_run:
-      print('Creating fuzzer', fuzzer_defaults.name)
-      fuzzer_defaults.create_fuzzer().put()
-    else:
-      print('Skip creating fuzzer', fuzzer_defaults.name, '(dry-run mode)')
+        if non_dry_run:
+            print('Creating fuzzer', fuzzer_defaults.name)
+            fuzzer_defaults.create_fuzzer().put()
+        else:
+            print('Skip creating fuzzer', fuzzer_defaults.name, '(dry-run mode)')
 
 
 def setup_templates(non_dry_run):
-  """Set up templates."""
-  for name, template in six.iteritems(TEMPLATES):
-    job = data_types.JobTemplate.query(
-        data_types.JobTemplate.name == name).get()
-    if job:
-      print('Template with name', name, 'already exists.')
-      continue
+    """Set up templates."""
+    for name, template in six.iteritems(TEMPLATES):
+        job = data_types.JobTemplate.query(
+            data_types.JobTemplate.name == name).get()
+        if job:
+            print('Template with name', name, 'already exists.')
+            continue
 
-    if non_dry_run:
-      print('Creating template', name)
-      data_types.JobTemplate(name=name, environment_string=template).put()
-    else:
-      print('Skip creating template', name, '(dry-run mode)')
+        if non_dry_run:
+            print('Creating template', name)
+            data_types.JobTemplate(
+                name=name, environment_string=template).put()
+        else:
+            print('Skip creating template', name, '(dry-run mode)')
 
 
 def setup_metrics(non_dry_run):
-  """Set up metrics."""
-  client = monitoring_v3.MetricServiceClient()
-  project_name = utils.get_application_id()
-  project_path = client.project_path(project_name)
+    """Set up metrics."""
+    client = monitoring_v3.MetricServiceClient()
+    project_name = utils.get_application_id()
+    project_path = client.project_path(project_name)
 
-  for name in dir(monitoring_metrics):
-    metric = getattr(monitoring_metrics, name)
-    if not isinstance(metric, monitor.Metric):
-      continue
+    for name in dir(monitoring_metrics):
+        metric = getattr(monitoring_metrics, name)
+        if not isinstance(metric, monitor.Metric):
+            continue
 
-    descriptor = monitoring_v3.types.MetricDescriptor()
-    metric.monitoring_v3_metric_descriptor(descriptor)
+        descriptor = monitoring_v3.types.MetricDescriptor()
+        metric.monitoring_v3_metric_descriptor(descriptor)
 
-    if non_dry_run:
-      print('Creating metric', descriptor)
-      client.create_metric_descriptor(project_path, descriptor)
-    else:
-      print('Skip creating metric', descriptor, '(dry-run mode)')
+        if non_dry_run:
+            print('Creating metric', descriptor)
+            client.create_metric_descriptor(project_path, descriptor)
+        else:
+            print('Skip creating metric', descriptor, '(dry-run mode)')
 
 
 def execute(args):
-  """Set up initial Datastore models."""
-  setup_config(args.non_dry_run)
-  setup_fuzzers(args.non_dry_run)
-  setup_templates(args.non_dry_run)
+    """Set up initial Datastore models."""
+    setup_config(args.non_dry_run)
+    setup_fuzzers(args.non_dry_run)
+    setup_templates(args.non_dry_run)
 
-  if not args.local:
-    setup_metrics(args.non_dry_run)
+    if not args.local:
+        setup_metrics(args.non_dry_run)
 
-  print('Done')
+    print('Done')

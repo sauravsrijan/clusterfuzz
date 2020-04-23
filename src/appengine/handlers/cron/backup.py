@@ -34,52 +34,52 @@ EXCLUDED_MODELS = {'CrashStatistic', 'CrashStatisticJobHistory'}
 
 
 def _datastore_client():
-  """Return an api client for datastore."""
-  return googleapiclient.discovery.build('datastore', 'v1')
+    """Return an api client for datastore."""
+    return googleapiclient.discovery.build('datastore', 'v1')
 
 
 class Handler(base_handler.Handler):
-  """Handler for triggering the backup URL."""
+    """Handler for triggering the backup URL."""
 
-  @handler.check_cron()
-  def get(self):
-    """Handle a cron job."""
-    backup_bucket = local_config.Config(
-        local_config.PROJECT_PATH).get('backup.bucket')
-    if not backup_bucket:
-      logs.log('No backup bucket is set, skipping.')
-      return
+    @handler.check_cron()
+    def get(self):
+        """Handle a cron job."""
+        backup_bucket = local_config.Config(
+            local_config.PROJECT_PATH).get('backup.bucket')
+        if not backup_bucket:
+            logs.log('No backup bucket is set, skipping.')
+            return
 
-    kinds = [
-        kind for kind in ndb.Model._kind_map  # pylint: disable=protected-access
-        if (not kind.startswith('_') and kind not in EXCLUDED_MODELS)
-    ]
+        kinds = [
+            kind for kind in ndb.Model._kind_map  # pylint: disable=protected-access
+            if (not kind.startswith('_') and kind not in EXCLUDED_MODELS)
+        ]
 
-    app_id = utils.get_application_id()
-    timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%d-%H:%M:%S')
-    output_url_prefix = (
-        'gs://{backup_bucket}/datastore-backups/{timestamp}'.format(
-            backup_bucket=backup_bucket, timestamp=timestamp))
-    body = {
-        'output_url_prefix': output_url_prefix,
-        'entity_filter': {
-            'kinds': kinds
+        app_id = utils.get_application_id()
+        timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%d-%H:%M:%S')
+        output_url_prefix = (
+            'gs://{backup_bucket}/datastore-backups/{timestamp}'.format(
+                backup_bucket=backup_bucket, timestamp=timestamp))
+        body = {
+            'output_url_prefix': output_url_prefix,
+            'entity_filter': {
+                'kinds': kinds
+            }
         }
-    }
 
-    try:
-      request = _datastore_client().projects().export(
-          projectId=app_id, body=body)
-      response = request.execute()
+        try:
+            request = _datastore_client().projects().export(
+                projectId=app_id, body=body)
+            response = request.execute()
 
-      message = 'Datastore export succeeded.'
-      status_code = 200
-      logs.log(message, response=response)
-    except googleapiclient.errors.HttpError as e:
-      message = 'Datastore export failed.'
-      status_code = e.resp.status
-      logs.log_error(message, error=str(e))
+            message = 'Datastore export succeeded.'
+            status_code = 200
+            logs.log(message, response=response)
+        except googleapiclient.errors.HttpError as e:
+            message = 'Datastore export failed.'
+            status_code = e.resp.status
+            logs.log_error(message, error=str(e))
 
-    self.response.headers['Content-Type'] = 'text/plain'
-    self.response.out.write(message)
-    self.response.set_status(status_code)
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.out.write(message)
+        self.response.set_status(status_code)

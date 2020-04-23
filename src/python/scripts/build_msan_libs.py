@@ -122,140 +122,141 @@ PACKAGES = [
 
 
 def bucket_path(no_track_origins):
-  """Return the bucket path to upload to."""
-  if no_track_origins:
-    subdir = 'no-origins'
-  else:
-    subdir = 'chained-origins'
+    """Return the bucket path to upload to."""
+    if no_track_origins:
+        subdir = 'no-origins'
+    else:
+        subdir = 'chained-origins'
 
-  return 'gs://%s/%s/%s' % (UPLOAD_BUCKET, DISTRO_VERSION, subdir)
+    return 'gs://%s/%s/%s' % (UPLOAD_BUCKET, DISTRO_VERSION, subdir)
 
 
 def build_steps(package_name, no_track_origins=False):
-  """Return build steps for a package."""
-  zip_name = package_name + '.zip'
-  build_args = ['msan_build.py', '--no-build-deps', package_name, '/workspace']
+    """Return build steps for a package."""
+    zip_name = package_name + '.zip'
+    build_args = ['msan_build.py', '--no-build-deps',
+                  package_name, '/workspace']
 
-  if no_track_origins:
-    build_args.append('--no-track-origins')
+    if no_track_origins:
+        build_args.append('--no-track-origins')
 
-  return [
-      {
-          # Build package.
-          'args': build_args,
-          # Use OSS-Fuzz's MSan builder.
-          'name': 'gcr.io/oss-fuzz-base/base-msan-builder',
-      },
-      {
-          # Zip results.
-          'args': ['zip', '-r', '-y', zip_name, '.'],
-          'name': 'gcr.io/oss-fuzz-base/base-msan-builder',
-      },
-      {
-          # Upload.
-          'args': [
-              'cp',
-              zip_name,
-              '%s/packages/%s' % (bucket_path(no_track_origins), zip_name),
-          ],
-          'name':
-              'gcr.io/cloud-builders/gsutil',
-      },
-  ]
+    return [
+        {
+            # Build package.
+            'args': build_args,
+            # Use OSS-Fuzz's MSan builder.
+            'name': 'gcr.io/oss-fuzz-base/base-msan-builder',
+        },
+        {
+            # Zip results.
+            'args': ['zip', '-r', '-y', zip_name, '.'],
+            'name': 'gcr.io/oss-fuzz-base/base-msan-builder',
+        },
+        {
+            # Upload.
+            'args': [
+                'cp',
+                zip_name,
+                '%s/packages/%s' % (bucket_path(no_track_origins), zip_name),
+            ],
+            'name':
+                'gcr.io/cloud-builders/gsutil',
+        },
+    ]
 
 
 def get_build(steps):
-  """Get a build given steps."""
-  return {
-      'steps': steps,
-      'timeout': str(BUILD_TIMEOUT) + 's',
-      'options': {
-          'machineType': 'N1_HIGHCPU_8',
-      },
-  }
+    """Get a build given steps."""
+    return {
+        'steps': steps,
+        'timeout': str(BUILD_TIMEOUT) + 's',
+        'options': {
+            'machineType': 'N1_HIGHCPU_8',
+        },
+    }
 
 
 def merge_steps(no_track_origins=False):
-  """Get merge steps to merge individual packages into a single zip."""
-  timestamp = datetime.datetime.utcnow().strftime('%Y%m%d%H%M')
-  filename = 'latest-%s.zip' % timestamp
+    """Get merge steps to merge individual packages into a single zip."""
+    timestamp = datetime.datetime.utcnow().strftime('%Y%m%d%H%M')
+    filename = 'latest-%s.zip' % timestamp
 
-  return [
-      {
-          # Download all individual packages.
-          'args': [
-              '-m', 'cp', '-r',
-              bucket_path(no_track_origins) + '/packages/', '.'
-          ],
-          'name':
-              'gcr.io/cloud-builders/gsutil',
-      },
-      {
-          # Extract.
-          'args': [
-              'bash',
-              '-c',
-              'mkdir all && cd all && unzip -o "../packages/*.zip"',
-          ],
-          'name':
-              'gcr.io/oss-fuzz-base/base-msan-builder',
-      },
-      {
-          # Zip.
-          'args': [
-              'bash', '-c',
-              'find -L -name \'*.so*\' | zip -y %s -@' % filename
-          ],
-          'dir':
-              'all',
-          'name':
-              'gcr.io/oss-fuzz-base/base-msan-builder',
-      },
-      {
-          # Upload.
-          'args': [
-              'cp',
-              filename,
-              bucket_path(no_track_origins) + '/' + filename,
-          ],
-          'dir':
-              'all',
-          'name':
-              'gcr.io/cloud-builders/gsutil',
-      },
-  ]
+    return [
+        {
+            # Download all individual packages.
+            'args': [
+                '-m', 'cp', '-r',
+                bucket_path(no_track_origins) + '/packages/', '.'
+            ],
+            'name':
+                'gcr.io/cloud-builders/gsutil',
+        },
+        {
+            # Extract.
+            'args': [
+                'bash',
+                '-c',
+                'mkdir all && cd all && unzip -o "../packages/*.zip"',
+            ],
+            'name':
+                'gcr.io/oss-fuzz-base/base-msan-builder',
+        },
+        {
+            # Zip.
+            'args': [
+                'bash', '-c',
+                'find -L -name \'*.so*\' | zip -y %s -@' % filename
+            ],
+            'dir':
+                'all',
+            'name':
+                'gcr.io/oss-fuzz-base/base-msan-builder',
+        },
+        {
+            # Upload.
+            'args': [
+                'cp',
+                filename,
+                bucket_path(no_track_origins) + '/' + filename,
+            ],
+            'dir':
+                'all',
+            'name':
+                'gcr.io/cloud-builders/gsutil',
+        },
+    ]
 
 
 def start_build(cloudbuild, build_body):
-  """Start a build."""
-  build_info = cloudbuild.projects().builds().create(
-      projectId='google.com:clusterfuzz', body=build_body).execute()
-  return build_info['metadata']['build']['id']
+    """Start a build."""
+    build_info = cloudbuild.projects().builds().create(
+        projectId='google.com:clusterfuzz', body=build_body).execute()
+    return build_info['metadata']['build']['id']
 
 
 def main():
-  parser = argparse.ArgumentParser(
-      'build_msan_libs.py', description='MSan builder.')
-  parser.add_argument(
-      '--no-track-origins',
-      action='store_true',
-      help='Build with -fsanitize-memory-track-origins=0.')
-  parser.add_argument(
-      'command',
-      choices=['build_packages', 'merge'],
-      help='The command to run.')
-  args = parser.parse_args()
+    parser = argparse.ArgumentParser(
+        'build_msan_libs.py', description='MSan builder.')
+    parser.add_argument(
+        '--no-track-origins',
+        action='store_true',
+        help='Build with -fsanitize-memory-track-origins=0.')
+    parser.add_argument(
+        'command',
+        choices=['build_packages', 'merge'],
+        help='The command to run.')
+    args = parser.parse_args()
 
-  cloudbuild = build('cloudbuild', 'v1', cache_discovery=False)
+    cloudbuild = build('cloudbuild', 'v1', cache_discovery=False)
 
-  if args.command == 'build_packages':
-    for package in PACKAGES:
-      build_body = get_build(build_steps(package, args.no_track_origins))
-      print(start_build(cloudbuild, build_body))
-  else:  # merge
-    print(start_build(cloudbuild,
-                      get_build(merge_steps(args.no_track_origins))))
+    if args.command == 'build_packages':
+        for package in PACKAGES:
+            build_body = get_build(build_steps(package, args.no_track_origins))
+            print(start_build(cloudbuild, build_body))
+    else:  # merge
+        print(start_build(cloudbuild,
+                          get_build(merge_steps(args.no_track_origins))))
 
 
 if __name__ == '__main__':
-  main()
+    main()
