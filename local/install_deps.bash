@@ -21,7 +21,7 @@ dir=$(dirname "$0")
 rm -rf "$dir"/../src/third_party
 
 if [ "$(uname)" == "Darwin" ]; then
-  "$dir"/install_deps_macos.bash $*
+  "$dir"/install_deps_macos.bash "$@"
 else
-  "$dir"/install_deps_linux.bash $*
+  "$dir"/install_deps_linux.bash "$@"
 fi

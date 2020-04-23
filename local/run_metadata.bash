@@ -18,6 +18,6 @@ echo "Running metadata server..."
 
 set +x
 docker_ip=$(ip -4 addr show docker0 | grep -P inet | head -1 | awk '{print $2}' | cut -d/ -f1)
-root_dir=$(dirname $(dirname "$(readlink -f "$0")"))
+root_dir=$(dirname "$(dirname "$(readlink -f "$0")")")
 
-go run emulators/metadata.go -ip=$docker_ip "$@"
+go run emulators/metadata.go -ip="$docker_ip" "$@"

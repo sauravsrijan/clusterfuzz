@@ -24,7 +24,7 @@ if ! which brew > /dev/null 2>&1; then
   exit 1
 fi
 
-brew bundle --file=$(dirname "$0")/Brewfile
+brew bundle --file="$(dirname "$0")"/Brewfile
 
 pipenv --python 3.7
 pipenv sync --dev

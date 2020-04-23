@@ -15,7 +15,7 @@
 
 if [ -z "$DEPLOYMENT_BUCKET" ]; then
   # Get deployment bucket from project metadata.
-  export DEPLOYMENT_BUCKET=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/project/attributes/deployment-bucket)
+  export DEPLOYMENT_BUCKET="$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/project/attributes/deployment-bucket)"
 fi
 
 # When $LOCAL_SRC is set, use source zip on mounted volume for local testing.
@@ -25,26 +25,26 @@ if [[ -z "$LOCAL_SRC" ]]; then
     rm -rf clusterfuzz
   fi
 
-  gsutil cp gs://$DEPLOYMENT_BUCKET/$DEPLOYMENT_ZIP .
-  unzip -o $DEPLOYMENT_ZIP
+  gsutil cp gs://"$DEPLOYMENT_BUCKET/$DEPLOYMENT_ZIP" .
+  unzip -o "$DEPLOYMENT_ZIP"
 fi
 
 # Some configurations (e.g. hosts) run many instances of ClusterFuzz. Don't
 # set up mounts in this case.
 if [[ -z "$DISABLE_MOUNTS" ]]; then
   # Setup Tmpfs dirs for frequently accessed files to save disk I/O.
-  mount -t tmpfs -o size=250M,mode=777 tmpfs $INSTALL_DIRECTORY/clusterfuzz/bot/inputs/fuzzer-testcases/
-  mount -t tmpfs -o size=10M,mode=777 tmpfs $INSTALL_DIRECTORY/clusterfuzz/bot/logs/
-  mount -t tmpfs -o size=90M,mode=777 tmpfs $BOT_TMPDIR
+  mount -t tmpfs -o size=250M,mode=777 tmpfs "$INSTALL_DIRECTORY"/clusterfuzz/bot/inputs/fuzzer-testcases/
+  mount -t tmpfs -o size=10M,mode=777 tmpfs "$INSTALL_DIRECTORY"/clusterfuzz/bot/logs/
+  mount -t tmpfs -o size=90M,mode=777 tmpfs "$BOT_TMPDIR"
 
   # Setup mount to limit disk space for fuzzer-testcases-disk directory.
   FUZZER_TESTCASES_DISK_FILE=$INSTALL_DIRECTORY/fuzzer-testcases.mnt
-  fallocate -l 8GiB $FUZZER_TESTCASES_DISK_FILE
-  mkfs.ext4 -F $FUZZER_TESTCASES_DISK_FILE
+  fallocate -l 8GiB "$FUZZER_TESTCASES_DISK_FILE"
+  mkfs.ext4 -F "$FUZZER_TESTCASES_DISK_FILE"
 
   # mkfs.ext4 seems to remove the previous allocation, so do it again.
-  fallocate -l 8GiB $FUZZER_TESTCASES_DISK_FILE
-  mount -o loop $FUZZER_TESTCASES_DISK_FILE $INSTALL_DIRECTORY/clusterfuzz/bot/inputs/fuzzer-testcases-disk
+  fallocate -l 8GiB "$FUZZER_TESTCASES_DISK_FILE"
+  mount -o loop "$FUZZER_TESTCASES_DISK_FILE" "$INSTALL_DIRECTORY"/clusterfuzz/bot/inputs/fuzzer-testcases-disk
 fi
 
-chown -R $USER:$USER $INSTALL_DIRECTORY
+chown -R "$USER:$USER" "$INSTALL_DIRECTORY"

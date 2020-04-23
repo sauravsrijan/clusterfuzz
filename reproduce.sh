@@ -15,7 +15,7 @@
 # limitations under the License.
 
 CLUSTERFUZZ_CONFIG_DIR=~/.config/clusterfuzz
-ROOT_DIRECTORY=$(dirname $(readlink -f "$0"))
+ROOT_DIRECTORY=$(dirname "$(readlink -f "$0")")
 
 # If we're using the emulator, make sure we install the Android SDK.
 original_args="$*"
@@ -35,10 +35,10 @@ done
 dependencies_installed="true"
 
 # Create the config directory if needed and check the ClusterFuzz version.
-mkdir -p $CLUSTERFUZZ_CONFIG_DIR
+mkdir -p "$CLUSTERFUZZ_CONFIG_DIR"
 current_version=1
 version_file=$CLUSTERFUZZ_CONFIG_DIR/version
-if [ ! -e $version_file ] || [ "$(cat $version_file)" != "$current_version" ]; then
+if [ ! -e "$version_file" ] || [ "$(cat "$version_file")" != "$current_version" ]; then
   dependencies_installed="false"
 fi
 
@@ -48,7 +48,7 @@ if ! pipenv graph 2>&1 > /dev/null; then
 fi
 
 # Check to see if we need to install the android emulator.
-if [ $additional_deps_args ] && [ ! -d $ROOT_DIRECTORY/local/bin/android-sdk ]; then
+if [ "$additional_deps_args" ] && [ ! -d "$ROOT_DIRECTORY"/local/bin/android-sdk ]; then
   dependencies_installed="false"
 fi
 
@@ -56,16 +56,16 @@ if [ "$dependencies_installed" != "true" ]; then
   echo "Running first time setup. This may take a while, but is only required once."
   echo "You may see several password prompts to install required packages."
   sleep 5
-  $ROOT_DIRECTORY/local/install_deps.bash --only-reproduce $additional_deps_args || { exit 1; }
-  echo -n $current_version > $version_file
+  "$ROOT_DIRECTORY"/local/install_deps.bash --only-reproduce "$additional_deps_args" || { exit 1; }
+  echo -n "$current_version" > "$version_file"
 fi
 
 # Only sync if necessary.
 pip_sync_file=$CLUSTERFUZZ_CONFIG_DIR/pip_sync
-if [ ! -e $pip_sync_file ] || [ $ROOT_DIRECTORY/Pipfile.lock -nt $pip_sync_file ]; then
+if [ ! -e "$pip_sync_file" ] || [ "$ROOT_DIRECTORY"/Pipfile.lock -nt "$pip_sync_file" ]; then
   pipenv sync --dev
-  echo 1 > $pip_sync_file
+  echo 1 > "$pip_sync_file"
 fi
 
 source "$(pipenv --venv)/bin/activate"
-python $ROOT_DIRECTORY/butler.py reproduce $original_args
+python "$ROOT_DIRECTORY"/butler.py reproduce "$original_args"

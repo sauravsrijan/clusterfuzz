@@ -16,21 +16,21 @@
 function run_bot () {
   serial=$1
   device_index=$2
-  bot_directory=$INSTALL_DIRECTORY/bots/$(echo $serial | sed s/:/-/)
+  bot_directory=$INSTALL_DIRECTORY/bots/$(echo "$serial" | sed s/:/-/)
 
   # Recreate bot directory.
-  rm -rf $bot_directory
-  mkdir -p $bot_directory
-  cp -r $INSTALL_DIRECTORY/clusterfuzz $bot_directory/clusterfuzz
+  rm -rf "$bot_directory"
+  mkdir -p "$bot_directory"
+  cp -r "$INSTALL_DIRECTORY"/clusterfuzz "$bot_directory"/clusterfuzz
   echo "Created bot directory $bot_directory."
-  cd $bot_directory/clusterfuzz
+  cd "$bot_directory"/clusterfuzz
 
   # Wait for device and run clusterfuzz indefinitely for this bot.
   while true; do
-    $ADB_PATH/adb -s "$serial" wait-for-device
+    "$ADB_PATH"/adb -s "$serial" wait-for-device
 
     echo "Running ClusterFuzz instance for bot $serial."
-    OS_OVERRIDE="ANDROID" ANDROID_SERIAL="$serial" PATH="$PATH" NFS_ROOT="$NFS_ROOT" GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS" ROOT_DIR="$bot_directory/clusterfuzz" PYTHONPATH="$PYTHONPATH" GSUTIL_PATH="$GSUTIL_PATH" BOT_NAME="android-$(hostname)-$serial" HTTP_PORT_1="$((device_index+8000))" HTTP_PORT_2="$((device_index+8080))" python $bot_directory/clusterfuzz/src/python/bot/startup/run.py || true
+    OS_OVERRIDE="ANDROID" ANDROID_SERIAL="$serial" PATH="$PATH" NFS_ROOT="$NFS_ROOT" GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS" ROOT_DIR="$bot_directory/clusterfuzz" PYTHONPATH="$PYTHONPATH" GSUTIL_PATH="$GSUTIL_PATH" BOT_NAME="android-$(hostname)-$serial" HTTP_PORT_1="$((device_index+8000))" HTTP_PORT_2="$((device_index+8080))" python "$bot_directory"/clusterfuzz/src/python/bot/startup/run.py || true
 
     echo "ClusterFuzz instance for bot $serial quit unexpectedly. Waiting for device."
   done
@@ -63,24 +63,24 @@ if [ ! -d "$INSTALL_DIRECTORY" ]; then
   mkdir -p "$INSTALL_DIRECTORY"
 fi
 
-cd $INSTALL_DIRECTORY
+cd "$INSTALL_DIRECTORY"
 
 echo "Fetching Google Cloud SDK."
 if [ ! -d "$INSTALL_DIRECTORY/$GOOGLE_CLOUD_SDK" ]; then
   curl -O "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$GOOGLE_CLOUD_SDK_ARCHIVE"
-  tar -xzf $GOOGLE_CLOUD_SDK_ARCHIVE
-  rm $GOOGLE_CLOUD_SDK_ARCHIVE
+  tar -xzf "$GOOGLE_CLOUD_SDK_ARCHIVE"
+  rm "$GOOGLE_CLOUD_SDK_ARCHIVE"
 fi
 
 echo "Activating credentials with the Google Cloud SDK."
-$GSUTIL_PATH/gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+"$GSUTIL_PATH"/gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
 
 # Otherwise, gsutil will error out due to multiple types of configured
 # credentials. For more information about this, see
 # https://cloud.google.com/storage/docs/gsutil/commands/config#configuration-file-selection-procedure
 echo "Specifying the proper Boto configuration file."
-BOTO_CONFIG_PATH=$($GSUTIL_PATH/gsutil -D 2>&1 | grep "config_file_list" | egrep -o "/[^']+gserviceaccount\.com/\.boto") || true
-if [ -f $BOTO_CONFIG_PATH ]; then
+BOTO_CONFIG_PATH=$("$GSUTIL_PATH"/gsutil -D 2>&1 | grep "config_file_list" | egrep -o "/[^']+gserviceaccount\.com/\.boto") || true
+if [ -f "$BOTO_CONFIG_PATH" ]; then
   export BOTO_CONFIG="$BOTO_CONFIG_PATH"
 else
   echo "WARNING: failed to identify the Boto configuration file and specify BOTO_CONFIG env."
@@ -88,7 +88,7 @@ fi
 
 echo "Downloading ClusterFuzz source code."
 rm -rf clusterfuzz
-$GSUTIL_PATH/gsutil cp gs://$DEPLOYMENT_BUCKET/$DEPLOYMENT_ZIP clusterfuzz-source.zip
+"$GSUTIL_PATH"/gsutil cp gs://"$DEPLOYMENT_BUCKET/$DEPLOYMENT_ZIP" clusterfuzz-source.zip
 unzip -q clusterfuzz-source.zip
 
 echo "Installing ClusterFuzz package dependencies using pipenv."
@@ -105,10 +105,10 @@ source "$(pipenv --venv)/bin/activate"
 if [ -z "$ANDROID_SERIAL" ]; then
   echo "No \$ANDROID_SERIAL set. Will automatically detect devices and start ClusterFuzz for each."
   device_index=0
-  for serial in `$ADB_PATH/adb devices | awk -F' ' '{ print $1 }' | egrep -v '^(|List)$'`; do
-    run_bot $serial $device_index &
+  for serial in "$("$ADB_PATH"/adb devices | awk -F' ' '{ print $1 }' | egrep -v '^(|List)$')"; do
+    run_bot "$serial" "$device_index" &
     device_index=$((device_index+1))
   done
 else
-  run_bot $ANDROID_SERIAL &
+  run_bot "$ANDROID_SERIAL" &
 fi

@@ -21,9 +21,9 @@ NFS_DIR=/mnt/nfs
 # Create clusterfuzz user (uid=1337).
 USER=clusterfuzz
 HOME=/home/$USER
-useradd -mU -u 1337 $USER
-usermod -aG kvm $USER
-usermod -aG cvdnetwork $USER
+useradd -mU -u 1337 "$USER"
+usermod -aG kvm "$USER"
+usermod -aG cvdnetwork "$USER"
 echo "$USER ALL=NOPASSWD: ALL" >> /etc/sudoers
 
 # Setup helper variables.
@@ -110,7 +110,7 @@ else
   NFS_ROOT=$NFS_DIR/$NFS_VOLUME_NAME
 
   echo "Setting up NFS."
-  mkdir -p $NFS_DIR
+  mkdir -p "$NFS_DIR"
   sed -i "s/browse_mode = no/browse_mode = yes/" /etc/autofs.conf
   echo "$NFS_DIR   /etc/auto.nfs" >> /etc/auto.master
   service autofs stop
@@ -118,8 +118,8 @@ else
   service autofs start
 
   set +e  # Ignore errors in this block since NFS server can be flaky.
-  ls $NFS_ROOT
-  chown $USER:$USER $NFS_ROOT
+  ls "$NFS_ROOT"
+  chown "$USER:$USER" "$NFS_ROOT"
   set -e
 fi
 

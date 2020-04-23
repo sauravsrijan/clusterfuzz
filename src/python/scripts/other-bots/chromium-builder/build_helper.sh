@@ -38,62 +38,62 @@ build_file=$BUILD_DIR/$build_name.zip
 cpus=$((`getconf _NPROCESSORS_ONLN` / 2 + 1))
 
 # Clear build files.
-rm -rf $build_file $build_dir
+rm -rf "$build_file" "$build_dir"
 
 # Create source directory if there is no src/ subfolder.
 if [ ! -d "$src_dir/src" ]; then
-  rm -rf $src_dir
-  mkdir -p $src_dir
+  rm -rf "$src_dir"
+  mkdir -p "$src_dir"
 
   # Fetch source.
-  cd $src_dir
+  cd "$src_dir"
   fetch --nohooks chromium
 fi
 
 # Cleanup checkout state.
-cd $src_dir/src
+cd "$src_dir"/src
 git checkout origin/master
 git branch -D release
-gclient revert -j$cpus
+gclient revert -j"$cpus"
 git clean -df
 
 # Update to latest source.
 git rebase-update
-gclient sync --with_branch_heads --force -j$cpus
+gclient sync --with_branch_heads --force -j"$cpus"
 git fetch
 
 # Get code for the release branch.
 git fetch --tags
-git checkout -b release $build_version
-gclient sync --with_branch_heads --force -j$cpus
+git checkout -b release "$build_version"
+gclient sync --with_branch_heads --force -j"$cpus"
 
 # Run runhooks and update clang.
 python ./tools/clang/scripts/update.py
 gclient runhooks --force
 
 # Trigger the build.
-gn gen $build_subdir "--args=$gn_args"
-autoninja -C $build_subdir chromium_builder_asan
+gn gen "$build_subdir" "--args=$gn_args"
+autoninja -C "$build_subdir" chromium_builder_asan
 
 # Clear unneeded files from build directory.
 unneeded_dirnames=( ".deps" ".landmines" ".ninja_deps" ".ninja_log"
                     ".sconsign.dblite" "appcache" "gen" "glue" "lib.host"
                     "mksnapshot" "obj" "obj.host" "obj.target" "src"
                     "thinlto-cache" )
-for unneeded_dirname in ${unneeded_dirnames[@]}
+for unneeded_dirname in "${unneeded_dirnames[@]}"
 do
-  rm -rf $build_dir/$unneeded_dirname
+  rm -rf "$build_dir/$unneeded_dirname"
 done
 
 # Store the build.
-if [ -f $build_dir/chrome ]; then
-  cd $build_dir/..
-  zip -r $build_file $(basename $build_dir)
+if [ -f "$build_dir"/chrome ]; then
+  cd "$build_dir"/..
+  zip -r "$build_file" "$(basename "$build_dir")"
 else
   # Don't do cleanup to save bad state.
   exit 1
 fi
 
 # Cleanup.
-rm -rf $build_dir
+rm -rf "$build_dir"
 rm -rf /tmp/*

@@ -34,7 +34,7 @@ ROOT_DIR="$INSTALL_DIRECTORY/clusterfuzz"
 PYTHONPATH="$PYTHONPATH:$ROOT_DIR/src"
 
 echo "Disabling macOS crash reporting (requires sudo)."
-sudo -u $USER bash -c "launchctl unload -w /System/Library/LaunchAgents/com.apple.ReportCrash.plist"
+sudo -u "$USER" bash -c "launchctl unload -w /System/Library/LaunchAgents/com.apple.ReportCrash.plist"
 sudo launchctl unload -w /System/Library/LaunchDaemons/com.apple.ReportCrash.Root.plist
 
 echo "Disabling kernel message logging (requires sudo)."
@@ -49,26 +49,26 @@ if [ ! -d "$INSTALL_DIRECTORY" ]; then
   mkdir -p "$INSTALL_DIRECTORY"
 fi
 
-cd $INSTALL_DIRECTORY
+cd "$INSTALL_DIRECTORY"
 
 echo "Fetching Google Cloud SDK."
 if [ ! -d "$INSTALL_DIRECTORY/$GOOGLE_CLOUD_SDK" ]; then
   curl -O "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$GOOGLE_CLOUD_SDK_ARCHIVE"
-  tar -xzf $GOOGLE_CLOUD_SDK_ARCHIVE
-  rm $GOOGLE_CLOUD_SDK_ARCHIVE
+  tar -xzf "$GOOGLE_CLOUD_SDK_ARCHIVE"
+  rm "$GOOGLE_CLOUD_SDK_ARCHIVE"
 fi
 
 echo "Activating credentials with the Google Cloud SDK."
-$GSUTIL_PATH/gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+"$GSUTIL_PATH"/gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
 
 echo "Specifying the proper Boto configuration file."
 
 # Otherwise, gsutil will error out due to multiple types of configured
 # credentials. For more information about this, see
 # https://cloud.google.com/storage/docs/gsutil/commands/config#configuration-file-selection-procedure
-BOTO_CONFIG_PATH=$($GSUTIL_PATH/gsutil -D 2>&1 | grep "config_file_list" | egrep -o "/[^']+gserviceaccount\.com/\.boto")
+BOTO_CONFIG_PATH=$("$GSUTIL_PATH"/gsutil -D 2>&1 | grep "config_file_list" | egrep -o "/[^']+gserviceaccount\.com/\.boto")
 
-if [ -f $BOTO_CONFIG_PATH ]; then
+if [ -f "$BOTO_CONFIG_PATH" ]; then
   export BOTO_CONFIG="$BOTO_CONFIG_PATH"
 else
   echo "WARNING: failed to identify the Boto configuration file and specify BOTO_CONFIG env."
@@ -76,7 +76,7 @@ fi
 
 echo "Downloading ClusterFuzz source code."
 rm -rf clusterfuzz
-$GSUTIL_PATH/gsutil cp gs://$DEPLOYMENT_BUCKET/$DEPLOYMENT_ZIP clusterfuzz-source.zip
+"$GSUTIL_PATH"/gsutil cp gs://"$DEPLOYMENT_BUCKET/$DEPLOYMENT_ZIP" clusterfuzz-source.zip
 unzip -q clusterfuzz-source.zip
 
 echo "Installing ClusterFuzz package dependencies using pipenv."
@@ -91,6 +91,6 @@ pipenv sync
 source "$(pipenv --venv)/bin/activate"
 
 echo "Running ClusterFuzz."
-NFS_ROOT="$NFS_ROOT" GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS" ROOT_DIR="$ROOT_DIR" PYTHONPATH="$PYTHONPATH" GSUTIL_PATH="$GSUTIL_PATH" python $ROOT_DIR/src/python/bot/startup/run.py &
+NFS_ROOT="$NFS_ROOT" GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS" ROOT_DIR="$ROOT_DIR" PYTHONPATH="$PYTHONPATH" GSUTIL_PATH="$GSUTIL_PATH" python "$ROOT_DIR"/src/python/bot/startup/run.py &
 
 echo "Success!"

@@ -18,15 +18,15 @@ function run_bot () {
   bot_directory=$INSTALL_DIRECTORY/bot
 
   # Recreate bot directory.
-  rm -rf $bot_directory
-  mkdir -p $bot_directory
-  cp -r $INSTALL_DIRECTORY/clusterfuzz $bot_directory/clusterfuzz
+  rm -rf "$bot_directory"
+  mkdir -p "$bot_directory"
+  cp -r "$INSTALL_DIRECTORY"/clusterfuzz "$bot_directory"/clusterfuzz
   echo "Created bot directory $bot_directory."
-  cd $bot_directory/clusterfuzz
+  cd "$bot_directory"/clusterfuzz
 
   while true; do
     echo "Running ClusterFuzz instance for linux bot."
-    PATH="$PATH" NFS_ROOT="$NFS_ROOT" GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS" ROOT_DIR="$bot_directory/clusterfuzz" PYTHONPATH="$PYTHONPATH" GSUTIL_PATH="$GSUTIL_PATH" BOT_NAME="linux-$(hostname)" HTTP_PORT_1="$((bot_index+8000))" HTTP_PORT_2="$((bot_index+8080))" python $bot_directory/clusterfuzz/src/python/bot/startup/run.py || true
+    PATH="$PATH" NFS_ROOT="$NFS_ROOT" GOOGLE_APPLICATION_CREDENTIALS="$GOOGLE_APPLICATION_CREDENTIALS" ROOT_DIR="$bot_directory/clusterfuzz" PYTHONPATH="$PYTHONPATH" GSUTIL_PATH="$GSUTIL_PATH" BOT_NAME="linux-$(hostname)" HTTP_PORT_1="$((bot_index+8000))" HTTP_PORT_2="$((bot_index+8080))" python "$bot_directory"/clusterfuzz/src/python/bot/startup/run.py || true
 
     echo "ClusterFuzz instance for linux bot quit unexpectedly. Restarting in 30 seconds."
     sleep 30
@@ -58,24 +58,24 @@ if [ ! -d "$INSTALL_DIRECTORY" ]; then
   mkdir -p "$INSTALL_DIRECTORY"
 fi
 
-cd $INSTALL_DIRECTORY
+cd "$INSTALL_DIRECTORY"
 
 echo "Fetching Google Cloud SDK."
 if [ ! -d "$INSTALL_DIRECTORY/$GOOGLE_CLOUD_SDK" ]; then
   curl -O "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$GOOGLE_CLOUD_SDK_ARCHIVE"
-  tar -xzf $GOOGLE_CLOUD_SDK_ARCHIVE
-  rm $GOOGLE_CLOUD_SDK_ARCHIVE
+  tar -xzf "$GOOGLE_CLOUD_SDK_ARCHIVE"
+  rm "$GOOGLE_CLOUD_SDK_ARCHIVE"
 fi
 
 echo "Activating credentials with the Google Cloud SDK."
-$GSUTIL_PATH/gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+"$GSUTIL_PATH"/gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
 
 # Otherwise, gsutil will error out due to multiple types of configured
 # credentials. For more information about this, see
 # https://cloud.google.com/storage/docs/gsutil/commands/config#configuration-file-selection-procedure
 echo "Specifying the proper Boto configuration file."
-BOTO_CONFIG_PATH=$($GSUTIL_PATH/gsutil -D 2>&1 | grep "config_file_list" | egrep -o "/[^']+gserviceaccount\.com/\.boto") || true
-if [ -f $BOTO_CONFIG_PATH ]; then
+BOTO_CONFIG_PATH=$("$GSUTIL_PATH"/gsutil -D 2>&1 | grep "config_file_list" | egrep -o "/[^']+gserviceaccount\.com/\.boto") || true
+if [ -f "$BOTO_CONFIG_PATH" ]; then
   export BOTO_CONFIG="$BOTO_CONFIG_PATH"
 else
   echo "WARNING: failed to identify the Boto configuration file and specify BOTO_CONFIG env."
@@ -83,7 +83,7 @@ fi
 
 echo "Downloading ClusterFuzz source code."
 rm -rf clusterfuzz
-$GSUTIL_PATH/gsutil cp gs://$DEPLOYMENT_BUCKET/$DEPLOYMENT_ZIP clusterfuzz-source.zip
+"$GSUTIL_PATH"/gsutil cp gs://"$DEPLOYMENT_BUCKET/$DEPLOYMENT_ZIP" clusterfuzz-source.zip
 unzip -q clusterfuzz-source.zip
 
 echo "Installing ClusterFuzz package dependencies using pipenv."
