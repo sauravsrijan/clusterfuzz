@@ -198,7 +198,7 @@ def execute(_):
     _execute_command_and_track_error("yapf -d " + file_path)
 
     futurize_excludes = " ".join(
-        ["-x " + exception for exception in _FUTURIZE_EXCEPTIONS])
+        "-x " + exception for exception in _FUTURIZE_EXCEPTIONS)
     futurize_command = "futurize -0 {excludes} {file_path}".format(
         excludes=futurize_excludes, file_path=file_path)
     futurize_output = _execute_command_and_track_error(futurize_command)

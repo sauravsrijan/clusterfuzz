@@ -819,7 +819,7 @@ class Query(object):
     if self.job_types:
       result.append(
           "(%s)" %
-          " OR ".join(["job = '%s'" % job_type for job_type in self.job_types]))
+          " OR ".join("job = '%s'" % job_type for job_type in self.job_types))
 
     if self.fuzzer_name != self.fuzzer_or_engine_name:
       result.append("fuzzer = '%s'" % self.fuzzer_name)

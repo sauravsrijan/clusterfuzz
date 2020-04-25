@@ -113,7 +113,7 @@ class Handler(object):
 
   def tailf(self, log_names):
     """Print ./bot/logs/`name`.log in real-time (equivalent to `tail -f`)."""
-    log_paths = ' '.join([self._log_path(i) for i in log_names])
+    log_paths = ' '.join(self._log_path(i) for i in log_names)
     self._run('tail -f -n 100 %s' % log_paths)
 
   def _copy_staging_archive_from_local_to_remote(self, local_zip_path):

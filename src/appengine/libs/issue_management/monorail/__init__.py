@@ -298,7 +298,7 @@ def _get_issue_tracker_manager_for_project(project_name):
 
 def _get_search_text(keywords):
   """Get search text."""
-  search_text = ' '.join(['"{}"'.format(keyword) for keyword in keywords])
+  search_text = ' '.join('"{}"'.format(keyword) for keyword in keywords)
   search_text = search_text.replace(':', ' ')
   search_text = search_text.replace('=', ' ')
 

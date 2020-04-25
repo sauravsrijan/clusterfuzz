@@ -133,7 +133,7 @@ class TestQueue(object):
       for thread in threads:
         thread.start()
 
-      while any([thread.is_alive() for thread in threads]):
+      while any(thread.is_alive() for thread in threads):
         if self.deadline_check:
           self.deadline_check(cleanup_function=self._cleanup)
 

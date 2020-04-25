@@ -136,13 +136,11 @@ def _query_multi_armed_bandit_probabilities(engine):
   strategy_names_list = [
       strategy_entry.name for strategy_entry in engine.query_strategy_list
   ]
-  strategies_subquery = '\n'.join([
-      STRATEGY_SUBQUERY_FORMAT.format(strategy_name=strategy_name)
-      for strategy_name in strategy_names_list
-  ])
+  strategies_subquery = '\n'.join(STRATEGY_SUBQUERY_FORMAT.format(strategy_name=strategy_name)
+      for strategy_name in strategy_names_list)
   client = big_query.Client()
   strategies = ','.join(
-      ['strategy_' + strategy_name for strategy_name in strategy_names_list])
+      'strategy_' + strategy_name for strategy_name in strategy_names_list)
   formatted_query = BANDIT_PROBABILITY_QUERY_FORMAT.format(
       performance_metric=engine.performance_metric,
       temperature_value=TEMPERATURE_PARAMETER,

@@ -552,7 +552,7 @@ def run_command(cmd,
                 recover=True):
   """Run a command in adb shell."""
   if isinstance(cmd, list):
-    cmd = ' '.join([str(i) for i in cmd])
+    cmd = ' '.join(str(i) for i in cmd)
   if log_output:
     logs.log('Running: adb %s' % cmd)
   if not timeout:
@@ -605,7 +605,7 @@ def run_shell_command(cmd,
     return command.replace('\\', '\\\\').replace('"', '\\"')
 
   if isinstance(cmd, list):
-    cmd = ' '.join([str(i) for i in cmd])
+    cmd = ' '.join(str(i) for i in cmd)
 
   if cmd[0] not in ['"', "'"]:
     cmd = '"{}"'.format(_escape_specials(cmd))
@@ -634,7 +634,7 @@ def run_fastboot_command(cmd, log_output=True, log_error=True, timeout=None):
     return None
 
   if isinstance(cmd, list):
-    cmd = ' '.join([str(i) for i in cmd])
+    cmd = ' '.join(str(i) for i in cmd)
   if log_output:
     logs.log('Running: fastboot %s' % cmd)
   if not timeout:
