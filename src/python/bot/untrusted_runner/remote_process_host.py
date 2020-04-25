@@ -28,19 +28,24 @@ from system import process_handler
 def process_result_from_proto(process_result_proto):
     """Convert ProcessResult proto to new_process.ProcessResult."""
     return new_process.ProcessResult(
-        process_result_proto.command, process_result_proto.return_code,
-        process_result_proto.output, process_result_proto.time_executed,
-        process_result_proto.timed_out)
+        process_result_proto.command,
+        process_result_proto.return_code,
+        process_result_proto.output,
+        process_result_proto.time_executed,
+        process_result_proto.timed_out,
+    )
 
 
-def run_process(cmdline,
-                current_working_directory=None,
-                timeout=process_handler.DEFAULT_TEST_TIMEOUT,
-                need_shell=False,
-                gestures=None,
-                env_copy=None,
-                testcase_run=True,
-                ignore_children=True):
+def run_process(
+    cmdline,
+    current_working_directory=None,
+    timeout=process_handler.DEFAULT_TEST_TIMEOUT,
+    need_shell=False,
+    gestures=None,
+    env_copy=None,
+    testcase_run=True,
+    ignore_children=True,
+):
     """Remote version of process_handler.run_process."""
     request = untrusted_runner_pb2.RunProcessRequest(
         cmdline=cmdline,
@@ -48,7 +53,8 @@ def run_process(cmdline,
         timeout=timeout,
         need_shell=need_shell,
         testcase_run=testcase_run,
-        ignore_children=ignore_children)
+        ignore_children=ignore_children,
+    )
 
     if gestures:
         request.gestures.extend(gestures)
@@ -70,23 +76,26 @@ class RemoteProcessRunner(new_process.ProcessRunner):
 
     def __init__(self, executable_path, default_args=None):
         super(RemoteProcessRunner, self).__init__(
-            executable_path, default_args=default_args)
+            executable_path, default_args=default_args
+        )
 
     def run(self, **kwargs):  # pylint: disable=arguments-differ
         # TODO(ochang): This can be implemented, but isn't necessary yet.
         raise NotImplementedError
 
-    def run_and_wait(self,
-                     additional_args=None,
-                     timeout=None,
-                     terminate_before_kill=False,
-                     terminate_wait_time=None,
-                     input_data=None,
-                     max_stdout_len=None,
-                     _extra_env=None,
-                     stdout=subprocess.PIPE,
-                     stderr=subprocess.STDOUT,
-                     **popen_args):
+    def run_and_wait(
+        self,
+        additional_args=None,
+        timeout=None,
+        terminate_before_kill=False,
+        terminate_wait_time=None,
+        input_data=None,
+        max_stdout_len=None,
+        _extra_env=None,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        **popen_args
+    ):
         """Remote version of new_process.ProcessRunner.run_and_wait."""
         assert stdout == subprocess.PIPE
         assert stderr == subprocess.STDOUT
@@ -97,30 +106,30 @@ class RemoteProcessRunner(new_process.ProcessRunner):
             terminate_before_kill=terminate_before_kill,
             terminate_wait_time=terminate_wait_time,
             input_data=input_data,
-            max_stdout_len=max_stdout_len)
+            max_stdout_len=max_stdout_len,
+        )
 
         request.default_args.extend(self.default_args)
         request.additional_args.extend(additional_args)
 
-        if 'bufsize' in popen_args:
-            request.popen_args.bufsize = popen_args['bufsize']
+        if "bufsize" in popen_args:
+            request.popen_args.bufsize = popen_args["bufsize"]
 
-        if 'executable' in popen_args:
-            request.popen_args.executable = popen_args['executable']
+        if "executable" in popen_args:
+            request.popen_args.executable = popen_args["executable"]
 
-        if 'shell' in popen_args:
-            request.popen_args.shell = popen_args['shell']
+        if "shell" in popen_args:
+            request.popen_args.shell = popen_args["shell"]
 
-        if 'cwd' in popen_args:
-            request.popen_args.cwd = popen_args['cwd']
+        if "cwd" in popen_args:
+            request.popen_args.cwd = popen_args["cwd"]
 
-        passed_env = popen_args.get('env', None)
+        passed_env = popen_args.get("env", None)
         if passed_env is not None:
             request.popen_args.env_is_set = True
             # Filter the passed environment to prevent leaking sensitive environment
             # variables if the caller passes e.g. os.environ.copy().
-            environment.set_environment_vars(
-                request.popen_args.env, passed_env)
+            environment.set_environment_vars(request.popen_args.env, passed_env)
 
         response = host.stub().RunAndWait(request)
         return process_result_from_proto(response.result)
@@ -129,4 +138,5 @@ class RemoteProcessRunner(new_process.ProcessRunner):
 def terminate_stale_application_instances():
     """Terminate stale application instances."""
     host.stub().TerminateStaleApplicationInstances(
-        untrusted_runner_pb2.TerminateStaleApplicationInstancesRequest())
+        untrusted_runner_pb2.TerminateStaleApplicationInstancesRequest()
+    )

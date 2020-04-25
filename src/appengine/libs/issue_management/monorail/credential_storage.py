@@ -23,7 +23,7 @@ class CredentialStorage(Storage):
     """Instead of reading a file, just parse a config entry."""
 
     def locked_get(self):
-        content = db_config.get_value('client_credentials')
+        content = db_config.get_value("client_credentials")
         if not content:
             return None
 

@@ -51,8 +51,7 @@ class HonggfuzzError(Exception):
 
 def _get_runner():
     """Get the honggfuzz runner."""
-    honggfuzz_path = os.path.join(
-        environment.get_value("BUILD_DIR"), "honggfuzz")
+    honggfuzz_path = os.path.join(environment.get_value("BUILD_DIR"), "honggfuzz")
     if not os.path.exists(honggfuzz_path):
         raise HonggfuzzError("honggfuzz not found in build")
 
@@ -63,7 +62,8 @@ def _get_runner():
 def _find_sanitizer_stacktrace(reproducers_dir):
     """Find the sanitizer stacktrace from the reproducers dir."""
     for stacktrace_path in glob.glob(
-            os.path.join(reproducers_dir, _HF_SANITIZER_LOG_PREFIX + "*")):
+        os.path.join(reproducers_dir, _HF_SANITIZER_LOG_PREFIX + "*")
+    ):
         with open(stacktrace_path, "rb") as f:
             return f.read()
 
@@ -84,7 +84,7 @@ def _get_stats(line):
     if not line.startswith(_STATS_PREFIX):
         return None
 
-    parts = line[len(_STATS_PREFIX):].split()
+    parts = line[len(_STATS_PREFIX) :].split()
     stats = {}
 
     for part in parts:
@@ -143,19 +143,22 @@ class HonggfuzzEngine(engine.Engine):
         runner = _get_runner()
         arguments = _DEFAULT_ARGUMENTS[:]
         arguments.extend(options.arguments)
-        arguments.extend([
-            "--input",
-            options.corpus_dir,
-            "--workspace",
-            reproducers_dir,
-            "--run_time",
-            str(max_time),
-            "--",
-            target_path,
-        ])
+        arguments.extend(
+            [
+                "--input",
+                options.corpus_dir,
+                "--workspace",
+                reproducers_dir,
+                "--run_time",
+                str(max_time),
+                "--",
+                target_path,
+            ]
+        )
 
         fuzz_result = runner.run_and_wait(
-            additional_args=arguments, timeout=max_time + _CLEAN_EXIT_SECS)
+            additional_args=arguments, timeout=max_time + _CLEAN_EXIT_SECS
+        )
         log_lines = fuzz_result.output.splitlines()
         sanitizer_stacktrace = _find_sanitizer_stacktrace(reproducers_dir)
 
@@ -170,7 +173,8 @@ class HonggfuzzEngine(engine.Engine):
                         sanitizer_stacktrace,
                         [],
                         int(fuzz_result.time_executed),
-                    ))
+                    )
+                )
                 continue
 
             stats = _get_stats(line)
@@ -203,11 +207,13 @@ class HonggfuzzEngine(engine.Engine):
         with open(input_path) as f:
             result = runner.run_and_wait(timeout=max_time, stdin=f)
 
-        return engine.ReproduceResult(result.command, result.return_code,
-                                      result.time_executed, result.output)
+        return engine.ReproduceResult(
+            result.command, result.return_code, result.time_executed, result.output
+        )
 
-    def minimize_corpus(self, target_path, arguments, input_dirs, output_dir,
-                        reproducers_dir, max_time):
+    def minimize_corpus(
+        self, target_path, arguments, input_dirs, output_dir, reproducers_dir, max_time
+    ):
         """Optional (but recommended): run corpus minimization.
 
             Args:
