@@ -123,7 +123,7 @@ def get_component_impacts_from_url(component_name,
   if not end_revision:
     return Impacts()
 
-  found_impacts = dict()
+  found_impacts = {}
   for build in ["stable", "beta"]:
     build_revision_mappings = revisions.get_build_to_revision_mappings(platform)
     if not build_revision_mappings:
