@@ -1199,15 +1199,15 @@ class JavaScriptLexer(JavaScriptBaseLexer):
     else:
       raise Exception("No registered action for:" + str(ruleIndex))
 
-  def OpenBrace_action(self, localctx, actionIndex):
+  def OpenBrace_action(self, _localctx, actionIndex):
     if actionIndex == 0:
       self.ProcessOpenBrace()
 
-  def CloseBrace_action(self, localctx, actionIndex):
+  def CloseBrace_action(self, _localctx, actionIndex):
     if actionIndex == 1:
       super(JavaScriptLexer, self).ProcessCloseBrace()
 
-  def StringLiteral_action(self, localctx, actionIndex):
+  def StringLiteral_action(self, _localctx, actionIndex):
     if actionIndex == 2:
       super(JavaScriptLexer, self).ProcessStringLiteral()
 
@@ -1233,50 +1233,50 @@ class JavaScriptLexer(JavaScriptBaseLexer):
     else:
       raise Exception("No registered predicate for:" + str(ruleIndex))
 
-  def HashBangLine_sempred(self, localctx, predIndex):
+  def HashBangLine_sempred(self, _localctx, predIndex):
     if predIndex == 0:
       return super(JavaScriptLexer, self).IsStartOfFile()
 
-  def RegularExpressionLiteral_sempred(self, localctx, predIndex):
+  def RegularExpressionLiteral_sempred(self, _localctx, predIndex):
     if predIndex == 1:
       return super(JavaScriptLexer, self).IsRegExPossible()
 
-  def OctalIntegerLiteral_sempred(self, localctx, predIndex):
+  def OctalIntegerLiteral_sempred(self, _localctx, predIndex):
     if predIndex == 2:
       return not super(JavaScriptLexer, self).IsStrictMode()
 
-  def Implements_sempred(self, localctx, predIndex):
+  def Implements_sempred(self, _localctx, predIndex):
     if predIndex == 3:
       return super(JavaScriptLexer, self).IsStrictMode()
 
-  def Let_sempred(self, localctx, predIndex):
+  def Let_sempred(self, _localctx, predIndex):
     if predIndex == 4:
       return super(JavaScriptLexer, self).IsStrictMode()
 
-  def Private_sempred(self, localctx, predIndex):
+  def Private_sempred(self, _localctx, predIndex):
     if predIndex == 5:
       return super(JavaScriptLexer, self).IsStrictMode()
 
-  def Public_sempred(self, localctx, predIndex):
+  def Public_sempred(self, _localctx, predIndex):
     if predIndex == 6:
       return super(JavaScriptLexer, self).IsStrictMode()
 
-  def Interface_sempred(self, localctx, predIndex):
+  def Interface_sempred(self, _localctx, predIndex):
     if predIndex == 7:
       return super(JavaScriptLexer, self).IsStrictMode()
 
-  def Package_sempred(self, localctx, predIndex):
+  def Package_sempred(self, _localctx, predIndex):
     if predIndex == 8:
       return super(JavaScriptLexer, self).IsStrictMode()
 
-  def Protected_sempred(self, localctx, predIndex):
+  def Protected_sempred(self, _localctx, predIndex):
     if predIndex == 9:
       return super(JavaScriptLexer, self).IsStrictMode()
 
-  def Static_sempred(self, localctx, predIndex):
+  def Static_sempred(self, _localctx, predIndex):
     if predIndex == 10:
       return super(JavaScriptLexer, self).IsStrictMode()
 
-  def Yield_sempred(self, localctx, predIndex):
+  def Yield_sempred(self, _localctx, predIndex):
     if predIndex == 11:
       return super(JavaScriptLexer, self).IsStrictMode()
