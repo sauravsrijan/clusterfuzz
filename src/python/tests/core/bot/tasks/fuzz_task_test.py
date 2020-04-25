@@ -872,14 +872,12 @@ class ProcessCrashesTest(fake_filesystem_unittest.TestCase):
     testcases = list(data_types.Testcase.query())
     self.assertEqual(5, len(testcases))
     self.assertSetEqual(
-        set([r2_stacktrace, "r4", "u1", "u2", "u4"]),
+        {r2_stacktrace, "r4", "u1", "u2", "u4"},
         set(t.crash_stacktrace for t in testcases),
     )
 
     self.assertSetEqual(
-        set([
-            '{"fuzzing_strategies": ["value_profile"]}', None, None, None, None
-        ]),
+        {'{"fuzzing_strategies": ["value_profile"]}', None, None, None, None},
         set(t.additional_metadata for t in testcases),
     )
 

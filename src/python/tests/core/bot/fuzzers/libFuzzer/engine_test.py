@@ -731,15 +731,13 @@ class IntegrationTests(BaseIntegrationTest):
         ],
     )
 
-    self.mock.parse_recommended_dictionary_from_log_lines.return_value = set([
-        '"USELESS_0"',
+    self.mock.parse_recommended_dictionary_from_log_lines.return_value = {'"USELESS_0"',
         '"APPLE"',
         '"USELESS_1"',
         '"GINGER"',
         '"USELESS_2"',
         '"BEET"',
-        '"USELESS_3"',
-    ])
+        '"USELESS_3"',}
     self.mock.get_fuzz_timeout.return_value = get_fuzz_timeout(5.0)
 
     _, corpus_path = setup_testcase_and_corpus("empty",
@@ -750,7 +748,7 @@ class IntegrationTests(BaseIntegrationTest):
                                                  "analyze_dict_fuzzer")
     options = engine_impl.prepare(corpus_path, target_path, DATA_DIR)
     engine_impl.fuzz(target_path, options, TEMP_DIR, 10)
-    expected_recommended_dictionary = set(['"APPLE"', '"GINGER"', '"BEET"'])
+    expected_recommended_dictionary = {'"APPLE"', '"GINGER"', '"BEET"'}
 
     self.assertIn(
         expected_recommended_dictionary,
@@ -1339,15 +1337,13 @@ class IntegrationTestsAndroid(BaseIntegrationTest, android_helpers.AndroidTest):
         ],
     )
 
-    self.mock.parse_recommended_dictionary_from_log_lines.return_value = set([
-        '"USELESS_0"',
+    self.mock.parse_recommended_dictionary_from_log_lines.return_value = {'"USELESS_0"',
         '"APPLE"',
         '"USELESS_1"',
         '"GINGER"',
         '"USELESS_2"',
         '"BEET"',
-        '"USELESS_3"',
-    ])
+        '"USELESS_3"',}
     self.mock.get_fuzz_timeout.return_value = get_fuzz_timeout(5.0)
 
     _, corpus_path = setup_testcase_and_corpus("empty",
@@ -1359,7 +1355,7 @@ class IntegrationTestsAndroid(BaseIntegrationTest, android_helpers.AndroidTest):
     options = engine_impl.prepare(corpus_path, target_path, DATA_DIR)
 
     engine_impl.fuzz(target_path, options, TEMP_DIR, 10)
-    expected_recommended_dictionary = set(['"APPLE"', '"GINGER"', '"BEET"'])
+    expected_recommended_dictionary = {'"APPLE"', '"GINGER"', '"BEET"'}
 
     self.assertIn(
         expected_recommended_dictionary,

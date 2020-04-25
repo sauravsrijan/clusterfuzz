@@ -33,7 +33,7 @@ from tests.test_libs import test_utils
 
 DATA_DIRECTORY = os.path.join(os.path.dirname(__file__), "project_setup_data")
 
-EXISTING_BUCKETS = set(["lib1-logs.clusterfuzz-external.appspot.com"])
+EXISTING_BUCKETS = {"lib1-logs.clusterfuzz-external.appspot.com"}
 
 
 def _read_data_file(data_file):

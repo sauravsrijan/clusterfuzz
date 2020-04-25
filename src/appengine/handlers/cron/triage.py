@@ -150,7 +150,7 @@ def _is_crash_important(testcase):
   )
 
   # Calculate total crash count and crash days count.
-  crash_days_indices = set([])
+  crash_days_indices = set()
   total_crash_count = 0
   for row in rows:
     if "groups" not in row:
