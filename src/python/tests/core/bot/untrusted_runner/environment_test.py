@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for environment."""
-
 import os
 import re
 import unittest
 
 import mock
-from bot.untrusted_runner import environment
 from tests.test_libs import helpers
+
+from bot.untrusted_runner import environment
 
 FORWARDED_ENVIRONMENT_VARIABLES = [
     re.compile(pattern) for pattern in (r"^ASAN_OPTIONS$", r"^AFL_.*", r"^REBASED$",)

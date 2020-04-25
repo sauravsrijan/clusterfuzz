@@ -14,15 +14,14 @@
 """datastore_query tests."""
 import datetime
 import unittest
-# pylint: disable=protected-access
 from builtins import range
-
-from google.appengine.api import datastore_types
 
 import mock
 from datastore import ndb
+from google.appengine.api import datastore_types
 from libs.query import datastore_query
 from tests.test_libs import test_utils
+# pylint: disable=protected-access
 
 
 class TestDatastoreModel(ndb.Model):
