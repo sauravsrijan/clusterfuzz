@@ -18,7 +18,6 @@ import re
 import unittest
 
 import mock
-
 from bot.untrusted_runner import environment
 from tests.test_libs import helpers
 

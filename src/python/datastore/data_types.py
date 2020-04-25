@@ -19,10 +19,8 @@ import re
 from builtins import object
 
 import six
-from base import json_utils
-from base import utils
-from datastore import ndb
-from datastore import search_tokenizer
+from base import json_utils, utils
+from datastore import ndb, search_tokenizer
 from future import utils as future_utils
 from metrics import logs
 from system import environment

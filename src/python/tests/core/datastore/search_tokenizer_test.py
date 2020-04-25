@@ -16,8 +16,7 @@
 # pylint: disable=protected-access
 import unittest
 
-from datastore import data_types
-from datastore import search_tokenizer
+from datastore import data_types, search_tokenizer
 
 
 class ComplexTokenizeTest(unittest.TestCase):
