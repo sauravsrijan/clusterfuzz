@@ -332,7 +332,8 @@ def get_overridable_timeout(default_timeout, override_env_var):
     assertion error if the return value is negative."""
   timeout_override = environment.get_value(override_env_var)
   timeout = float(timeout_override or default_timeout)
-  assert timeout >= 0, timeout
+  if timeout < 0:
+    raise AssertionError(timeout)
   return timeout
 
 
@@ -478,7 +479,8 @@ def format_fuzzing_strategies(fuzzing_strategies):
     value = ",".join(fuzzing_strategies)
   else:
     # New format.
-    assert isinstance(fuzzing_strategies, dict)
+    if not isinstance(fuzzing_strategies, dict):
+      raise AssertionError
     value = ",".join("{}:{}".format(key, value)
                      for key, value in six.iteritems(fuzzing_strategies))
 

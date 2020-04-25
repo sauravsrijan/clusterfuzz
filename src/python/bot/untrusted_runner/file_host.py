@@ -58,7 +58,8 @@ def _rebase(path, target_base, cur_base):
     return target_base
 
   # Only paths relative to ROOT_DIR are supported.
-  assert not rel_path.startswith(os.pardir), 'Bad relative path %s' % rel_path
+  if rel_path.startswith(os.pardir):
+    raise AssertionError('Bad relative path %s' % rel_path)
   return os.path.join(target_base, rel_path)
 
 

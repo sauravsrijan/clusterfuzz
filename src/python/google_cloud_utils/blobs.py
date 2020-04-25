@@ -173,7 +173,8 @@ def write_blob(file_handle_or_path):
     retry_on_false=True)
 def read_blob_to_disk(blob_key, local_file):
   """Copy data stored in the blobstore to a local file."""
-  assert not environment.is_running_on_app_engine()
+  if environment.is_running_on_app_engine():
+    raise AssertionError
 
   directory = os.path.dirname(local_file)
   if not os.path.exists(directory):

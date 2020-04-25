@@ -982,7 +982,8 @@ def get_ipc_message_util_executable():
 def create_partial_ipc_dump(tokens, original_file_path):
   """Use the ipc_message_util utility to create a file for up to
        |TOKENS_PER_IPCDUMP| tokens."""
-  assert len(tokens) <= TOKENS_PER_IPCDUMP
+  if len(tokens) > TOKENS_PER_IPCDUMP:
+    raise AssertionError
 
   token_list = ",".join([str(token) for token in tokens])
   temp_file_path = get_temporary_file_name(original_file_path)
@@ -1239,7 +1240,8 @@ def run_libfuzzer_engine(tool_name, target_name, arguments, testcase_path,
   if tool_name == "minimize":
     func = engine_impl.minimize_testcase
   else:
-    assert tool_name == "cleanse"
+    if tool_name != "cleanse":
+      raise AssertionError
     func = engine_impl.cleanse
 
   return func(target_path, arguments, testcase_path, output_path, timeout)

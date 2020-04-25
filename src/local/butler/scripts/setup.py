@@ -107,7 +107,8 @@ class BaseBuiltinFuzzerDefaults(object):
   def create_fuzzer(self):
     """Create a Fuzzer data_type with columns set to the defaults specified by
         this object."""
-    assert self.name is not None
+    if self.name is None:
+      raise AssertionError
     return data_types.Fuzzer(
         id=self.key_id,
         revision=self.revision,

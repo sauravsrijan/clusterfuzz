@@ -219,9 +219,12 @@ def _get_root_cert(project_name):
 def _connect():
   """Initial connect to the worker."""
   worker_assignment = _get_host_worker_assignment()
-  assert worker_assignment is not None
-  assert worker_assignment.worker_name is not None
-  assert worker_assignment.project_name is not None
+  if worker_assignment is None:
+    raise AssertionError
+  if worker_assignment.worker_name is None:
+    raise AssertionError
+  if worker_assignment.project_name is None:
+    raise AssertionError
 
   root_cert = _get_root_cert(worker_assignment.project_name)
   if not root_cert:

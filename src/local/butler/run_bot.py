@@ -94,9 +94,10 @@ def _setup_environment_and_configs(args, appengine_path):
   if not os.getenv('UNTRUSTED_WORKER'):
     local_gcs_buckets_path = os.path.abspath(
         os.path.join(args.server_storage_path, 'local_gcs'))
-    assert os.path.exists(local_gcs_buckets_path), (
-        'Server storage path not found, make sure to start run_server with '
-        'the same storage path.')
+    if not os.path.exists(local_gcs_buckets_path):
+      raise AssertionError(
+          'Server storage path not found, make sure to start run_server with '
+          'the same storage path.')
 
     os.environ['LOCAL_GCS_BUCKETS_PATH'] = local_gcs_buckets_path
 

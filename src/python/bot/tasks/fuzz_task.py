@@ -310,9 +310,12 @@ class CrashGroup(object):
 
   def __init__(self, crashes, context):
     for c in crashes:
-      assert crashes[0].crash_type == c.crash_type
-      assert crashes[0].crash_state == c.crash_state
-      assert crashes[0].security_flag == c.security_flag
+      if crashes[0].crash_type != c.crash_type:
+        raise AssertionError
+      if crashes[0].crash_state != c.crash_state:
+        raise AssertionError
+      if crashes[0].security_flag != c.security_flag:
+        raise AssertionError
 
     self.crashes = crashes
     if context.fuzz_target:
@@ -856,7 +859,8 @@ def truncate_fuzzer_output(output, limit):
   left = reduced_limit // 2 + reduced_limit % 2
   right = reduced_limit // 2
 
-  assert reduced_limit > 0
+  if reduced_limit <= 0:
+    raise AssertionError
 
   return "".join([output[:left], separator, output[-right:]])
 
@@ -1060,7 +1064,8 @@ def create_testcase(group, context):
       crash.crash_stacktrace)
 
   if fuzzing_strategies:
-    assert len(fuzzing_strategies.groups()) == 1
+    if len(fuzzing_strategies.groups()) != 1:
+      raise AssertionError
     fuzzing_strategies_string = fuzzing_strategies.groups()[0]
     fuzzing_strategies = [
         strategy.strip() for strategy in fuzzing_strategies_string.split(",")

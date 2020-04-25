@@ -151,8 +151,9 @@ def rnn_minibatch_sequencer(raw_data, batch_size, sequence_size, nb_epochs):
   # Using (data_len-1) because we must provide for the sequence
   # shifted by 1 too.
   nb_batches = (data_len - 1) // (batch_size * sequence_size)
-  assert nb_batches > 0, ('Not enough data, even for a single batch. Try using '
-                          'a smaller batch_size.')
+  if nb_batches <= 0:
+    raise AssertionError('Not enough data, even for a single batch. Try using '
+                            'a smaller batch_size.')
   rounded_data_len = nb_batches * batch_size * sequence_size
   xdata = np.reshape(data[0:rounded_data_len],
                      [batch_size, nb_batches * sequence_size])

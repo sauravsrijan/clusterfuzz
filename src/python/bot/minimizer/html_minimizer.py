@@ -74,9 +74,12 @@ class HTMLMinimizer(minimizer.Minimizer):  # pylint:disable=abstract-method
     # arguments and pass them along when creating subminimizers.
     super(HTMLMinimizer, self).__init__(lambda: False)
 
-    assert not args, "Positional arguments not supported."
-    assert "tokenizer" not in kwargs, "Custom tokenizers not supported."
-    assert "token_combiner" not in kwargs, "Custom tokenizers not supported."
+    if args:
+      raise AssertionError("Positional arguments not supported.")
+    if "tokenizer" in kwargs:
+      raise AssertionError("Custom tokenizers not supported.")
+    if "token_combiner" in kwargs:
+      raise AssertionError("Custom tokenizers not supported.")
 
     self.test_function = test_function
     self.kwargs = kwargs

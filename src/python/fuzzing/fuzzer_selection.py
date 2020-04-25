@@ -93,7 +93,8 @@ def get_fuzz_task_payload(platform=None):
 
 def select_fuzz_target(targets, target_weights):
   """Select a fuzz target from a list of potential targets."""
-  assert targets
+  if not targets:
+    raise AssertionError
 
   weighted_targets = []
   for target in targets:

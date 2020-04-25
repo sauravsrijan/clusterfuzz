@@ -518,7 +518,8 @@ class Build(BaseBuild):
     # Actual list of files to unpack can be smaller if we are only unarchiving
     # a particular fuzz target.
     file_match_callback = _get_file_match_callback()
-    assert not (unpack_everything and file_match_callback is not None)
+    if (unpack_everything and file_match_callback is not None):
+      raise AssertionError
 
     if not _make_space_for_build(build_local_archive, base_build_dir,
                                  file_match_callback):
@@ -763,8 +764,9 @@ class FuchsiaBuild(RegularBuild):
         "FUCHSIA_DIR", os.path.join(self.build_dir, self.FUCHSIA_DIR_REL_PATH))
     environment.set_value("FUCHSIA_RESOURCES_DIR", self.build_dir)
 
-    assert environment.get_value("UNPACK_ALL_FUZZ_TARGETS_AND_FILES"
-                                ), "Fuchsia does not support partial unpacks"
+    if not environment.get_value("UNPACK_ALL_FUZZ_TARGETS_AND_FILES"
+                                ):
+      raise AssertionError("Fuchsia does not support partial unpacks")
     result = super(FuchsiaBuild, self).setup()
     if not result:
       return result

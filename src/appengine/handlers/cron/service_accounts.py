@@ -51,7 +51,8 @@ def _service_account_id(project):
     # Must be at least |min_len| in length.
     account_id = account_id.ljust(min_len, '0')
 
-  assert len(account_id) >= min_len and len(account_id) <= max_len
+  if not (len(account_id) >= min_len and len(account_id) <= max_len):
+    raise AssertionError
   return account_id
 
 

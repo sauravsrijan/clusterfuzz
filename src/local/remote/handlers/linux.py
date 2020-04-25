@@ -23,8 +23,10 @@ class Handler(posix.Handler):
   """Handler for performing linux task."""
 
   def __init__(self, instance_name, project=None, zone=None):
-    assert project, 'Need to specify a project via --project argument.'
-    assert zone, 'Need to specify a zone via --zone argument.'
+    if not project:
+      raise AssertionError('Need to specify a project via --project argument.')
+    if not zone:
+      raise AssertionError('Need to specify a zone via --zone argument.')
 
     super(Handler, self).__init__(
         instance_name=instance_name,

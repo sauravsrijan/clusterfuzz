@@ -48,10 +48,12 @@ def _modify_severity(severity,
   """Increase/decrease the given |severity| by |delta|."""
   min_index = SEVERITY_ORDER.index(min_severity)
   max_index = SEVERITY_ORDER.index(max_severity)
-  assert min_index != -1 and max_index != -1
+  if not (min_index != -1 and max_index != -1):
+    raise AssertionError
 
   severity_index = SEVERITY_ORDER.index(severity)
-  assert severity_index != -1
+  if severity_index == -1:
+    raise AssertionError
 
   max_index = min(len(SEVERITY_ORDER) - 1, max_index)
 

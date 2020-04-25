@@ -88,8 +88,10 @@ class RemoteProcessRunner(new_process.ProcessRunner):
                    stderr=subprocess.STDOUT,
                    **popen_args):
     """Remote version of new_process.ProcessRunner.run_and_wait."""
-    assert stdout == subprocess.PIPE
-    assert stderr == subprocess.STDOUT
+    if stdout != subprocess.PIPE:
+      raise AssertionError
+    if stderr != subprocess.STDOUT:
+      raise AssertionError
 
     request = untrusted_runner_pb2.RunAndWaitRequest(
         executable_path=self.executable_path,

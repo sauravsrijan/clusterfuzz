@@ -197,7 +197,8 @@ class LibFuzzerCommon(object):
     max_total_time = self.get_max_total_time(fuzz_timeout)
     if any(arg.startswith(constants.FORK_FLAG) for arg in additional_args):
       max_total_time -= self.LIBFUZZER_FORK_MODE_CLEAN_EXIT_TIME
-    assert max_total_time > 0
+    if max_total_time <= 0:
+      raise AssertionError
 
     # Old libFuzzer jobs specify -artifact_prefix through additional_args
     if artifact_prefix:
@@ -330,7 +331,8 @@ class LibFuzzerCommon(object):
     # Internally, libFuzzer does 2 runs of the target every iteration. This is
     # the minimum for any results to be written at all.
     max_total_time = (timeout - self.LIBFUZZER_CLEAN_EXIT_TIME) // 2
-    assert max_total_time > 0
+    if max_total_time <= 0:
+      raise AssertionError
     max_total_time_argument = "%s%d" % (
         constants.MAX_TOTAL_TIME_FLAG,
         max_total_time,
@@ -647,7 +649,8 @@ class FuchsiaQemuLibFuzzerRunner(new_process.ProcessRunner, LibFuzzerCommon):
     max_total_time = self.get_max_total_time(fuzz_timeout)
     if any(arg.startswith(constants.FORK_FLAG) for arg in additional_args):
       max_total_time -= self.LIBFUZZER_FORK_MODE_CLEAN_EXIT_TIME
-    assert max_total_time > 0
+    if max_total_time <= 0:
+      raise AssertionError
 
     additional_args.extend([
         "%s%d" % (constants.MAX_TOTAL_TIME_FLAG, max_total_time),

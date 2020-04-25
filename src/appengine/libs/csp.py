@@ -32,15 +32,17 @@ class CSPBuilder(object):
     if quote:
       source = '\'{}\''.format(source)
 
-    assert source not in self.directives[directive], (
-        'Duplicate source "{source}" for directive "{directive}"'.format(
-            source=source, directive=directive))
+    if source in self.directives[directive]:
+      raise AssertionError(
+          'Duplicate source "{source}" for directive "{directive}"'.format(
+              source=source, directive=directive))
     self.directives[directive].append(source)
 
   def add_sourceless(self, directive):
-    assert directive not in self.directives, (
-        'Sourceless directive "{directive}" already exists.'.format(
-            directive=directive))
+    if directive in self.directives:
+      raise AssertionError(
+          'Sourceless directive "{directive}" already exists.'.format(
+              directive=directive))
 
     self.directives[directive] = []
 
@@ -49,9 +51,10 @@ class CSPBuilder(object):
     if quote:
       source = '\'{}\''.format(source)
 
-    assert source in self.directives[directive], (
-        'Removing nonexistent "{source}" for directive "{directive}"'.format(
-            source=source, directive=directive))
+    if source not in self.directives[directive]:
+      raise AssertionError(
+          'Removing nonexistent "{source}" for directive "{directive}"'.format(
+              source=source, directive=directive))
     self.directives[directive].remove(source)
 
   def __str__(self):

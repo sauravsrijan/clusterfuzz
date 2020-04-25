@@ -150,7 +150,8 @@ def main():
     from bot.untrusted_runner import untrusted as untrusted_worker
 
     untrusted_worker.start_server()
-    assert False, "Unreachable code"
+    if not False:
+      raise AssertionError("Unreachable code")
 
   while True:
     # task_loop should be an infinite loop,

@@ -43,9 +43,10 @@ DATA_DIRECTORY = os.path.join(TEST_PATH, 'data')
 if (environment.get_value('AFL_INTEGRATION_TESTS') and
     not environment.get_value('TEST_BOT_ENVIRONMENT')):
   if os.path.exists('/proc/sys/kernel/core_pattern'):
-    assert open('/proc/sys/kernel/core_pattern').read().strip() == 'core', (
-        'AFL needs core_pattern to be set to core. '
-        'Please run \'echo core | sudo tee /proc/sys/kernel/core_pattern\'')
+    if open('/proc/sys/kernel/core_pattern').read().strip() != 'core':
+      raise AssertionError(
+          'AFL needs core_pattern to be set to core. '
+          'Please run \'echo core | sudo tee /proc/sys/kernel/core_pattern\'')
 
   # mknod needs to run as sudo to create /dev/null and /dev/urandom.
   print('AFL integration tests require sudo to run.')
@@ -362,7 +363,8 @@ def _run_with_sudo(command):
       stdout=subprocess.PIPE,
       stderr=subprocess.STDOUT)
   popen.communicate(input=SUDO_PASSWORD + '\n')
-  assert popen.returncode == 0
+  if popen.returncode != 0:
+    raise AssertionError
 
 
 def _mknod(_, path, file_type, major, minor):

@@ -87,7 +87,8 @@ def wrap_servicer(func):
       raise
     finally:
       with _rpc_count_lock:
-        assert _rpc_count_lock > 0
+        if _rpc_count_lock <= 0:
+          raise AssertionError
         _rpc_count -= 1
 
     return result
@@ -221,7 +222,8 @@ def start_server():
   shell.clear_data_directories_on_low_disk_space()
 
   cert_contents, key_contents = _get_tls_cert_and_key()
-  assert cert_contents and key_contents
+  if not (cert_contents and key_contents):
+    raise AssertionError
   server_credentials = grpc.ssl_server_credentials([(key_contents,
                                                      cert_contents)])
   _worker_state.server = grpc.server(

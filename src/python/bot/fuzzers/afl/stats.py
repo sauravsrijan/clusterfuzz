@@ -172,10 +172,14 @@ class StatsGetter(object):
     # TODO(metzman): Add expected_duration to stats.
     # TODO(metzman): Add the other stats that are less clear how to add.
 
-    assert actual_duration >= 0
-    assert new_units_generated >= 0
-    assert new_units_added >= 0
-    assert new_units_added <= new_units_generated
+    if actual_duration < 0:
+      raise AssertionError
+    if new_units_generated < 0:
+      raise AssertionError
+    if new_units_added < 0:
+      raise AssertionError
+    if new_units_added > new_units_generated:
+      raise AssertionError
 
     # Set stats passed to this function as arguments.
     self.stats['actual_duration'] = int(actual_duration)

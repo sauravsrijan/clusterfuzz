@@ -742,7 +742,8 @@ class Query(object):
       base_table,
       alias,
   ):
-    assert group_by is not None
+    if group_by is None:
+      raise AssertionError
 
     self._ensure_valid_name(fuzzer_name, data_types.Fuzzer.VALID_NAME_REGEX)
 
@@ -970,7 +971,8 @@ class TableQuery(object):
 
   def __init__(self, fuzzer_name, job_types, stats_columns, group_by,
                date_start, date_end):
-    assert group_by
+    if not group_by:
+      raise AssertionError
 
     self.fuzzer_name = fuzzer_name
     self.job_types = job_types
@@ -1015,7 +1017,8 @@ class TableQuery(object):
           date_end,
       )
 
-    assert self.job_run_query or self.testcase_run_query, "Unable to create query."
+    if not (self.job_run_query or self.testcase_run_query):
+      raise AssertionError("Unable to create query.")
 
   def _join_subqueries(self):
     """Create an inner join for subqueries."""
@@ -1093,7 +1096,8 @@ def upload_stats(stats_list, filename=None):
     logs.log_error("Failed to upload fuzzer stats: empty stats.")
     return
 
-  assert isinstance(stats_list, list)
+  if not isinstance(stats_list, list):
+    raise AssertionError
 
   bucket_name = big_query.get_bucket()
   if not bucket_name:

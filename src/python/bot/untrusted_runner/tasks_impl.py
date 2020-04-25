@@ -97,8 +97,10 @@ def process_testcase(request, _):
   }
 
   # TODO(ochang): Support other engines.
-  assert request.engine == "libFuzzer"
-  assert request.operation in tool_name_map
+  if request.engine != "libFuzzer":
+    raise AssertionError
+  if request.operation not in tool_name_map:
+    raise AssertionError
 
   result = minimize_task.run_libfuzzer_engine(
       tool_name_map[request.operation],
