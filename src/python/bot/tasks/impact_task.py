@@ -16,12 +16,16 @@
 from builtins import object
 
 import six
-from base import tasks, utils
+from base import tasks
+from base import utils
+from build_management import build_manager
+from build_management import revisions
+from datastore import data_handler
+from datastore import data_types
+from system import environment
+
 from bot import testcase_manager
 from bot.tasks import setup
-from build_management import build_manager, revisions
-from datastore import data_handler, data_types
-from system import environment
 
 
 class BuildFailedException(Exception):
