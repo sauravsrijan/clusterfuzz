@@ -202,7 +202,7 @@ class TestRunner(object):
     # Generate a unique suffix to append to files we want to ignore.
     index = 0
     file_rename_suffix = "___%d" % index
-    while any([f.endswith(file_rename_suffix) for f in files_to_rename]):
+    while any(f.endswith(file_rename_suffix) for f in files_to_rename):
       index += 1
       file_rename_suffix = "___%d" % index
 
@@ -984,7 +984,7 @@ def create_partial_ipc_dump(tokens, original_file_path):
        |TOKENS_PER_IPCDUMP| tokens."""
   assert len(tokens) <= TOKENS_PER_IPCDUMP
 
-  token_list = ",".join([str(token) for token in tokens])
+  token_list = ",".join(str(token) for token in tokens)
   temp_file_path = get_temporary_file_name(original_file_path)
 
   executable = get_ipc_message_util_executable()

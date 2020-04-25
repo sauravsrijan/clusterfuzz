@@ -304,7 +304,7 @@ class CombinedMutator(object):
 
   def choose_mutator(self):
     """Choose a mutator."""
-    total_weight = sum([x['weight'] for x in self.mutators])
+    total_weight = sum(x['weight'] for x in self.mutators)
     n = total_weight * random.random()
     cur = 0.0
     for choice in self.mutators:

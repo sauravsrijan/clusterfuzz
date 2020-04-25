@@ -451,7 +451,7 @@ def terminate_hung_threads(threads):
   """Terminate hung threads."""
   start_time = time.time()
   while time.time() - start_time < THREAD_FINISH_WAIT_TIME:
-    if not any([thread.is_alive() for thread in threads]):
+    if not any(thread.is_alive() for thread in threads):
       # No threads are alive, so we're done.
       return
     time.sleep(0.1)
@@ -666,5 +666,5 @@ def terminate_processes_matching_cmd_line(match_strings,
       continue
 
     if any(x in process_path for x in match_strings):
-      if not any([x in process_path for x in exclude_strings]):
+      if not any(x in process_path for x in exclude_strings):
         terminate_process(process_info["pid"], kill)

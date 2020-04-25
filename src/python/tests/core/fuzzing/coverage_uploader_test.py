@@ -110,7 +110,7 @@ class UploadTestsToCloudStorageTest(fake_filesystem_unittest.TestCase):
     coverage_uploader.upload_testcases_if_needed('test_fuzzer', files,
                                                  '/testcases', '/data')
 
-    filtered_files_list = '\n'.join(['file%s' % i for i in range(1000)])
+    filtered_files_list = '\n'.join('file%s' % i for i in range(1000))
     self.mock.write_data.assert_called_with(
         filtered_files_list,
         'gs://test-coverage-testcases/2018-11-01/test_fuzzer/'

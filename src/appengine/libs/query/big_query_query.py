@@ -53,7 +53,7 @@ class Query(base.Query):
     """Get the where clause."""
     subquery_wheres = []
     for or_queries in self.or_groups:
-      or_cond = ' OR '.join([sub.get_where_clause() for sub in or_queries])
+      or_cond = ' OR '.join(sub.get_where_clause() for sub in or_queries)
       subquery_wheres.append('(%s)' % or_cond)
 
     all_conds = self.conditions + subquery_wheres

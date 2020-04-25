@@ -98,7 +98,7 @@ def decode_to_text(encoded_list):
   Returns:
     A string of decoded data.
   """
-  return ''.join([chr(c) for c in encoded_list])
+  return ''.join(chr(c) for c in encoded_list)
 
 
 def sample_from_probabilities(probabilities, topn=constants.ALPHA_SIZE):

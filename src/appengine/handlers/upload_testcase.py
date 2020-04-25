@@ -460,9 +460,7 @@ class UploadHandlerCommon(object):
     job_queue = tasks.queue_for_job(job_type, is_high_end=high_end_job)
 
     if uploaded_file is not None:
-      filename = "".join([
-          x for x in uploaded_file.filename if x not in " ;/?:@&=+$,{}|<>()\\"
-      ])
+      filename = "".join(x for x in uploaded_file.filename if x not in " ;/?:@&=+$,{}|<>()\\")
       key = str(uploaded_file.key())
       if archive.is_archive(filename):
         archive_state = data_types.ArchiveStatus.FUZZED

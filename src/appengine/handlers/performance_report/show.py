@@ -125,10 +125,8 @@ def _get_performance_report(fuzzer_name, job_type, performance_report_data):
   for issue in performance_report['issues']:
     # Linkify the examples column.
     # TODO(mmoroz): build this in polymer using dom-repeat.
-    issue['examples'] = '<br/>'.join([
-        _get_link_html(logs_directory, log_relative_path)
-        for log_relative_path in issue['examples']
-    ])
+    issue['examples'] = '<br/>'.join(_get_link_html(logs_directory, log_relative_path)
+        for log_relative_path in issue['examples'])
 
     # Add the solutions column explicitly.
     issue['solutions'] = constants.ISSUE_TYPE_SOLUTIONS_MAP[issue['type']]
