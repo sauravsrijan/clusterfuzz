@@ -78,8 +78,7 @@ def attach_testcases(rows):
 def get_result(this):
     """Get the result."""
     params = {k: v for k, v in this.request.iterparams()}
-    page = helpers.cast(
-        this.request.get("page") or 1, int, "'page' is not an int.")
+    page = helpers.cast(this.request.get("page") or 1, int, "'page' is not an int.")
 
     query = datastore_query.Query(data_types.TestcaseUploadMetadata)
     query.order("timestamp", is_desc=True)
@@ -89,19 +88,22 @@ def get_result(this):
         params["permission"] = {"uploaderEmail": helpers.get_user_email()}
 
     entities, total_pages, total_items, has_more = query.fetch_page(
-        page=page, page_size=PAGE_SIZE, projection=None, more_limit=MORE_LIMIT)
+        page=page, page_size=PAGE_SIZE, projection=None, more_limit=MORE_LIMIT
+    )
 
     items = []
     for entity in entities:
-        items.append({
-            "timestamp": utils.utc_datetime_to_timestamp(entity.timestamp),
-            "testcaseId": entity.testcase_id,
-            "uploaderEmail": entity.uploader_email,
-            "filename": entity.filename,
-            "bundled": entity.bundled,
-            "pathInArchive": entity.path_in_archive,
-            "status": entity.status,
-        })
+        items.append(
+            {
+                "timestamp": utils.utc_datetime_to_timestamp(entity.timestamp),
+                "testcaseId": entity.testcase_id,
+                "uploaderEmail": entity.uploader_email,
+                "filename": entity.filename,
+                "bundled": entity.bundled,
+                "pathInArchive": entity.path_in_archive,
+                "status": entity.status,
+            }
+        )
 
     attach_testcases(items)
 
@@ -120,8 +122,7 @@ def _read_to_bytesio(gcs_path):
     """Return a bytesio representing a GCS object."""
     data = storage.read_data(gcs_path)
     if not data:
-        raise helpers.EarlyExitException(
-            "Failed to read uploaded archive.", 500)
+        raise helpers.EarlyExitException("Failed to read uploaded archive.", 500)
 
     return io.BytesIO(data)
 
@@ -130,8 +131,9 @@ def guess_input_file(uploaded_file, filename):
     """Guess the main test case file from an archive."""
     for file_pattern in RUN_FILE_PATTERNS:
         blob_reader = _read_to_bytesio(uploaded_file.gcs_path)
-        file_path_input = archive.get_first_file_matching(file_pattern, blob_reader,
-                                                          filename)
+        file_path_input = archive.get_first_file_matching(
+            file_pattern, blob_reader, filename
+        )
         if file_path_input:
             return file_path_input
 
@@ -143,26 +145,27 @@ def query_testcase(testcase_id):
     if not testcase_id:
         return []
 
-    return data_types.Testcase.query(data_types.Testcase.key == ndb.Key(
-        data_types.Testcase, testcase_id)).iter(
-            limit=1,
-            projection=[
-                data_types.Testcase.crash_type,
-                data_types.Testcase.crash_state,
-                data_types.Testcase.security_flag,
-                data_types.Testcase.bug_information,
-                data_types.Testcase.job_type,
-                data_types.Testcase.fuzzer_name,
-                data_types.Testcase.overridden_fuzzer_name,
-                data_types.Testcase.project_name,
-            ],
+    return data_types.Testcase.query(
+        data_types.Testcase.key == ndb.Key(data_types.Testcase, testcase_id)
+    ).iter(
+        limit=1,
+        projection=[
+            data_types.Testcase.crash_type,
+            data_types.Testcase.crash_state,
+            data_types.Testcase.security_flag,
+            data_types.Testcase.bug_information,
+            data_types.Testcase.job_type,
+            data_types.Testcase.fuzzer_name,
+            data_types.Testcase.overridden_fuzzer_name,
+            data_types.Testcase.project_name,
+        ],
     )
 
 
 def filter_target_names(targets, engine):
     """Filter target names for a fuzzer and remove parent fuzzer prefixes."""
     prefix = engine + "_"
-    return [t[len(prefix):] for t in targets if t.startswith(prefix)]
+    return [t[len(prefix) :] for t in targets if t.startswith(prefix)]
 
 
 def find_fuzz_target(engine, target_name, job_name):
@@ -170,7 +173,8 @@ def find_fuzz_target(engine, target_name, job_name):
       prefixed with project), and job."""
     project_name = data_handler.get_project_name(job_name)
     candidate_name = data_types.fuzz_target_fully_qualified_name(
-        engine, project_name, target_name)
+        engine, project_name, target_name
+    )
 
     target = data_handler.get_fuzz_target(candidate_name)
     if target:
@@ -201,18 +205,19 @@ class Handler(base_handler.Handler):
         if not email:
             raise helpers.AccessDeniedException()
 
-        is_privileged_or_domain_user = access.has_access(
-            need_privileged_access=False)
+        is_privileged_or_domain_user = access.has_access(need_privileged_access=False)
         if is_privileged_or_domain_user or _is_uploader_allowed(email):
             # Privileged, domain and upload users can see all job and fuzzer names.
             allowed_jobs = data_handler.get_all_job_type_names()
             allowed_fuzzers = data_handler.get_all_fuzzer_names_including_children(
-                include_parents=True)
+                include_parents=True
+            )
         else:
             # Check if this is an external user with access to certain fuzzers/jobs.
             allowed_jobs = external_users.allowed_jobs_for_user(email)
             allowed_fuzzers = external_users.allowed_fuzzers_for_user(
-                email, include_from_jobs=True)
+                email, include_from_jobs=True
+            )
 
             if not allowed_fuzzers and not allowed_jobs:
                 raise helpers.AccessDeniedException()
@@ -224,24 +229,17 @@ class Handler(base_handler.Handler):
             "upload.html",
             {
                 "fieldValues": {
-                    "jobs":
-                        allowed_jobs,
-                    "libfuzzerTargets":
-                        filter_target_names(allowed_fuzzers, "libFuzzer"),
-                    "aflTargets":
-                        filter_target_names(allowed_fuzzers, "afl"),
-                    "isChromium":
-                        utils.is_chromium(),
-                    "sandboxedJobs":
-                        data_types.INTERNAL_SANDBOXED_JOB_TYPES,
-                    "csrfToken":
-                        form.generate_csrf_token(),
-                    "isExternalUser":
-                        not is_privileged_or_domain_user,
-                    "uploadInfo":
-                        gcs.prepare_blob_upload()._asdict(),
-                    "hasIssueTracker":
-                        has_issue_tracker,
+                    "jobs": allowed_jobs,
+                    "libfuzzerTargets": filter_target_names(
+                        allowed_fuzzers, "libFuzzer"
+                    ),
+                    "aflTargets": filter_target_names(allowed_fuzzers, "afl"),
+                    "isChromium": utils.is_chromium(),
+                    "sandboxedJobs": data_types.INTERNAL_SANDBOXED_JOB_TYPES,
+                    "csrfToken": form.generate_csrf_token(),
+                    "isExternalUser": not is_privileged_or_domain_user,
+                    "uploadInfo": gcs.prepare_blob_upload()._asdict(),
+                    "hasIssueTracker": has_issue_tracker,
                 },
                 "params": params,
                 "result": result,
@@ -300,21 +298,26 @@ class UploadHandlerCommon(object):
 
             # Use minimized testcase for upload (if available).
             key = (
-                testcase.minimized_keys if testcase.minimized_keys and
-                testcase.minimized_keys != "NA" else testcase.fuzzed_keys)
+                testcase.minimized_keys
+                if testcase.minimized_keys and testcase.minimized_keys != "NA"
+                else testcase.fuzzed_keys
+            )
 
             uploaded_file = blobs.get_blob_info(key)
 
             # Extract filename part from blob.
             uploaded_file.filename = os.path.basename(
-                uploaded_file.filename.replace("\\", os.sep))
+                uploaded_file.filename.replace("\\", os.sep)
+            )
 
         job_type = self.request.get("job")
         if not job_type:
             raise helpers.EarlyExitException("Missing job name.", 400)
 
-        if (not data_types.Job.VALID_NAME_REGEX.match(job_type) or
-                not data_types.Job.query(data_types.Job.name == job_type).get()):
+        if (
+            not data_types.Job.VALID_NAME_REGEX.match(job_type)
+            or not data_types.Job.query(data_types.Job.name == job_type).get()
+        ):
             raise helpers.EarlyExitException("Invalid job name.", 400)
 
         fuzzer_name = ""
@@ -333,16 +336,17 @@ class UploadHandlerCommon(object):
 
         if fuzzer_name and not target_name:
             raise helpers.EarlyExitException(
-                "Missing target name for engine job (AFL, libFuzzer).", 400)
+                "Missing target name for engine job (AFL, libFuzzer).", 400
+            )
 
-        if target_name and not data_types.Fuzzer.VALID_NAME_REGEX.match(
-                target_name):
+        if target_name and not data_types.Fuzzer.VALID_NAME_REGEX.match(target_name):
             raise helpers.EarlyExitException("Invalid target name.", 400)
 
         fully_qualified_fuzzer_name = ""
         if fuzzer_name and target_name:
             fully_qualified_fuzzer_name, target_name = find_fuzz_target(
-                fuzzer_name, target_name, job_type)
+                fuzzer_name, target_name, job_type
+            )
             if not fully_qualified_fuzzer_name:
                 raise helpers.EarlyExitException("Target does not exist.", 400)
 
@@ -375,8 +379,7 @@ class UploadHandlerCommon(object):
             except Exception:
                 raise helpers.EarlyExitException("Invalid metadata JSON.", 400)
             if not isinstance(testcase_metadata, dict):
-                raise helpers.EarlyExitException(
-                    "Metadata is not a JSON object.", 400)
+                raise helpers.EarlyExitException("Metadata is not a JSON object.", 400)
         if issue_labels:
             testcase_metadata["issue_labels"] = issue_labels
 
@@ -395,31 +398,40 @@ class UploadHandlerCommon(object):
         if not privileged_user:
             if bug_information or bug_summary_update_flag:
                 raise helpers.EarlyExitException(
-                    "You are not privileged to update existing issues.", 400)
+                    "You are not privileged to update existing issues.", 400
+                )
 
             need_privileged_access = utils.string_is_true(
-                data_handler.get_value_from_job_definition(job_type,
-                                                           "PRIVILEGED_ACCESS"))
+                data_handler.get_value_from_job_definition(
+                    job_type, "PRIVILEGED_ACCESS"
+                )
+            )
             if need_privileged_access:
                 raise helpers.EarlyExitException(
-                    "You are not privileged to run this job type.", 400)
+                    "You are not privileged to run this job type.", 400
+                )
 
             if app_launch_command:
                 raise helpers.EarlyExitException(
-                    "You are not privileged to run arbitrary launch commands.", 400)
+                    "You are not privileged to run arbitrary launch commands.", 400
+                )
 
             if testcase_metadata and not _allow_unprivileged_metadata(
-                    testcase_metadata):
+                testcase_metadata
+            ):
                 raise helpers.EarlyExitException(
-                    "You are not privileged to set testcase metadata.", 400)
+                    "You are not privileged to set testcase metadata.", 400
+                )
 
             if additional_arguments:
                 raise helpers.EarlyExitException(
-                    "You are not privileged to add command-line arguments.", 400)
+                    "You are not privileged to add command-line arguments.", 400
+                )
 
             if gestures:
                 raise helpers.EarlyExitException(
-                    "You are not privileged to run arbitrary gestures.", 400)
+                    "You are not privileged to run arbitrary gestures.", 400
+                )
 
         # TODO(aarya): Remove once AFL is migrated to engine pipeline.
         if target_name:
@@ -439,12 +451,14 @@ class UploadHandlerCommon(object):
             timeout = 0
         elif not timeout.isdigit() or timeout == "0":
             raise helpers.EarlyExitException(
-                "Testcase timeout must be a number greater than 0.", 400)
+                "Testcase timeout must be a number greater than 0.", 400
+            )
         else:
             timeout = int(timeout)
             if timeout > 120:
                 raise helpers.EarlyExitException(
-                    "Testcase timeout may not be greater than 120 seconds.", 400)
+                    "Testcase timeout may not be greater than 120 seconds.", 400
+                )
 
         if retries:
             if retries.isdigit():
@@ -454,8 +468,8 @@ class UploadHandlerCommon(object):
 
             if retries is None or retries > MAX_RETRIES:
                 raise helpers.EarlyExitException(
-                    "Testcase retries must be a number less than %d." % MAX_RETRIES,
-                    400)
+                    "Testcase retries must be a number less than %d." % MAX_RETRIES, 400
+                )
         else:
             retries = None
 
@@ -463,7 +477,8 @@ class UploadHandlerCommon(object):
 
         if uploaded_file is not None:
             filename = "".join(
-                x for x in uploaded_file.filename if x not in " ;/?:@&=+$,{}|<>()\\")
+                x for x in uploaded_file.filename if x not in " ;/?:@&=+$,{}|<>()\\"
+            )
             key = str(uploaded_file.key())
             if archive.is_archive(filename):
                 archive_state = data_types.ArchiveStatus.FUZZED
@@ -509,25 +524,26 @@ class UploadHandlerCommon(object):
                     upload_metadata.bug_summary_update_flag = bug_summary_update_flag
                     upload_metadata.quiet_flag = quiet_flag
                     upload_metadata.additional_metadata_string = json.dumps(
-                        testcase_metadata)
+                        testcase_metadata
+                    )
                     upload_metadata.put()
 
-                    helpers.log("Uploaded multiple testcases.",
-                                helpers.VIEW_OPERATION)
+                    helpers.log("Uploaded multiple testcases.", helpers.VIEW_OPERATION)
                     self.render_json({"multiple": True})
                     return
 
                 file_path_input = guess_input_file(uploaded_file, filename)
                 if not file_path_input:
                     raise helpers.EarlyExitException(
-                        ("Unable to detect which file to launch. The main file's name "
-                         "must contain either of %s." % str(RUN_FILE_PATTERNS)),
+                        (
+                            "Unable to detect which file to launch. The main file's name "
+                            "must contain either of %s." % str(RUN_FILE_PATTERNS)
+                        ),
                         400,
                     )
 
         else:
-            raise helpers.EarlyExitException(
-                "Please select a file to upload.", 400)
+            raise helpers.EarlyExitException("Please select a file to upload.", 400)
 
         testcase_id = data_handler.create_user_uploaded_testcase(
             key,
@@ -561,14 +577,16 @@ class UploadHandlerCommon(object):
             issue = issue_tracker_utils.get_issue_for_testcase(testcase)
             if issue:
                 report_url = data_handler.TESTCASE_REPORT_URL.format(
-                    domain=data_handler.get_domain(), testcase_id=testcase_id)
+                    domain=data_handler.get_domain(), testcase_id=testcase_id
+                )
 
-                comment = ("ClusterFuzz is analyzing your testcase. "
-                           "Developers can follow the progress at %s." % report_url)
+                comment = (
+                    "ClusterFuzz is analyzing your testcase. "
+                    "Developers can follow the progress at %s." % report_url
+                )
                 issue.save(new_comment=comment)
 
-        helpers.log("Uploaded testcase %s" %
-                    testcase_id, helpers.VIEW_OPERATION)
+        helpers.log("Uploaded testcase %s" % testcase_id, helpers.VIEW_OPERATION)
         self.render_json({"id": "%s" % testcase_id})
 
 
@@ -611,8 +629,7 @@ class UploadHandlerOAuth(base_handler.Handler, UploadHandlerCommon):
         if not isinstance(uploaded_file, cgi.FieldStorage):
             raise helpers.EarlyExitException("File upload not found.", 400)
 
-        bytes_io = NamedBytesIO(uploaded_file.filename,
-                                uploaded_file.file.read())
+        bytes_io = NamedBytesIO(uploaded_file.filename, uploaded_file.file.read())
         key = blobs.write_blob(bytes_io)
         return blobs.get_blob_info(key)
 

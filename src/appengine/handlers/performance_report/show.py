@@ -30,6 +30,7 @@ import json
 import datetime
 from builtins import str
 from future import standard_library
+
 standard_library.install_aliases()
 
 
@@ -39,19 +40,19 @@ def _build_rows_and_columns(performance_report):
     cols = []
     for column in constants.DISPLAY_COLUMNS:
         label = (
-            column['title'] +
-            '<paper-tooltip>%s</paper-tooltip>' % column['tooltip'])
-        cols.append({'label': label, 'type': 'string'})
+            column["title"] + "<paper-tooltip>%s</paper-tooltip>" % column["tooltip"]
+        )
+        cols.append({"label": label, "type": "string"})
 
     # Build the rows.
     rows = []
-    for issue in performance_report['issues']:
+    for issue in performance_report["issues"]:
         rows_data = []
         for column in constants.DISPLAY_COLUMNS:
-            rows_data.append({'v': issue[column['name']]})
-        rows.append({'c': rows_data})
+            rows_data.append({"v": issue[column["name"]]})
+        rows.append({"c": rows_data})
 
-    table_data = {'cols': cols, 'rows': rows}
+    table_data = {"cols": cols, "rows": rows}
     return table_data
 
 
@@ -60,25 +61,25 @@ def _get_link_html(directory_path, relative_path):
     filename = os.path.basename(relative_path)
     timestamp, extension = os.path.splitext(filename)
     if extension != fuzzer_logs.LOG_EXTENSION:
-        return 'Invalid!'
+        return "Invalid!"
 
     try:
         # Make sure that timestamp is valid.
         datetime.datetime.strptime(timestamp, fuzzer_logs.TIME_FORMAT)
     except Exception:
         # Invalid timestamp, can't create link. Bail out.
-        return 'Invalid!'
+        return "Invalid!"
 
-    link_path = '%s/%s' % (directory_path, relative_path)
+    link_path = "%s/%s" % (directory_path, relative_path)
     link_name = filename
-    link_url = '/gcs-redirect?%s' % urllib.parse.urlencode({'path': link_path})
+    link_url = "/gcs-redirect?%s" % urllib.parse.urlencode({"path": link_path})
     # TODO(mmoroz): build links and other markup things in polymer.
     return '<a href="{link_url}">{link_name}</a>'.format(
-        link_url=link_url, link_name=link_name)
+        link_url=link_url, link_name=link_name
+    )
 
 
-def _get_performance_features(fuzzer_name, job_type, datetime_start,
-                              datetime_end):
+def _get_performance_features(fuzzer_name, job_type, datetime_start, datetime_end):
     """Get raw performance features stored in BigQuery."""
     query_fields = [
         fuzzer_stats.QueryField(fuzzer_stats.TestcaseQuery.ALIAS, column, None)
@@ -92,18 +93,19 @@ def _get_performance_features(fuzzer_name, job_type, datetime_start,
         query_fields=query_fields,
         group_by=fuzzer_stats.QueryGroupBy.GROUP_BY_NONE,
         date_start=datetime_start.date(),
-        date_end=datetime_end.date())
+        date_end=datetime_end.date(),
+    )
 
     client = big_query.Client()
 
     try:
         result = client.query(query=query.build())
     except Exception as e:
-        logging.error('Exception during BigQuery request: %s\n', str(e))
-        raise helpers.EarlyExitException('Internal error.', 500)
+        logging.error("Exception during BigQuery request: %s\n", str(e))
+        raise helpers.EarlyExitException("Internal error.", 500)
 
     if not result.rows:
-        raise helpers.EarlyExitException('No stats.', 404)
+        raise helpers.EarlyExitException("No stats.", 404)
 
     return result
 
@@ -111,24 +113,26 @@ def _get_performance_features(fuzzer_name, job_type, datetime_start,
 def _get_performance_report(fuzzer_name, job_type, performance_report_data):
     """Return performance report."""
     bucket_name = data_handler.get_value_from_job_definition_or_environment(
-        job_type, 'FUZZ_LOGS_BUCKET')
+        job_type, "FUZZ_LOGS_BUCKET"
+    )
 
     # Load performance data as JSON.
     performance_report = json.loads(performance_report_data)
 
     # Get logs directory path containing the analyzed logs.
-    logs_directory = fuzzer_logs.get_logs_directory(bucket_name, fuzzer_name,
-                                                    job_type)
+    logs_directory = fuzzer_logs.get_logs_directory(bucket_name, fuzzer_name, job_type)
 
     # Add other display metadata in report.
-    for issue in performance_report['issues']:
+    for issue in performance_report["issues"]:
         # Linkify the examples column.
         # TODO(mmoroz): build this in polymer using dom-repeat.
-        issue['examples'] = '<br/>'.join(_get_link_html(logs_directory, log_relative_path)
-                                         for log_relative_path in issue['examples'])
+        issue["examples"] = "<br/>".join(
+            _get_link_html(logs_directory, log_relative_path)
+            for log_relative_path in issue["examples"]
+        )
 
         # Add the solutions column explicitly.
-        issue['solutions'] = constants.ISSUE_TYPE_SOLUTIONS_MAP[issue['type']]
+        issue["solutions"] = constants.ISSUE_TYPE_SOLUTIONS_MAP[issue["type"]]
 
     return performance_report
 
@@ -136,23 +140,24 @@ def _get_performance_report(fuzzer_name, job_type, performance_report_data):
 def _get_performance_report_data(fuzzer_name, job_type, logs_date):
     """Return performance report data."""
     # Current version works on daily basis the same way as the old version.
-    if logs_date == 'latest':
+    if logs_date == "latest":
         # Use yesterday's date by UTC to analyze yesterday's fuzzer runs.
         date_start = datetime.datetime.utcnow().date() - datetime.timedelta(days=1)
     else:
         try:
-            date_start = datetime.datetime.strptime(
-                logs_date, '%Y-%m-%d').date()
+            date_start = datetime.datetime.strptime(logs_date, "%Y-%m-%d").date()
         except ValueError:
-            logging.warning('Wrong date format passed to performance report: %s\n',
-                            logs_date)
-            raise helpers.EarlyExitException('Wrong date format.', 400)
+            logging.warning(
+                "Wrong date format passed to performance report: %s\n", logs_date
+            )
+            raise helpers.EarlyExitException("Wrong date format.", 400)
 
     datetime_start = datetime.datetime.combine(date_start, datetime.time.min)
     datetime_end = datetime_start + datetime.timedelta(days=1)
 
-    features = _get_performance_features(fuzzer_name, job_type, datetime_start,
-                                         datetime_end)
+    features = _get_performance_features(
+        fuzzer_name, job_type, datetime_start, datetime_end
+    )
 
     return features, date_start
 
@@ -167,7 +172,8 @@ class Handler(base_handler.Handler):
             raise helpers.AccessDeniedException()
 
         performance_features, date = _get_performance_report_data(
-            fuzzer_name, job_type, logs_date)
+            fuzzer_name, job_type, logs_date
+        )
 
         performance_data = performance_features.rows
 
@@ -175,34 +181,37 @@ class Handler(base_handler.Handler):
 
         # It is possible to break the analysis by requesting outdated stats.
         try:
-            total_time = sum(row['actual_duration']
-                             for row in performance_data)
-            performance_scores, affected_runs_percents, examples = (
-                analyzer.analyze_stats(performance_data))
+            total_time = sum(row["actual_duration"] for row in performance_data)
+            (
+                performance_scores,
+                affected_runs_percents,
+                examples,
+            ) = analyzer.analyze_stats(performance_data)
         except (KeyError, TypeError, ValueError) as e:
-            logging.error(
-                'Exception during performance analysis: %s\n', str(e))
+            logging.error("Exception during performance analysis: %s\n", str(e))
             raise helpers.EarlyExitException(
-                'Cannot analyze performance for the requested time period.', 404)
+                "Cannot analyze performance for the requested time period.", 404
+            )
 
         # Build performance analysis result.
-        performance_issues = analyzer.get_issues(performance_scores,
-                                                 affected_runs_percents, examples)
+        performance_issues = analyzer.get_issues(
+            performance_scores, affected_runs_percents, examples
+        )
 
         performance_report = performance_analyzer.generate_report(
-            performance_issues, fuzzer_name, job_type)
+            performance_issues, fuzzer_name, job_type
+        )
 
-        report = _get_performance_report(
-            fuzzer_name, job_type, performance_report)
+        report = _get_performance_report(fuzzer_name, job_type, performance_report)
 
         result = {
-            'info': {
-                'date': str(date),
-                'fuzzer_name': report['fuzzer_name'],
-                'fuzzer_runs': performance_features.total_count,
-                'job_type': report['job_type'],
-                'table_data': _build_rows_and_columns(report),
-                'total_time': str(datetime.timedelta(seconds=total_time)),
+            "info": {
+                "date": str(date),
+                "fuzzer_name": report["fuzzer_name"],
+                "fuzzer_runs": performance_features.total_count,
+                "job_type": report["job_type"],
+                "table_data": _build_rows_and_columns(report),
+                "total_time": str(datetime.timedelta(seconds=total_time)),
             }
         }
-        self.render('performance-report.html', result)
+        self.render("performance-report.html", result)

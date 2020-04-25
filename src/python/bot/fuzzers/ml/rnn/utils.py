@@ -28,9 +28,10 @@ from bot.fuzzers.ml.rnn import constants
 def validate_model_path(model_path):
     """RNN model consists of three files. This validates if they all exist."""
     model_exists = (
-        os.path.exists(model_path + constants.MODEL_META_SUFFIX) and
-        os.path.exists(model_path + constants.MODEL_DATA_SUFFIX) and
-        os.path.exists(model_path + constants.MODEL_INDEX_SUFFIX))
+        os.path.exists(model_path + constants.MODEL_META_SUFFIX)
+        and os.path.exists(model_path + constants.MODEL_DATA_SUFFIX)
+        and os.path.exists(model_path + constants.MODEL_INDEX_SUFFIX)
+    )
     return model_exists
 
 
@@ -70,10 +71,9 @@ def get_files_info(directory):
         file_size = os.path.getsize(file_path)
         if not file_size:
             continue
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             first_byte = ord(f.read(1))
-            files_info_list.append(
-                {'first_byte': first_byte, 'file_size': file_size})
+            files_info_list.append({"first_byte": first_byte, "file_size": file_size})
 
     return files_info_list
 
@@ -99,7 +99,7 @@ def decode_to_text(encoded_list):
     Returns:
       A string of decoded data.
     """
-    return ''.join(chr(c) for c in encoded_list)
+    return "".join(chr(c) for c in encoded_list)
 
 
 def sample_from_probabilities(probabilities, topn=constants.ALPHA_SIZE):
@@ -152,18 +152,21 @@ def rnn_minibatch_sequencer(raw_data, batch_size, sequence_size, nb_epochs):
     # Using (data_len-1) because we must provide for the sequence
     # shifted by 1 too.
     nb_batches = (data_len - 1) // (batch_size * sequence_size)
-    assert nb_batches > 0, ('Not enough data, even for a single batch. Try using '
-                            'a smaller batch_size.')
+    assert nb_batches > 0, (
+        "Not enough data, even for a single batch. Try using " "a smaller batch_size."
+    )
     rounded_data_len = nb_batches * batch_size * sequence_size
-    xdata = np.reshape(data[0:rounded_data_len],
-                       [batch_size, nb_batches * sequence_size])
-    ydata = np.reshape(data[1:rounded_data_len + 1],
-                       [batch_size, nb_batches * sequence_size])
+    xdata = np.reshape(
+        data[0:rounded_data_len], [batch_size, nb_batches * sequence_size]
+    )
+    ydata = np.reshape(
+        data[1 : rounded_data_len + 1], [batch_size, nb_batches * sequence_size]
+    )
 
     for epoch in range(nb_epochs):
         for batch in range(nb_batches):
-            x = xdata[:, batch * sequence_size:(batch + 1) * sequence_size]
-            y = ydata[:, batch * sequence_size:(batch + 1) * sequence_size]
+            x = xdata[:, batch * sequence_size : (batch + 1) * sequence_size]
+            y = ydata[:, batch * sequence_size : (batch + 1) * sequence_size]
 
             # To continue the text from epoch to epoch (do not reset rnn state!).
             x = np.roll(x, -epoch, axis=0)
@@ -173,19 +176,25 @@ def rnn_minibatch_sequencer(raw_data, batch_size, sequence_size, nb_epochs):
 
 def find_input(index, input_ranges):
     """Find the input name given the index of training data."""
-    return next(input['name']
-                for input in input_ranges
-                if input['start'] <= index < input['end'])
+    return next(
+        input["name"]
+        for input in input_ranges
+        if input["start"] <= index < input["end"]
+    )
 
 
 def find_input_index(index, input_ranges):
     """Find the input index given the index of training data."""
-    return next(i for i, input in enumerate(input_ranges)
-                if input['start'] <= index < input['end'])
+    return next(
+        i
+        for i, input in enumerate(input_ranges)
+        if input["start"] <= index < input["end"]
+    )
 
 
-def print_learning_learned_comparison(x, y, losses, input_ranges, batch_loss,
-                                      batch_accuracy, epoch_size, index, epoch):
+def print_learning_learned_comparison(
+    x, y, losses, input_ranges, batch_loss, batch_accuracy, epoch_size, index, epoch
+):
     """Display utility for printing learning statistics."""
     print()
 
@@ -197,33 +206,37 @@ def print_learning_learned_comparison(x, y, losses, input_ranges, batch_loss,
         index_in_epoch = index % (epoch_size * batch_size * sequence_len)
         decx = repr(decode_to_text(x[k]))
         decy = repr(decode_to_text(y[k]))
-        formatted_decx = '{: <40.40}'.format(decx)
-        formatted_decy = '{: <40.40}'.format(decy)
+        formatted_decx = "{: <40.40}".format(decx)
+        formatted_decy = "{: <40.40}".format(decy)
         inputname = find_input(index_in_epoch, input_ranges)
-        formatted_inputname = '{: <10.20}'.format(inputname)
-        epoch_string = '{:6d}'.format(index) + ' (epoch {}) '.format(epoch)
-        loss_string = 'loss: {:.5f}'.format(losses[k])
-        print_string = epoch_string + formatted_inputname + ' | {} | {} | {}'
+        formatted_inputname = "{: <10.20}".format(inputname)
+        epoch_string = "{:6d}".format(index) + " (epoch {}) ".format(epoch)
+        loss_string = "loss: {:.5f}".format(losses[k])
+        print_string = epoch_string + formatted_inputname + " | {} | {} | {}"
         print(print_string.format(formatted_decx, formatted_decy, loss_string))
         index += sequence_len
 
-    format_string = '{:-^' + str(len(epoch_string)) + '}'
-    format_string += '{:-^' + str(len(formatted_inputname)) + '}'
-    format_string += '{:-^' + str(len(formatted_decx) + 4) + '}'
-    format_string += '{:-^' + str(len(formatted_decy) + 4) + '}'
-    format_string += '{:-^' + str(len(loss_string)) + '}'
-    footer = format_string.format('INDEX', 'INPUT NAME',
-                                  'TRAINING SEQUENCE (truncated)',
-                                  'PREDICTED SEQUENCE (truncated)', 'LOSS')
+    format_string = "{:-^" + str(len(epoch_string)) + "}"
+    format_string += "{:-^" + str(len(formatted_inputname)) + "}"
+    format_string += "{:-^" + str(len(formatted_decx) + 4) + "}"
+    format_string += "{:-^" + str(len(formatted_decy) + 4) + "}"
+    format_string += "{:-^" + str(len(loss_string)) + "}"
+    footer = format_string.format(
+        "INDEX",
+        "INPUT NAME",
+        "TRAINING SEQUENCE (truncated)",
+        "PREDICTED SEQUENCE (truncated)",
+        "LOSS",
+    )
     print(footer)
 
     # Print statistics
     batch_index = start_index_in_epoch // (batch_size * sequence_len)
-    batch_string = 'batch {}/{} in epoch {},'.format(batch_index, epoch_size,
-                                                     epoch)
-    stats = '{: <28} batch loss: {:.5f}, batch accuracy: {:.5f}'.format(
-        batch_string, batch_loss, batch_accuracy)
-    print('\nTRAINING STATS: {}'.format(stats))
+    batch_string = "batch {}/{} in epoch {},".format(batch_index, epoch_size, epoch)
+    stats = "{: <28} batch loss: {:.5f}, batch accuracy: {:.5f}".format(
+        batch_string, batch_loss, batch_accuracy
+    )
+    print("\nTRAINING STATS: {}".format(stats))
 
 
 class Progress(object):
@@ -238,7 +251,7 @@ class Progress(object):
     The progress bar displays a new header at each restart.
     """
 
-    def __init__(self, maxi, size=100, msg=''):
+    def __init__(self, maxi, size=100, msg=""):
         """Initialize class.
 
         Args:
@@ -263,7 +276,7 @@ class Progress(object):
 
     def __print_header(self):
         """Print progress bar header."""
-        format_string = '\n0%{: ^' + str(self.size - 6) + '}100%'
+        format_string = "\n0%{: ^" + str(self.size - 6) + "}100%"
         print(format_string.format(self.msg))
         self.header_printed = True
 
@@ -280,8 +293,8 @@ class Progress(object):
             for _ in range(maxi):
                 k = 0
                 while d >= 0:
-                    print('=', end=' ')
-                    sys.stdout.write('')
+                    print("=", end=" ")
+                    sys.stdout.write("")
                     sys.stdout.flush()
                     k += 1
                     d -= dx
@@ -309,20 +322,18 @@ def read_data_files(directory, validation=False):
     input_ranges = []
     input_list = get_files_list(directory)
     for input_file in input_list:
-        with open(input_file, 'rb') as f:
+        with open(input_file, "rb") as f:
             start = len(code_text)
             code_text.extend(encode_text(f.read()))
             end = len(code_text)
-            input_ranges.append({
-                'start': start,
-                'end': end,
-                'name': input_file.rsplit('/', 1)[-1]
-            })
+            input_ranges.append(
+                {"start": start, "end": end, "name": input_file.rsplit("/", 1)[-1]}
+            )
 
-    print('Loaded {} corpus files.'.format(len(input_list)))
+    print("Loaded {} corpus files.".format(len(input_list)))
 
     if not input_ranges:
-        sys.exit('No training data has been found. Aborting.')
+        sys.exit("No training data has been found. Aborting.")
 
     # For validation, use roughly 90K of text,
     # but no more than 10% of the entire text
@@ -333,7 +344,7 @@ def read_data_files(directory, validation=False):
     validation_len = 0
     nb_inputs1 = 0
     for one_input in reversed(input_ranges):
-        validation_len += one_input['end'] - one_input['start']
+        validation_len += one_input["end"] - one_input["start"]
         nb_inputs1 += 1
         if validation_len > total_len // 10:
             break
@@ -342,7 +353,7 @@ def read_data_files(directory, validation=False):
     validation_len = 0
     nb_inputs2 = 0
     for one_input in reversed(input_ranges):
-        validation_len += one_input['end'] - one_input['start']
+        validation_len += one_input["end"] - one_input["start"]
         nb_inputs2 += 1
         if validation_len > 90 * 1024:
             break
@@ -356,7 +367,7 @@ def read_data_files(directory, validation=False):
     if nb_inputs == 0 or not validation:
         cutoff = len(code_text)
     else:
-        cutoff = input_ranges[-nb_inputs]['start']
+        cutoff = input_ranges[-nb_inputs]["start"]
     validation_text = code_text[cutoff:]
     code_text = code_text[:cutoff]
     return code_text, validation_text, input_ranges
@@ -366,32 +377,37 @@ def print_data_stats(data_len, validation_len, epoch_size):
     """Print training data statistics, such as size, batches."""
     data_len_mb = data_len / 1024.0 / 1024.0
     validation_len_kb = validation_len / 1024.0
-    print('Training text size is {:.2f}MB with {:.2f}KB set aside for validation.'
-          .format(data_len_mb, validation_len_kb) +
-          'There will be {} batches per epoch'.format(epoch_size))
+    print(
+        "Training text size is {:.2f}MB with {:.2f}KB set aside for validation.".format(
+            data_len_mb, validation_len_kb
+        )
+        + "There will be {} batches per epoch".format(epoch_size)
+    )
 
 
 def print_validation_header(validation_start, input_ranges):
     """Print validation header."""
     input_index = find_input_index(validation_start, input_ranges)
-    inputs = ''
+    inputs = ""
     for i in range(input_index, len(input_ranges)):
-        inputs += input_ranges[i]['name']
+        inputs += input_ranges[i]["name"]
         if i < len(input_ranges) - 1:
-            inputs += ', '
+            inputs += ", "
 
 
 def print_validation_stats(loss, accuracy):
     """Print validation results, including loss and accuracy."""
-    print('VALIDATION STATS:                                  ' +
-          'loss: {:.5f},       accuracy: {:.5f}'.format(loss, accuracy))
+    print(
+        "VALIDATION STATS:                                  "
+        + "loss: {:.5f},       accuracy: {:.5f}".format(loss, accuracy)
+    )
 
 
 def print_text_generation_header():
     """Print generation header."""
-    print('\n{:-^138}'.format(' Generating random text from learned state '))
+    print("\n{:-^138}".format(" Generating random text from learned state "))
 
 
 def print_text_generation_footer():
     """Print generation footer."""
-    print('\n{:-^138}'.format(' End of generation '))
+    print("\n{:-^138}".format(" End of generation "))

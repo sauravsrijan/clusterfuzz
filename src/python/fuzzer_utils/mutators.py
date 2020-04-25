@@ -22,22 +22,20 @@ DEFAULT_MIN_MUTATIONS = 1
 DEFAULT_MAX_MUTATIONS = 20
 
 
-def get_pack_format_and_mask_for_num_bytes(num_bytes,
-                                           signed=False,
-                                           little_endian=True):
+def get_pack_format_and_mask_for_num_bytes(num_bytes, signed=False, little_endian=True):
     """Return the struct pack format and bit mask for the integer values of size
     |num_bytes|."""
     if num_bytes == 1:
-        pack_fmt = 'B'
+        pack_fmt = "B"
         mask = (1 << 8) - 1
     elif num_bytes == 2:
-        pack_fmt = 'H'
+        pack_fmt = "H"
         mask = (1 << 16) - 1
     elif num_bytes == 4:
-        pack_fmt = 'I'
+        pack_fmt = "I"
         mask = (1 << 32) - 1
     elif num_bytes == 8:
-        pack_fmt = 'Q'
+        pack_fmt = "Q"
         mask = (1 << 64) - 1
     else:
         raise ValueError
@@ -47,9 +45,9 @@ def get_pack_format_and_mask_for_num_bytes(num_bytes,
 
     if num_bytes > 1:
         if little_endian:
-            pack_fmt = '<' + pack_fmt
+            pack_fmt = "<" + pack_fmt
         else:
-            pack_fmt = '>' + pack_fmt
+            pack_fmt = ">" + pack_fmt
 
     return pack_fmt, mask
 
@@ -86,7 +84,7 @@ class BitFlipper(MutatorPrimitive):
         while bits_flipped < int(ratio * len(buf)):
             n = random.randint(0, num_bits - 1)
             for i in range(n, min(num_bits, n + self.contiguous_flips)):
-                buf[i // 8] ^= (1 << (i % 8))
+                buf[i // 8] ^= 1 << (i % 8)
                 bits_flipped += 1
 
 
@@ -94,18 +92,15 @@ class BinaryValueAdder(MutatorPrimitive):
     """Add random value to binary values of size |num_bytes| in the buffer until
     the given ratio is satisfied."""
 
-    def __init__(self,
-                 ratio=0.0,
-                 up_to_ratio=False,
-                 num_bytes=1,
-                 add_range=(-35, 35)):
+    def __init__(self, ratio=0.0, up_to_ratio=False, num_bytes=1, add_range=(-35, 35)):
         super(BinaryValueAdder, self).__init__(ratio, up_to_ratio)
         self.num_bytes = num_bytes
         self.add_range = add_range
 
         # Assume little endian
         self.pack_fmt, self.mask = get_pack_format_and_mask_for_num_bytes(
-            num_bytes, signed=False, little_endian=True)
+            num_bytes, signed=False, little_endian=True
+        )
 
     def mutate(self, buf):
         """Mutator function."""
@@ -121,8 +116,7 @@ class BinaryValueAdder(MutatorPrimitive):
 
             rand_val = random.randint(self.add_range[0], self.add_range[1])
             new_val = (orig + rand_val) & self.mask
-            buf[buf_start:buf_end] = bytearray(
-                struct.pack(self.pack_fmt, new_val))
+            buf[buf_start:buf_end] = bytearray(struct.pack(self.pack_fmt, new_val))
             changed += 1
 
 
@@ -166,8 +160,7 @@ class ByteInserter(MutatorPrimitive):
         while inserted < int(ratio * num_choices):
             # TODO(ochang): context aware
             insert_pos = random.randint(0, num_choices)
-            rand_bytes = [random.randint(0, 255)
-                          for _ in range(self.num_bytes)]
+            rand_bytes = [random.randint(0, 255) for _ in range(self.num_bytes)]
             buf[insert_pos:insert_pos] = bytearray(rand_bytes)
             inserted += self.num_bytes
 
@@ -189,7 +182,9 @@ class ChunkCopier(MutatorPrimitive):
         while changed < int(len(buf) * ratio):
             copy_from = random.randint(0, len(buf) - chunk_size)
             copy_to = random.randint(0, len(buf) - chunk_size)
-            buf[copy_to:copy_to + chunk_size] = buf[copy_from:copy_from + chunk_size]
+            buf[copy_to : copy_to + chunk_size] = buf[
+                copy_from : copy_from + chunk_size
+            ]
 
             changed += chunk_size
 
@@ -203,7 +198,8 @@ class SpecialIntReplacer(MutatorPrimitive):
         self.num_bytes = num_bytes
 
         self.pack_fmt = get_pack_format_and_mask_for_num_bytes(
-            num_bytes, signed=False, little_endian=True)[0]
+            num_bytes, signed=False, little_endian=True
+        )[0]
 
     def mutate(self, buf):
         """Mutator function."""
@@ -222,15 +218,13 @@ class SpecialIntReplacer(MutatorPrimitive):
             # signed minimum
             struct.pack(self.pack_fmt, signed_minimum),
             # value close to signed minimum
-            struct.pack(self.pack_fmt,
-                        signed_minimum + random.randint(1, max_diff)),
+            struct.pack(self.pack_fmt, signed_minimum + random.randint(1, max_diff)),
             # signed maximum
             struct.pack(self.pack_fmt, signed_maximum),
             # value close to signed maximum
-            struct.pack(self.pack_fmt,
-                        signed_maximum - random.randint(1, max_diff)),
+            struct.pack(self.pack_fmt, signed_maximum - random.randint(1, max_diff)),
             # -1 or unsigned maximum
-            struct.pack(self.pack_fmt, (1 << (8 * self.num_bytes)) - 1)
+            struct.pack(self.pack_fmt, (1 << (8 * self.num_bytes)) - 1),
         ]
 
         ratio = self.mutate_ratio()
@@ -251,7 +245,8 @@ class SignFlipper(MutatorPrimitive):
         self.num_bytes = num_bytes
 
         self.pack_fmt, self.mask = get_pack_format_and_mask_for_num_bytes(
-            num_bytes, signed=True, little_endian=True)
+            num_bytes, signed=True, little_endian=True
+        )
 
     def mutate(self, buf):
         """Mutator function."""
@@ -264,10 +259,10 @@ class SignFlipper(MutatorPrimitive):
             buf_start = n * self.num_bytes
             buf_end = buf_start + self.num_bytes
 
-            original_value = struct.unpack(
-                self.pack_fmt, buf[buf_start:buf_end])[0]
-            buf[buf_start:buf_end] = struct.pack(self.pack_fmt.upper(),
-                                                 (-original_value) & self.mask)
+            original_value = struct.unpack(self.pack_fmt, buf[buf_start:buf_end])[0]
+            buf[buf_start:buf_end] = struct.pack(
+                self.pack_fmt.upper(), (-original_value) & self.mask
+            )
             changed += 1
 
 
@@ -287,17 +282,17 @@ class CombinedMutator(object):
     def __init__(self, mutators=None, num_mutations_choices=None):
         if num_mutations_choices is None:
             num_mutations_choices = list(
-                range(DEFAULT_MIN_MUTATIONS, DEFAULT_MAX_MUTATIONS + 1))
+                range(DEFAULT_MIN_MUTATIONS, DEFAULT_MAX_MUTATIONS + 1)
+            )
         self.mutators = []
         if mutators is not None:
             for mutator in mutators:
-                self.mutators.append(
-                    {'mutator': mutator[0], 'weight': mutator[1]})
+                self.mutators.append({"mutator": mutator[0], "weight": mutator[1]})
         self.num_mutations_choices = num_mutations_choices
 
     def add_mutator(self, mutator, weight):
         """Add a mutator."""
-        self.mutators.append({'mutator': mutator, 'weight': weight})
+        self.mutators.append({"mutator": mutator, "weight": weight})
 
     def mutate(self, buf):
         """Mutator function."""
@@ -308,12 +303,12 @@ class CombinedMutator(object):
 
     def choose_mutator(self):
         """Choose a mutator."""
-        total_weight = sum(x['weight'] for x in self.mutators)
+        total_weight = sum(x["weight"] for x in self.mutators)
         n = total_weight * random.random()
         cur = 0.0
         for choice in self.mutators:
-            cur += choice['weight']
+            cur += choice["weight"]
             if cur > n:
-                return choice['mutator']
+                return choice["mutator"]
 
-        return self.mutators[-1]['mutator']
+        return self.mutators[-1]["mutator"]

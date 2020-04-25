@@ -82,8 +82,12 @@ class TestQueue(object):
             if not current_item:
                 break
 
-            test, test_function, completion_callback, should_run = (
-                current_item)  # pylint: disable=unpacking-non-sequence
+            (
+                test,
+                test_function,
+                completion_callback,
+                should_run,
+            ) = current_item  # pylint: disable=unpacking-non-sequence
             if not should_run():
                 continue
 
@@ -102,21 +106,12 @@ class TestQueue(object):
         with self.lock:
             self.queue = []
 
-    def push(self,
-             test,
-             test_function,
-             completion_callback,
-             should_run=lambda: True):
+    def push(self, test, test_function, completion_callback, should_run=lambda: True):
         """Add a test to the queue and a callback to run on completion."""
         with self.lock:
-            self.queue.append(
-                (test, test_function, completion_callback, should_run))
+            self.queue.append((test, test_function, completion_callback, should_run))
 
-    def force(self,
-              test,
-              test_function,
-              completion_callback,
-              should_run=lambda: True):
+    def force(self, test, test_function, completion_callback, should_run=lambda: True):
         """Force a test to the front of the queue."""
         entry = (test, test_function, completion_callback, should_run)
         with self.lock:
@@ -220,8 +215,10 @@ class Testcase(object):
         if not self.minimizer.progress_report_function:
             return
 
-        if (time.time() - self.last_progress_report_time < PROGRESS_REPORT_INTERVAL
-                and not is_final_progress_report):
+        if (
+            time.time() - self.last_progress_report_time < PROGRESS_REPORT_INTERVAL
+            and not is_final_progress_report
+        ):
             return
 
         self.last_progress_report_time = time.time()
@@ -244,8 +241,7 @@ class Testcase(object):
     def _prepare_test_input(self, tokens, tested_tokens):
         """Write the tokens currently being tested to a temporary file."""
         tested_tokens = set(tested_tokens)
-        current_tokens = [t for i, t in enumerate(
-            tokens) if i in tested_tokens]
+        current_tokens = [t for i, t in enumerate(tokens) if i in tested_tokens]
         if not self.minimizer.tokenize:
             return current_tokens
 
@@ -272,17 +268,15 @@ class Testcase(object):
         """Add a test for a hypothesis to a queue for processing."""
         test_file = self._get_test_file(hypothesis)
         callback = functools.partial(
-            self._handle_completed_test,
-            hypothesis=hypothesis,
-            input_file=test_file)
-        should_run = functools.partial(self._contains_required_tokens, hypothesis,
-                                       test_file)
+            self._handle_completed_test, hypothesis=hypothesis, input_file=test_file
+        )
+        should_run = functools.partial(
+            self._contains_required_tokens, hypothesis, test_file
+        )
 
         self.test_queue.push(
-            test_file,
-            self.minimizer.test_function,
-            callback,
-            should_run=should_run)
+            test_file, self.minimizer.test_function, callback, should_run=should_run
+        )
 
         # Make sure that we do not let too many unprocessed tests build up.
         if self.test_queue.size() >= self.minimizer.batch_size:
@@ -300,15 +294,18 @@ class Testcase(object):
             # In the threaded case, we call the cleanup function before each pass
             # over the queue. It needs to be tracked here for the single-thread case.
             self.runs_since_last_cleanup += 1
-            if (self.runs_since_last_cleanup >=
-                self.minimizer.single_thread_cleanup_interval and
-                    self.minimizer.cleanup_function):
+            if (
+                self.runs_since_last_cleanup
+                >= self.minimizer.single_thread_cleanup_interval
+                and self.minimizer.cleanup_function
+            ):
                 self.minimizer.cleanup_function()
 
             test_file = self._get_test_file(hypothesis)
             if self._contains_required_tokens(hypothesis, test_file):
                 self._handle_completed_test(
-                    self.minimizer.test_function(test_file), hypothesis, test_file)
+                    self.minimizer.test_function(test_file), hypothesis, test_file
+                )
 
             # Check to see if we have exceeded the deadline and report progress.
             self._report_progress()
@@ -402,8 +399,7 @@ class Testcase(object):
 
         # If we could remove either one of two hypotheses, favor removing the first.
         front_merged_successfully = self._attempt_merge(front)
-        self._attempt_merge(
-            back, sibling_merge_succeeded=front_merged_successfully)
+        self._attempt_merge(back, sibling_merge_succeeded=front_merged_successfully)
 
     def _do_single_pass_process(self):
         """Process through a single pass of our test queue."""
@@ -449,8 +445,7 @@ class Testcase(object):
         with self.merge_preparation_lock:
             # A deep copy is not required. Hypotheses are not modified after being
             # added to the list for processing.
-            unprocessed_hypotheses = copy.copy(
-                self.unmerged_failing_hypotheses)
+            unprocessed_hypotheses = copy.copy(self.unmerged_failing_hypotheses)
 
         for unprocessed_hypothesis in unprocessed_hypotheses:
             for token in unprocessed_hypothesis:

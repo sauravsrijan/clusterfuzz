@@ -13,21 +13,19 @@
 # limitations under the License.
 """Monorail issue tracker."""
 
-from libs.issue_management.monorail.issue_tracker_manager import (
-    IssueTrackerManager)
+from libs.issue_management.monorail.issue_tracker_manager import IssueTrackerManager
 from libs.issue_management.monorail.issue import Issue as MonorailIssue
 from libs.issue_management.monorail.issue import ChangeList as ChangeList
 from libs.issue_management import issue_tracker
 import urllib.parse
 from builtins import object
 from future import standard_library
+
 standard_library.install_aliases()
 
 
-ISSUE_TRACKER_URL = (
-    'https://bugs.chromium.org/p/{project}/issues/detail?id={id}')
-ISSUE_TRACKER_SEARCH_URL = (
-    'https://bugs.chromium.org/p/{project}/issues/list?{params}')
+ISSUE_TRACKER_URL = "https://bugs.chromium.org/p/{project}/issues/detail?id={id}"
+ISSUE_TRACKER_SEARCH_URL = "https://bugs.chromium.org/p/{project}/issues/list?{params}"
 
 
 class Issue(issue_tracker.Issue):
@@ -41,8 +39,7 @@ class Issue(issue_tracker.Issue):
         # a `label` is removed, what actually happens is `-label` is added. This
         # should not be visible to the client.
         self._ccs = issue_tracker.LabelStore(self._monorail_issue.cc)
-        self._components = issue_tracker.LabelStore(
-            self._monorail_issue.components)
+        self._components = issue_tracker.LabelStore(self._monorail_issue.components)
         self._labels = issue_tracker.LabelStore(self._monorail_issue.labels)
 
     @property
@@ -260,13 +257,11 @@ class IssueTracker(issue_tracker.IssueTracker):
         else:
             can = IssueTrackerManager.CAN_ALL
 
-        can_id = IssueTrackerManager.CAN_VALUE_TO_ID_MAP.get(can, '')
+        can_id = IssueTrackerManager.CAN_VALUE_TO_ID_MAP.get(can, "")
         return ISSUE_TRACKER_SEARCH_URL.format(
             project=self.project,
-            params=urllib.parse.urlencode({
-                'can_id': can_id,
-                'q': search_text,
-            }))
+            params=urllib.parse.urlencode({"can_id": can_id, "q": search_text,}),
+        )
 
     def issue_url(self, issue_id):
         """Return the issue URL with the given ID."""
@@ -280,7 +275,7 @@ def _to_change_list(monorail_list):
         return change_list
 
     for item in monorail_list:
-        if item.startswith('-'):
+        if item.startswith("-"):
             change_list.removed.append(item[1:])
         else:
             change_list.added.append(item)
@@ -291,7 +286,7 @@ def _to_change_list(monorail_list):
 def _get_issue_tracker_manager_for_project(project_name):
     """Return monorail issue tracker manager for the given project."""
     # If there is no issue tracker set, bail out.
-    if not project_name or project_name == 'disabled':
+    if not project_name or project_name == "disabled":
         return None
 
     return IssueTrackerManager(project_name=project_name)
@@ -299,9 +294,9 @@ def _get_issue_tracker_manager_for_project(project_name):
 
 def _get_search_text(keywords):
     """Get search text."""
-    search_text = ' '.join('"{}"'.format(keyword) for keyword in keywords)
-    search_text = search_text.replace(':', ' ')
-    search_text = search_text.replace('=', ' ')
+    search_text = " ".join('"{}"'.format(keyword) for keyword in keywords)
+    search_text = search_text.replace(":", " ")
+    search_text = search_text.replace("=", " ")
 
     return search_text
 

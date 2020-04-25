@@ -51,8 +51,7 @@ _LICENSE_CHECK_EXTENSIONS = [
     ".yaml",
 ]
 _LICENSE_CHECK_IGNORE_FILENAMES = ["technology.css"]
-_LICENSE_CHECK_IGNORE_DIRECTORIES = ["third_party",
-                                     "templates"]  # Generated code.
+_LICENSE_CHECK_IGNORE_DIRECTORIES = ["third_party", "templates"]  # Generated code.
 _LICENSE_CHECK_STRING = "http://www.apache.org/licenses/LICENSE-2.0"
 _PY_TEST_SUFFIX = "_test.py"
 _PY_INIT_FILENAME = "__init__.py"
@@ -83,8 +82,10 @@ def license_validate(file_path):
     """Run license header validation."""
     filename = os.path.basename(file_path)
     extension = os.path.splitext(file_path)[1]
-    if (filename not in _LICENSE_CHECK_FILENAMES and
-            extension not in _LICENSE_CHECK_EXTENSIONS):
+    if (
+        filename not in _LICENSE_CHECK_FILENAMES
+        and extension not in _LICENSE_CHECK_EXTENSIONS
+    ):
         return
 
     path_directories = file_path.split(os.sep)
@@ -135,9 +136,12 @@ def py_import_order(file_path):
         return
 
     suggestions = "\n\n--------\n\n".join(corrected_import_blocks)
-    _error(("Failed: File {filename} has non-alphabetized import blocks. "
-            "Suggested order:\n\n{suggestions}").format(
-                filename=file_path, suggestions=suggestions))
+    _error(
+        (
+            "Failed: File {filename} has non-alphabetized import blocks. "
+            "Suggested order:\n\n{suggestions}"
+        ).format(filename=file_path, suggestions=suggestions)
+    )
 
 
 def py_test_init_check(file_path):
@@ -148,8 +152,11 @@ def py_test_init_check(file_path):
 
     test_directory = os.path.dirname(file_path)
     if _PY_INIT_FILENAME not in os.listdir(test_directory):
-        _error("Failed: Missing {filename} file in test directory {dir}.".format(
-            filename=_PY_INIT_FILENAME, dir=test_directory))
+        _error(
+            "Failed: Missing {filename} file in test directory {dir}.".format(
+                filename=_PY_INIT_FILENAME, dir=test_directory
+            )
+        )
 
 
 def yaml_validate(file_path):
@@ -166,9 +173,12 @@ def yaml_validate(file_path):
 
 def is_auto_generated_file(filepath):
     """Check if file is auto-generated so we dont lint it"""
-    return (filepath.endswith("_pb2.py") or filepath.endswith("pb2_grpc.py") or
-            os.path.dirname(filepath) == os.path.join("src", "python", "bot",
-                                                      "tokenizer", "grammars"))
+    return (
+        filepath.endswith("_pb2.py")
+        or filepath.endswith("pb2_grpc.py")
+        or os.path.dirname(filepath)
+        == os.path.join("src", "python", "bot", "tokenizer", "grammars")
+    )
 
 
 def execute(_):
@@ -181,14 +191,14 @@ def execute(_):
         _, output = common.execute("git diff --name-only master FETCH_HEAD")
     elif "TRAVIS_BRANCH" in os.environ:
         _, output = common.execute(
-            "git diff --name-only HEAD $(git merge-base HEAD FETCH_HEAD)")
+            "git diff --name-only HEAD $(git merge-base HEAD FETCH_HEAD)"
+        )
     else:
         _, output = common.execute("git diff --name-only FETCH_HEAD")
 
     file_paths = [f for f in output.splitlines() if os.path.exists(f)]
     py_changed_file_paths = [
-        f for f in file_paths
-        if f.endswith(".py") and not is_auto_generated_file(f)
+        f for f in file_paths if f.endswith(".py") and not is_auto_generated_file(f)
     ]
     go_changed_file_paths = [f for f in file_paths if f.endswith(".go")]
     yaml_changed_file_paths = [f for f in file_paths if f.endswith(".yaml")]
@@ -198,12 +208,16 @@ def execute(_):
         _execute_command_and_track_error("yapf -d " + file_path)
 
         futurize_excludes = " ".join(
-            "-x " + exception for exception in _FUTURIZE_EXCEPTIONS)
+            "-x " + exception for exception in _FUTURIZE_EXCEPTIONS
+        )
         futurize_command = "futurize -0 {excludes} {file_path}".format(
-            excludes=futurize_excludes, file_path=file_path)
+            excludes=futurize_excludes, file_path=file_path
+        )
         futurize_output = _execute_command_and_track_error(futurize_command)
-        if ("No changes to " not in futurize_output and
-                "No files need to be modified" not in futurize_output):
+        if (
+            "No changes to " not in futurize_output
+            and "No files need to be modified" not in futurize_output
+        ):
             # Futurize doesn't modify its return code depending on the result.
             _error("Python 3 compatibility error introduced.")
 
