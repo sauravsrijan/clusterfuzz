@@ -13,15 +13,12 @@
 # limitations under the License.
 """Tests for the coverage_uploader module."""
 
-from builtins import object
-from builtins import range
-
 import datetime
 import os
-
-from pyfakefs import fake_filesystem_unittest
+from builtins import object, range
 
 from fuzzing import coverage_uploader
+from pyfakefs import fake_filesystem_unittest
 from tests.test_libs import helpers as test_helpers
 from tests.test_libs import test_utils
 

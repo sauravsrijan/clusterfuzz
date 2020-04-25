@@ -12,16 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Utility functions for ml rnn model."""
-from __future__ import division
-from __future__ import print_function
+from __future__ import division, print_function
 
-from builtins import object
-from builtins import range
-import numpy as np
 import os
 import random
 import sys
+from builtins import object, range
 
+import numpy as np
 from bot.fuzzers.ml.rnn import constants
 
 

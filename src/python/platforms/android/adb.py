@@ -13,21 +13,20 @@
 # limitations under the License.
 """ADB shell related functions."""
 
-from system import shell
-from system import environment
-from metrics import logs
-from base import utils
-from base import persistent_cache
-import time
-import threading
-import tempfile
-import subprocess
-import signal
-import re
-import os
-import glob
 import collections
+import glob
+import os
+import re
+import signal
+import subprocess
+import tempfile
+import threading
+import time
+
+from base import persistent_cache, utils
 from future import standard_library
+from metrics import logs
+from system import environment, shell
 
 standard_library.install_aliases()
 

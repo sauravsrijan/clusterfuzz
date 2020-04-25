@@ -13,13 +13,15 @@
 # limitations under the License.
 """Monorail issue tracker."""
 
-from libs.issue_management.monorail.issue_tracker_manager import IssueTrackerManager
-from libs.issue_management.monorail.issue import Issue as MonorailIssue
-from libs.issue_management.monorail.issue import ChangeList as ChangeList
-from libs.issue_management import issue_tracker
 import urllib.parse
 from builtins import object
+
 from future import standard_library
+from libs.issue_management import issue_tracker
+from libs.issue_management.monorail.issue import ChangeList as ChangeList
+from libs.issue_management.monorail.issue import Issue as MonorailIssue
+from libs.issue_management.monorail.issue_tracker_manager import \
+    IssueTrackerManager
 
 standard_library.install_aliases()
 

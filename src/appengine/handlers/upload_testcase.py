@@ -18,24 +18,14 @@ import datetime
 import io
 import json
 import os
-from builtins import object
-from builtins import str
+from builtins import object, str
 
-from base import external_users
-from base import tasks
-from base import utils
-from datastore import data_handler
-from datastore import data_types
-from datastore import ndb
+from base import external_users, tasks, utils
+from datastore import data_handler, data_types, ndb
 from future import standard_library
-from google_cloud_utils import blobs
-from google_cloud_utils import storage
+from google_cloud_utils import blobs, storage
 from handlers import base_handler
-from libs import access
-from libs import form
-from libs import gcs
-from libs import handler
-from libs import helpers
+from libs import access, form, gcs, handler, helpers
 from libs.issue_management import issue_tracker_utils
 from libs.query import datastore_query
 from system import archive

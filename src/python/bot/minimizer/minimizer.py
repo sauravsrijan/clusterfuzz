@@ -20,8 +20,7 @@ import os
 import tempfile
 import threading
 import time
-from builtins import object
-from builtins import range
+from builtins import object, range
 
 from future import standard_library
 

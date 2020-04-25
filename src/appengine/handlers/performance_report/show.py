@@ -13,23 +13,20 @@
 # limitations under the License.
 """Fuzzer performance report handler."""
 
-from metrics import fuzzer_stats
-from metrics import fuzzer_logs
-from libs import helpers
-from libs import handler
-from libs import access
-from handlers.performance_report import performance_analyzer
-from handlers.performance_report import constants
-from handlers import base_handler
-from google_cloud_utils import big_query
-from datastore import data_handler
-import urllib.parse
-import os
-import logging
-import json
 import datetime
+import json
+import logging
+import os
+import urllib.parse
 from builtins import str
+
+from datastore import data_handler
 from future import standard_library
+from google_cloud_utils import big_query
+from handlers import base_handler
+from handlers.performance_report import constants, performance_analyzer
+from libs import access, handler, helpers
+from metrics import fuzzer_logs, fuzzer_stats
 
 standard_library.install_aliases()
 

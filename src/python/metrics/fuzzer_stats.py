@@ -21,17 +21,11 @@ import random
 import re
 from builtins import object
 
-from base import memoize
-from base import utils
-from datastore import data_handler
-from datastore import data_types
-from datastore import fuzz_target_utils
-from google_cloud_utils import big_query
-from google_cloud_utils import storage
-from metrics import fuzzer_logs
-from metrics import logs
-from system import environment
-from system import shell
+from base import memoize, utils
+from datastore import data_handler, data_types, fuzz_target_utils
+from google_cloud_utils import big_query, storage
+from metrics import fuzzer_logs, logs
+from system import environment, shell
 
 STATS_FILE_EXTENSION = ".stats2"
 

@@ -28,11 +28,8 @@ from crash_analysis import crash_analyzer
 from future import standard_library
 from metrics import logs
 from past.builtins import basestring
-from platforms import android
-from platforms import linux
-from platforms import windows
-from system import environment
-from system import shell
+from platforms import android, linux, windows
+from system import environment, shell
 
 standard_library.install_aliases()
 
