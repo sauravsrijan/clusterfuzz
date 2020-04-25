@@ -1188,7 +1188,7 @@ class JavaScriptLexer(JavaScriptBaseLexer):
 
   def action(self, localctx, ruleIndex, actionIndex):
     if self._actions is None:
-      actions = dict()
+      actions = {}
       actions[8] = self.OpenBrace_action
       actions[9] = self.CloseBrace_action
       actions[116] = self.StringLiteral_action
@@ -1213,7 +1213,7 @@ class JavaScriptLexer(JavaScriptBaseLexer):
 
   def sempred(self, localctx, ruleIndex, predIndex):
     if self._predicates is None:
-      preds = dict()
+      preds = {}
       preds[0] = self.HashBangLine_sempred
       preds[3] = self.RegularExpressionLiteral_sempred
       preds[62] = self.OctalIntegerLiteral_sempred
