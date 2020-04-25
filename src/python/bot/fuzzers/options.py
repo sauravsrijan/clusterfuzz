@@ -30,7 +30,7 @@ from system import environment
 OPTIONS_FILE_EXTENSION = '.options'
 
 # Whitelist for env variables .options files can set.
-ENV_VAR_WHITELIST = set([afl_constants.DONT_DEFER_ENV_VAR])
+ENV_VAR_WHITELIST = {afl_constants.DONT_DEFER_ENV_VAR}
 
 
 class FuzzerOptionsException(Exception):

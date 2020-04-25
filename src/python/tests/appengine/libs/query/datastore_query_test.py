@@ -273,11 +273,11 @@ class ComputeProjectionTest(unittest.TestCase):
   def test_combine(self):
     """Test combine."""
     self.assertSetEqual(
-        set(['a', 'b', 'c']),
+        {'a', 'b', 'c'},
         set(datastore_query.compute_projection(['a', 'c'], 'b')))
 
   def test_dedup(self):
     """Test dedup."""
     self.assertSetEqual(
-        set(['a', 'b', 'c']),
+        {'a', 'b', 'c'},
         set(datastore_query.compute_projection(['a', 'b', 'c'], 'b')))

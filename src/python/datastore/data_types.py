@@ -595,7 +595,7 @@ class Testcase(Model):
     self.has_bug_flag = bool(self.bug_indices)
     self.is_a_duplicate_flag = bool(self.duplicate_of)
     fuzzer_name_indices = list(
-        set([self.fuzzer_name, self.overridden_fuzzer_name]))
+        {self.fuzzer_name, self.overridden_fuzzer_name})
     self.fuzzer_name_indices = [f for f in fuzzer_name_indices if f]
 
     # If the impact task hasn't been run (aka is_impact_set_flag=False) OR
