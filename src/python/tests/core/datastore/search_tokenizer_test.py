@@ -25,65 +25,85 @@ class ComplexTokenizeTest(unittest.TestCase):
 
     def test_empty(self):
         """Test empty string."""
-        self.assertSetEqual(set(), search_tokenizer._complex_tokenize('', 3))
+        self.assertSetEqual(set(), search_tokenizer._complex_tokenize("", 3))
 
     def test_one_token(self):
         """Test one token."""
-        self.assertSetEqual(
-            {'abcd'}, search_tokenizer._complex_tokenize('abcd', 3))
+        self.assertSetEqual({"abcd"}, search_tokenizer._complex_tokenize("abcd", 3))
 
     def test_multiple_tokens(self):
         """Test multiple tokens."""
         self.assertSetEqual(
-            {'abcd', 'abcd::edfg', 'abcd::edfghijk', 'edfg', 'edfghijk', 'hijk'}, search_tokenizer._complex_tokenize('abcd::edfgHijk', 3))
+            {"abcd", "abcd::edfg", "abcd::edfghijk", "edfg", "edfghijk", "hijk"},
+            search_tokenizer._complex_tokenize("abcd::edfgHijk", 3),
+        )
 
     def test_multple_tokens_with_empty_tokens(self):
         """Test multiple tokens with empty tokens."""
         self.assertSetEqual(
-            {'::abcd', '::abcd::edfg', '::abcd::edfghijk', '::abcd::edfghijk::',
-                'abcd', 'abcd::edfg', 'abcd::edfghijk', 'abcd::edfghijk::', 'edfg',
-                'edfghijk', 'hijk', 'edfghijk::', 'hijk::'}, search_tokenizer._complex_tokenize('::abcd::edfgHijk::', 5))
+            {
+                "::abcd",
+                "::abcd::edfg",
+                "::abcd::edfghijk",
+                "::abcd::edfghijk::",
+                "abcd",
+                "abcd::edfg",
+                "abcd::edfghijk",
+                "abcd::edfghijk::",
+                "edfg",
+                "edfghijk",
+                "hijk",
+                "edfghijk::",
+                "hijk::",
+            },
+            search_tokenizer._complex_tokenize("::abcd::edfgHijk::", 5),
+        )
 
     def test_real_example(self):
         """Test real example."""
-        crash_state = 'void WTF::Vector<blink::Member, 64ul'
-        expected = {'void',
-                    'void wtf',
-                    'void wtf::vector',
-                    'void wtf::vector<blink',
-                    'void wtf::vector<blink::member',
-                    'void wtf::vector<blink::member, 64ul',
-                    'wtf',
-                    'wtf::vector',
-                    'wtf::vector<blink',
-                    'wtf::vector<blink::member',
-                    'wtf::vector<blink::member, 64ul',
-                    'vector',
-                    'vector<blink',
-                    'vector<blink::member',
-                    'vector<blink::member, 64ul',
-                    'blink',
-                    'blink::member',
-                    'blink::member, 64ul',
-                    'member',
-                    'member, 64ul',
-                    '64ul', }
-        self.assertSetEqual(expected,
-                            search_tokenizer._complex_tokenize(crash_state, 6))
+        crash_state = "void WTF::Vector<blink::Member, 64ul"
+        expected = {
+            "void",
+            "void wtf",
+            "void wtf::vector",
+            "void wtf::vector<blink",
+            "void wtf::vector<blink::member",
+            "void wtf::vector<blink::member, 64ul",
+            "wtf",
+            "wtf::vector",
+            "wtf::vector<blink",
+            "wtf::vector<blink::member",
+            "wtf::vector<blink::member, 64ul",
+            "vector",
+            "vector<blink",
+            "vector<blink::member",
+            "vector<blink::member, 64ul",
+            "blink",
+            "blink::member",
+            "blink::member, 64ul",
+            "member",
+            "member, 64ul",
+            "64ul",
+        }
+        self.assertSetEqual(
+            expected, search_tokenizer._complex_tokenize(crash_state, 6)
+        )
 
     def test_duplicate(self):
         """Test duplicate tokens."""
-        crash_state = 'a:b:a:b'
-        expected = {'a', 'b', 'a:b', 'a:b:a', 'a:b:a:b', 'b:a', 'b:a:b'}
-        self.assertSetEqual(expected,
-                            search_tokenizer._complex_tokenize(crash_state, 4))
+        crash_state = "a:b:a:b"
+        expected = {"a", "b", "a:b", "a:b:a", "a:b:a:b", "b:a", "b:a:b"}
+        self.assertSetEqual(
+            expected, search_tokenizer._complex_tokenize(crash_state, 4)
+        )
 
     def test_exceed_limit(self):
         """Test exceeding limit."""
-        crash_state = 'a:b:c'
-        expected = {'a', 'b', 'c', 'a:b', 'b:c'}
-        self.assertSetEqual(expected,
-                            search_tokenizer._complex_tokenize(crash_state, 2))
+        crash_state = "a:b:c"
+        expected = {"a", "b", "c", "a:b", "b:c"}
+        self.assertSetEqual(
+            expected, search_tokenizer._complex_tokenize(crash_state, 2)
+        )
 
 
 class TokenizeBugInformationTest(unittest.TestCase):
@@ -94,24 +114,23 @@ class TokenizeBugInformationTest(unittest.TestCase):
         testcase = data_types.Testcase()
         testcase.bug_information = None
         testcase.group_bug_information = None
-        self.assertListEqual([],
-                             search_tokenizer.tokenize_bug_information(testcase))
+        self.assertListEqual([], search_tokenizer.tokenize_bug_information(testcase))
 
     def test_empty(self):
         """Test empty."""
         testcase = data_types.Testcase()
-        testcase.bug_information = ''
+        testcase.bug_information = ""
         testcase.group_bug_information = 0
-        self.assertListEqual([],
-                             search_tokenizer.tokenize_bug_information(testcase))
+        self.assertListEqual([], search_tokenizer.tokenize_bug_information(testcase))
 
     def test_tokenize(self):
         """Test tokenize."""
         testcase = data_types.Testcase()
-        testcase.bug_information = '123'
+        testcase.bug_information = "123"
         testcase.group_bug_information = 456
-        self.assertListEqual(['123', '456'],
-                             search_tokenizer.tokenize_bug_information(testcase))
+        self.assertListEqual(
+            ["123", "456"], search_tokenizer.tokenize_bug_information(testcase)
+        )
 
 
 class TokenizeImpactVersionTest(unittest.TestCase):
@@ -119,16 +138,16 @@ class TokenizeImpactVersionTest(unittest.TestCase):
 
     def test_empty(self):
         """Test empty."""
-        self.assertEqual([], search_tokenizer.tokenize_impact_version(''))
+        self.assertEqual([], search_tokenizer.tokenize_impact_version(""))
         self.assertEqual([], search_tokenizer.tokenize_impact_version(None))
 
     def test_version(self):
         """Test tokenising version."""
-        self.assertEqual(
-            ['52'], search_tokenizer.tokenize_impact_version('52'))
+        self.assertEqual(["52"], search_tokenizer.tokenize_impact_version("52"))
         self.assertSetEqual(
-            {'52', '52.1', '52.1.2', '52.1.2.3'},
-            set(search_tokenizer.tokenize_impact_version('52.1.2.3')))
+            {"52", "52.1", "52.1.2", "52.1.2.3"},
+            set(search_tokenizer.tokenize_impact_version("52.1.2.3")),
+        )
 
 
 class TokenizeTest(unittest.TestCase):
@@ -136,53 +155,63 @@ class TokenizeTest(unittest.TestCase):
 
     def test_empty(self):
         """Test empty string."""
-        self.assertSetEqual(set(), search_tokenizer.tokenize(''))
+        self.assertSetEqual(set(), search_tokenizer.tokenize(""))
 
     def test_non_string(self):
         """Test non string."""
-        self.assertSetEqual({'123'}, search_tokenizer.tokenize(123))
-        self.assertSetEqual({'true'}, search_tokenizer.tokenize(True))
+        self.assertSetEqual({"123"}, search_tokenizer.tokenize(123))
+        self.assertSetEqual({"true"}, search_tokenizer.tokenize(True))
         self.assertSetEqual(set(), search_tokenizer.tokenize(None))
 
     def test_non_ascii(self):
-        s = 'IsString ¿ÓÞÎ¤ utf'
+        s = "IsString ¿ÓÞÎ¤ utf"
         self.assertSetEqual(
-            {'is', 'string', 'utf', 'isstring', 'isstring utf', 'string utf',
-                s.lower()}, search_tokenizer.tokenize(s))
+            {
+                "is",
+                "string",
+                "utf",
+                "isstring",
+                "isstring utf",
+                "string utf",
+                s.lower(),
+            },
+            search_tokenizer.tokenize(s),
+        )
 
     def test_real_example(self):
         """Test real example."""
-        crash_states = '\n'.join([
-            'track 1 fast;',
-            'android.media.MediaCodec.native_setup',
-        ])
-        expected = {'track',
-                    '1',
-                    'fast',
-                    'android',
-                    'media',
-                    'codec',
-                    'native',
-                    'setup',
-                    'track 1',
-                    'track 1 fast',
-                    'track 1 fast;',
-                    '1 fast',
-                    '1 fast;',
-                    'fast;',
-                    'android.media',
-                    'android.media.media',
-                    'android.media.mediacodec',
-                    'android.media.mediacodec.native',
-                    'android.media.mediacodec.native_setup',
-                    'media.media',
-                    'media.mediacodec',
-                    'media.mediacodec.native',
-                    'media.mediacodec.native_setup',
-                    'mediacodec',
-                    'mediacodec.native',
-                    'mediacodec.native_setup',
-                    'codec.native',
-                    'codec.native_setup',
-                    'native_setup', }
+        crash_states = "\n".join(
+            ["track 1 fast;", "android.media.MediaCodec.native_setup",]
+        )
+        expected = {
+            "track",
+            "1",
+            "fast",
+            "android",
+            "media",
+            "codec",
+            "native",
+            "setup",
+            "track 1",
+            "track 1 fast",
+            "track 1 fast;",
+            "1 fast",
+            "1 fast;",
+            "fast;",
+            "android.media",
+            "android.media.media",
+            "android.media.mediacodec",
+            "android.media.mediacodec.native",
+            "android.media.mediacodec.native_setup",
+            "media.media",
+            "media.mediacodec",
+            "media.mediacodec.native",
+            "media.mediacodec.native_setup",
+            "mediacodec",
+            "mediacodec.native",
+            "mediacodec.native_setup",
+            "codec.native",
+            "codec.native_setup",
+            "native_setup",
+        }
         self.assertSetEqual(expected, search_tokenizer.tokenize(crash_states))

@@ -65,28 +65,26 @@ class TrackFuzzerRunResultTest(unittest.TestCase):
 
         self.assertEqual(
             4,
-            monitoring_metrics.FUZZER_RETURN_CODE_COUNT.get({
-                "fuzzer": "name",
-                "return_code": 2
-            }),
+            monitoring_metrics.FUZZER_RETURN_CODE_COUNT.get(
+                {"fuzzer": "name", "return_code": 2}
+            ),
         )
         self.assertEqual(
             1,
-            monitoring_metrics.FUZZER_RETURN_CODE_COUNT.get({
-                "fuzzer": "name",
-                "return_code": 0
-            }),
+            monitoring_metrics.FUZZER_RETURN_CODE_COUNT.get(
+                {"fuzzer": "name", "return_code": 0}
+            ),
         )
         self.assertEqual(
             1,
-            monitoring_metrics.FUZZER_RETURN_CODE_COUNT.get({
-                "fuzzer": "name",
-                "return_code": -1
-            }),
+            monitoring_metrics.FUZZER_RETURN_CODE_COUNT.get(
+                {"fuzzer": "name", "return_code": -1}
+            ),
         )
 
         testcase_count_ratio = monitoring_metrics.FUZZER_TESTCASE_COUNT_RATIO.get(
-            {"fuzzer": "name"})
+            {"fuzzer": "name"}
+        )
         self.assertEqual(3.1, testcase_count_ratio.sum)
         self.assertEqual(5, testcase_count_ratio.count)
 
@@ -112,17 +110,15 @@ class TrackBuildRunResultTest(unittest.TestCase):
 
         self.assertEqual(
             2,
-            monitoring_metrics.JOB_BAD_BUILD_COUNT.get({
-                "job": "name",
-                "bad_build": True
-            }),
+            monitoring_metrics.JOB_BAD_BUILD_COUNT.get(
+                {"job": "name", "bad_build": True}
+            ),
         )
         self.assertEqual(
             1,
-            monitoring_metrics.JOB_BAD_BUILD_COUNT.get({
-                "job": "name",
-                "bad_build": False
-            }),
+            monitoring_metrics.JOB_BAD_BUILD_COUNT.get(
+                {"job": "name", "bad_build": False}
+            ),
         )
 
 
@@ -137,15 +133,16 @@ class TrackTestcaseRunResultTest(unittest.TestCase):
         fuzz_task._track_testcase_run_result("fuzzer", "job", 2, 5)
         fuzz_task._track_testcase_run_result("fuzzer", "job", 5, 10)
 
-        self.assertEqual(7,
-                         monitoring_metrics.JOB_NEW_CRASH_COUNT.get({"job": "job"}))
+        self.assertEqual(7, monitoring_metrics.JOB_NEW_CRASH_COUNT.get({"job": "job"}))
         self.assertEqual(
-            15, monitoring_metrics.JOB_KNOWN_CRASH_COUNT.get({"job": "job"}))
+            15, monitoring_metrics.JOB_KNOWN_CRASH_COUNT.get({"job": "job"})
+        )
         self.assertEqual(
-            7, monitoring_metrics.FUZZER_NEW_CRASH_COUNT.get({"fuzzer": "fuzzer"}))
+            7, monitoring_metrics.FUZZER_NEW_CRASH_COUNT.get({"fuzzer": "fuzzer"})
+        )
         self.assertEqual(
-            15,
-            monitoring_metrics.FUZZER_KNOWN_CRASH_COUNT.get({"fuzzer": "fuzzer"}))
+            15, monitoring_metrics.FUZZER_KNOWN_CRASH_COUNT.get({"fuzzer": "fuzzer"})
+        )
 
 
 class TruncateFuzzerOutputTest(unittest.TestCase):
@@ -160,14 +157,16 @@ class TruncateFuzzerOutputTest(unittest.TestCase):
         self.assertEqual(
             "123456\n...truncated...\n54321",
             fuzz_task.truncate_fuzzer_output(
-                "123456xxxxxxxxxxxxxxxxxxxxxxxxxxx54321", 28),
+                "123456xxxxxxxxxxxxxxxxxxxxxxxxxxx54321", 28
+            ),
         )
 
     def test_error(self):
         """Error if limit is too low."""
         with self.assertRaises(AssertionError):
             self.assertEqual(
-                "", fuzz_task.truncate_fuzzer_output("123456xxxxxx54321", 10))
+                "", fuzz_task.truncate_fuzzer_output("123456xxxxxx54321", 10)
+            )
 
 
 class TrackFuzzTimeTest(unittest.TestCase):
@@ -183,10 +182,9 @@ class TrackFuzzTimeTest(unittest.TestCase):
             time_module.advance(5)
             tracker.timeout = timeout
 
-        fuzzer_total_time = monitoring_metrics.FUZZER_TOTAL_FUZZ_TIME.get({
-            "fuzzer": "fuzzer",
-            "timeout": timeout
-        })
+        fuzzer_total_time = monitoring_metrics.FUZZER_TOTAL_FUZZ_TIME.get(
+            {"fuzzer": "fuzzer", "timeout": timeout}
+        )
         self.assertEqual(5, fuzzer_total_time)
 
     def test_success(self):
@@ -204,32 +202,27 @@ class GetFuzzerMetadataFromOutputTest(unittest.TestCase):
     def test_no_metadata(self):
         """Tests no metadata in output."""
         data = "abc\ndef\n123123"
-        self.assertDictEqual(
-            fuzz_task.get_fuzzer_metadata_from_output(data), {})
+        self.assertDictEqual(fuzz_task.get_fuzzer_metadata_from_output(data), {})
 
         data = ""
-        self.assertDictEqual(
-            fuzz_task.get_fuzzer_metadata_from_output(data), {})
+        self.assertDictEqual(fuzz_task.get_fuzzer_metadata_from_output(data), {})
 
     def test_metadata(self):
         """Tests parsing of metadata."""
-        data = ("abc\n"
-                "def\n"
-                "metadata:invalid: invalid\n"
-                "metadat::invalid: invalid\n"
-                "metadata::foo: bar\n"
-                "123123\n"
-                "metadata::blah: 1\n"
-                "metadata::test:abcd\n"
-                "metadata::test2:   def\n")
+        data = (
+            "abc\n"
+            "def\n"
+            "metadata:invalid: invalid\n"
+            "metadat::invalid: invalid\n"
+            "metadata::foo: bar\n"
+            "123123\n"
+            "metadata::blah: 1\n"
+            "metadata::test:abcd\n"
+            "metadata::test2:   def\n"
+        )
         self.assertDictEqual(
             fuzz_task.get_fuzzer_metadata_from_output(data),
-            {
-                "blah": "1",
-                "test": "abcd",
-                "test2": "def",
-                "foo": "bar"
-            },
+            {"blah": "1", "test": "abcd", "test2": "def", "foo": "bar"},
         )
 
 
@@ -237,8 +230,7 @@ class GetRegressionTest(unittest.TestCase):
     """Test get_regression."""
 
     def setUp(self):
-        helpers.patch(
-            self, ["build_management.build_manager.is_custom_binary"])
+        helpers.patch(self, ["build_management.build_manager.is_custom_binary"])
 
     def test_one_time_crasher(self):
         """Test when one_time_crasher_flag is True."""
@@ -312,8 +304,10 @@ class CrashInitTest(fake_filesystem_unittest.TestCase):
     def test_error(self):
         """Test failing to reading stacktrace file."""
         crash = fuzz_task.Crash.from_testcase_manager_crash(
-            testcase_manager.Crash("dir/path-http-name", 123, 11, ["res"], "ges",
-                                   "/no_stack_file"))
+            testcase_manager.Crash(
+                "dir/path-http-name", 123, 11, ["res"], "ges", "/no_stack_file"
+            )
+        )
         self.assertIsNone(crash)
 
     def _test_crash(self, should_be_ignored, security_flag):
@@ -328,8 +322,10 @@ class CrashInitTest(fake_filesystem_unittest.TestCase):
         self.mock.ignore_stacktrace.return_value = should_be_ignored
 
         crash = fuzz_task.Crash.from_testcase_manager_crash(
-            testcase_manager.Crash("dir/path-http-name", 123, 11, ["res"], "ges",
-                                   "/stack_file_path"))
+            testcase_manager.Crash(
+                "dir/path-http-name", 123, 11, ["res"], "ges", "/stack_file_path"
+            )
+        )
 
         self.assertEqual("dir/path-http-name", crash.file_path)
         self.assertEqual(123, crash.crash_time)
@@ -342,7 +338,8 @@ class CrashInitTest(fake_filesystem_unittest.TestCase):
 
         self.assertEqual("cmd", crash.application_command_line)
         self.mock.get_command_line_for_application.assert_called_once_with(
-            "dir/path-http-name", needs_http=True)
+            "dir/path-http-name", needs_http=True
+        )
 
         self.assertEqual("unsym", crash.unsymbolized_crash_stacktrace)
 
@@ -354,11 +351,11 @@ class CrashInitTest(fake_filesystem_unittest.TestCase):
 
         self.assertEqual("trace", crash.crash_stacktrace)
         self.mock.get_crash_stacktrace_output.assert_called_once_with(
-            "cmd", "orig_trace", "unsym")
+            "cmd", "orig_trace", "unsym"
+        )
 
         self.assertEqual(security_flag, crash.security_flag)
-        self.mock.is_security_issue.assert_called_once_with("unsym", "type",
-                                                            "address")
+        self.mock.is_security_issue.assert_called_once_with("unsym", "type", "address")
 
         self.assertEqual("type,state,%s" % security_flag, crash.key)
 
@@ -370,18 +367,17 @@ class CrashInitTest(fake_filesystem_unittest.TestCase):
 
     def _test_validity_and_get_functional_crash(self):
         """Test validity of different crashes and return functional crash."""
-        security_crash = self._test_crash(
-            should_be_ignored=False, security_flag=True)
+        security_crash = self._test_crash(should_be_ignored=False, security_flag=True)
         self.assertIsNone(security_crash.get_error())
         self.assertTrue(security_crash.is_valid())
 
-        ignored_crash = self._test_crash(
-            should_be_ignored=True, security_flag=True)
+        ignored_crash = self._test_crash(should_be_ignored=True, security_flag=True)
         self.assertIn("False crash", ignored_crash.get_error())
         self.assertFalse(ignored_crash.is_valid())
 
         functional_crash = self._test_crash(
-            should_be_ignored=False, security_flag=False)
+            should_be_ignored=False, security_flag=False
+        )
         return functional_crash
 
     def test_valid_functional_bug(self):
@@ -432,8 +428,7 @@ class CrashInitTest(fake_filesystem_unittest.TestCase):
 
         crash.archive_testcase_in_blobstore()
         self.assertTrue(crash.is_archived())
-        self.assertIn("Unable to store testcase in blobstore",
-                      crash.get_error())
+        self.assertIn("Unable to store testcase in blobstore", crash.get_error())
         self.assertFalse(crash.is_valid())
 
         self.assertIsNone(crash.fuzzed_key)
@@ -443,13 +438,13 @@ class CrashInitTest(fake_filesystem_unittest.TestCase):
 
     def test_args_from_testcase_manager(self):
         """Test args from testcase_manager.Crash."""
-        testcase_manager_crash = testcase_manager.Crash("path", 0, 0, [], [],
-                                                        "/stack_file_path")
+        testcase_manager_crash = testcase_manager.Crash(
+            "path", 0, 0, [], [], "/stack_file_path"
+        )
         self.mock.get_additional_command_line_flags.return_value = "minimized"
         environment.set_value("APP_ARGS", "app")
 
-        crash = fuzz_task.Crash.from_testcase_manager_crash(
-            testcase_manager_crash)
+        crash = fuzz_task.Crash.from_testcase_manager_crash(testcase_manager_crash)
         self.assertEqual("app minimized", crash.arguments)
 
 
@@ -469,15 +464,14 @@ class CrashGroupTest(unittest.TestCase):
         self.mock.get_project_name.return_value = "some_project"
         self.crashes = [self._make_crash("g1"), self._make_crash("g2")]
         self.context = mock.MagicMock(
-            test_timeout=99, fuzzer_name="test", fuzz_target=None)
+            test_timeout=99, fuzzer_name="test", fuzz_target=None
+        )
         self.reproducible_testcase = self._make_testcase(
-            project_name="some_project",
-            bug_information="",
-            one_time_crasher_flag=False)
+            project_name="some_project", bug_information="", one_time_crasher_flag=False
+        )
         self.unreproducible_testcase = self._make_testcase(
-            project_name="some_project",
-            bug_information="",
-            one_time_crasher_flag=True)
+            project_name="some_project", bug_information="", one_time_crasher_flag=True
+        )
 
     def _make_crash(self, gestures):
         crash = mock.MagicMock(
@@ -514,9 +508,9 @@ class CrashGroupTest(unittest.TestCase):
         group = fuzz_task.CrashGroup(self.crashes, self.context)
 
         self.assertTrue(group.should_create_testcase())
-        self.mock.find_main_crash.assert_called_once_with(self.crashes, "test",
-                                                          "test",
-                                                          self.context.test_timeout)
+        self.mock.find_main_crash.assert_called_once_with(
+            self.crashes, "test", "test", self.context.test_timeout
+        )
 
         self.assertIsNone(group.existing_testcase)
         self.assertEqual(self.crashes[0], group.main_crash)
@@ -531,9 +525,9 @@ class CrashGroupTest(unittest.TestCase):
         group = fuzz_task.CrashGroup(self.crashes, self.context)
 
         self.assertEqual(self.crashes[0].gestures, group.main_crash.gestures)
-        self.mock.find_main_crash.assert_called_once_with(self.crashes, "test",
-                                                          "test",
-                                                          self.context.test_timeout)
+        self.mock.find_main_crash.assert_called_once_with(
+            self.crashes, "test", "test", self.context.test_timeout
+        )
         self.assertFalse(group.is_new())
         self.assertFalse(group.should_create_testcase())
         self.assertTrue(group.has_existing_reproducible_testcase())
@@ -546,9 +540,9 @@ class CrashGroupTest(unittest.TestCase):
         group = fuzz_task.CrashGroup(self.crashes, self.context)
 
         self.assertEqual(self.crashes[0].gestures, group.main_crash.gestures)
-        self.mock.find_main_crash.assert_called_once_with(self.crashes, "test",
-                                                          "test",
-                                                          self.context.test_timeout)
+        self.mock.find_main_crash.assert_called_once_with(
+            self.crashes, "test", "test", self.context.test_timeout
+        )
         self.assertFalse(group.is_new())
         self.assertTrue(group.should_create_testcase())
         self.assertFalse(group.has_existing_reproducible_testcase())
@@ -565,9 +559,9 @@ class CrashGroupTest(unittest.TestCase):
         self.assertFalse(group.should_create_testcase())
 
         self.assertEqual(self.crashes[0].gestures, group.main_crash.gestures)
-        self.mock.find_main_crash.assert_called_once_with(self.crashes, "test",
-                                                          "test",
-                                                          self.context.test_timeout)
+        self.mock.find_main_crash.assert_called_once_with(
+            self.crashes, "test", "test", self.context.test_timeout
+        )
         self.assertFalse(group.is_new())
         self.assertFalse(group.has_existing_reproducible_testcase())
         self.assertTrue(group.one_time_crasher_flag)
@@ -653,7 +647,8 @@ class FindMainCrashTest(unittest.TestCase):
 
         # Calls for every crash except self.crashes[0] because it's invalid.
         self.assertEqual(
-            len(self.crashes) - 1, self.mock.test_for_reproducibility.call_count)
+            len(self.crashes) - 1, self.mock.test_for_reproducibility.call_count
+        )
 
     def test_no_valid_crash(self):
         """No valid crash."""
@@ -661,9 +656,9 @@ class FindMainCrashTest(unittest.TestCase):
             c.is_valid.return_value = False
         self.reproducible_crashes = []
 
-        self.assertEqual((None, None),
-                         fuzz_task.find_main_crash(self.crashes, "test", "test",
-                                                   99))
+        self.assertEqual(
+            (None, None), fuzz_task.find_main_crash(self.crashes, "test", "test", 99)
+        )
 
         for c in self.crashes:
             c.archive_testcase_in_blobstore.assert_called_once_with()
@@ -732,8 +727,10 @@ class ProcessCrashesTest(fake_filesystem_unittest.TestCase):
             f.write("unsym")
 
         crash = fuzz_task.Crash.from_testcase_manager_crash(
-            testcase_manager.Crash("dir/path-http-name", 123, 11, ["res"], ["ges"],
-                                   "/stack_file_path"))
+            testcase_manager.Crash(
+                "dir/path-http-name", 123, 11, ["res"], ["ges"], "/stack_file_path"
+            )
+        )
         return crash
 
     def test_existing_unreproducible_testcase(self):
@@ -764,8 +761,7 @@ class ProcessCrashesTest(fake_filesystem_unittest.TestCase):
                 project_name="some_project",
                 bot_name="bot",
                 job_type="job",
-                fuzz_target=data_types.FuzzTarget(
-                    engine="engine", binary="binary"),
+                fuzz_target=data_types.FuzzTarget(engine="engine", binary="binary"),
                 redzone=111,
                 disable_ubsan=True,
                 platform_id="platform",
@@ -786,21 +782,16 @@ class ProcessCrashesTest(fake_filesystem_unittest.TestCase):
         self.assertEqual(1, len(groups))
         self.assertEqual(2, len(groups[0].crashes))
         self.assertFalse(groups[0].is_new())
-        self.assertEqual(crashes[0].crash_type,
-                         groups[0].main_crash.crash_type)
-        self.assertEqual(crashes[0].crash_state,
-                         groups[0].main_crash.crash_state)
-        self.assertEqual(crashes[0].security_flag,
-                         groups[0].main_crash.security_flag)
+        self.assertEqual(crashes[0].crash_type, groups[0].main_crash.crash_type)
+        self.assertEqual(crashes[0].crash_state, groups[0].main_crash.crash_state)
+        self.assertEqual(crashes[0].security_flag, groups[0].main_crash.security_flag)
 
         testcases = list(data_types.Testcase.query())
         self.assertEqual(1, len(testcases))
         self.assertEqual("existing", testcases[0].crash_stacktrace)
 
-        variant = data_handler.get_testcase_variant(existing_testcase.key.id(),
-                                                    "job")
-        self.assertEqual(
-            data_types.TestcaseVariantStatus.FLAKY, variant.status)
+        variant = data_handler.get_testcase_variant(existing_testcase.key.id(), "job")
+        self.assertEqual(data_types.TestcaseVariantStatus.FLAKY, variant.status)
         self.assertEqual("fuzzed_key", variant.reproducer_key)
         self.assertEqual(1234, variant.revision)
         self.assertEqual("type", variant.crash_type)
@@ -846,8 +837,7 @@ class ProcessCrashesTest(fake_filesystem_unittest.TestCase):
                 project_name=project_name,
                 bot_name="bot",
                 job_type="job",
-                fuzz_target=data_types.FuzzTarget(
-                    engine="engine", binary="binary"),
+                fuzz_target=data_types.FuzzTarget(engine="engine", binary="binary"),
                 redzone=111,
                 disable_ubsan=False,
                 platform_id="platform",
@@ -876,10 +866,10 @@ class ProcessCrashesTest(fake_filesystem_unittest.TestCase):
             ],
             [group.main_crash.crash_state for group in groups],
         )
-        self.assertEqual([True, True, True, True, True],
-                         [group.is_new() for group in groups])
-        self.assertEqual([3, 1, 1, 2, 1], [len(group.crashes)
-                                           for group in groups])
+        self.assertEqual(
+            [True, True, True, True, True], [group.is_new() for group in groups]
+        )
+        self.assertEqual([3, 1, 1, 2, 1], [len(group.crashes) for group in groups])
 
         testcases = list(data_types.Testcase.query())
         self.assertEqual(5, len(testcases))
@@ -889,8 +879,7 @@ class ProcessCrashesTest(fake_filesystem_unittest.TestCase):
         )
 
         self.assertSetEqual(
-            {'{"fuzzing_strategies": ["value_profile"]}',
-                None, None, None, None},
+            {'{"fuzzing_strategies": ["value_profile"]}', None, None, None, None},
             set(t.additional_metadata for t in testcases),
         )
 
@@ -957,77 +946,85 @@ class ProcessCrashesTest(fake_filesystem_unittest.TestCase):
                     data_types.Testcase.crash_type == crash.crash_type,
                     data_types.Testcase.crash_state == crash.crash_state,
                     data_types.Testcase.security_flag == crash.security_flag,
-                ))
+                )
+            )
             if not rows:
                 return None
             return str(rows[0].key.id())
 
         # Calls to write 5 groups of crashes to BigQuery.
         self.assertEqual(5, self.mock.insert.call_count)
-        self.mock.insert.assert_has_calls([
-            mock.call(
-                mock.ANY,
-                [
-                    big_query.Insert(
-                        _make_big_query_json(crashes[0], True, False, None),
-                        "%s:bot:987:0" % crashes[0].key,
-                    ),
-                    big_query.Insert(
-                        _make_big_query_json(crashes[1], True, True,
-                                             _get_testcase_id(crashes[1])),
-                        "%s:bot:987:1" % crashes[0].key,
-                    ),
-                    big_query.Insert(
-                        _make_big_query_json(crashes[2], True, False, None),
-                        "%s:bot:987:2" % crashes[0].key,
-                    ),
-                ],
-            ),
-            mock.call(
-                mock.ANY,
-                [
-                    big_query.Insert(
-                        _make_big_query_json(crashes[3], True, True,
-                                             _get_testcase_id(crashes[3])),
-                        "%s:bot:987:0" % crashes[3].key,
-                    )
-                ],
-            ),
-            mock.call(
-                mock.ANY,
-                [
-                    big_query.Insert(
-                        _make_big_query_json(crashes[4], False, True,
-                                             _get_testcase_id(crashes[4])),
-                        "%s:bot:987:0" % crashes[4].key,
-                    )
-                ],
-            ),
-            mock.call(
-                mock.ANY,
-                [
-                    big_query.Insert(
-                        _make_big_query_json(crashes[5], False, True,
-                                             _get_testcase_id(crashes[5])),
-                        "%s:bot:987:0" % crashes[5].key,
-                    ),
-                    big_query.Insert(
-                        _make_big_query_json(crashes[6], False, False, None),
-                        "%s:bot:987:1" % crashes[5].key,
-                    ),
-                ],
-            ),
-            mock.call(
-                mock.ANY,
-                [
-                    big_query.Insert(
-                        _make_big_query_json(crashes[7], False, True,
-                                             _get_testcase_id(crashes[7])),
-                        "%s:bot:987:0" % crashes[7].key,
-                    )
-                ],
-            ),
-        ])
+        self.mock.insert.assert_has_calls(
+            [
+                mock.call(
+                    mock.ANY,
+                    [
+                        big_query.Insert(
+                            _make_big_query_json(crashes[0], True, False, None),
+                            "%s:bot:987:0" % crashes[0].key,
+                        ),
+                        big_query.Insert(
+                            _make_big_query_json(
+                                crashes[1], True, True, _get_testcase_id(crashes[1])
+                            ),
+                            "%s:bot:987:1" % crashes[0].key,
+                        ),
+                        big_query.Insert(
+                            _make_big_query_json(crashes[2], True, False, None),
+                            "%s:bot:987:2" % crashes[0].key,
+                        ),
+                    ],
+                ),
+                mock.call(
+                    mock.ANY,
+                    [
+                        big_query.Insert(
+                            _make_big_query_json(
+                                crashes[3], True, True, _get_testcase_id(crashes[3])
+                            ),
+                            "%s:bot:987:0" % crashes[3].key,
+                        )
+                    ],
+                ),
+                mock.call(
+                    mock.ANY,
+                    [
+                        big_query.Insert(
+                            _make_big_query_json(
+                                crashes[4], False, True, _get_testcase_id(crashes[4])
+                            ),
+                            "%s:bot:987:0" % crashes[4].key,
+                        )
+                    ],
+                ),
+                mock.call(
+                    mock.ANY,
+                    [
+                        big_query.Insert(
+                            _make_big_query_json(
+                                crashes[5], False, True, _get_testcase_id(crashes[5])
+                            ),
+                            "%s:bot:987:0" % crashes[5].key,
+                        ),
+                        big_query.Insert(
+                            _make_big_query_json(crashes[6], False, False, None),
+                            "%s:bot:987:1" % crashes[5].key,
+                        ),
+                    ],
+                ),
+                mock.call(
+                    mock.ANY,
+                    [
+                        big_query.Insert(
+                            _make_big_query_json(
+                                crashes[7], False, True, _get_testcase_id(crashes[7])
+                            ),
+                            "%s:bot:987:0" % crashes[7].key,
+                        )
+                    ],
+                ),
+            ]
+        )
 
 
 class WriteCrashToBigQueryTest(unittest.TestCase):
@@ -1071,8 +1068,7 @@ class WriteCrashToBigQueryTest(unittest.TestCase):
             project_name="some_project",
             bot_name="bot",
             job_type=job_type,
-            fuzz_target=data_types.FuzzTarget(
-                engine="engine", binary="binary"),
+            fuzz_target=data_types.FuzzTarget(engine="engine", binary="binary"),
             redzone=32,
             disable_ubsan=False,
             platform_id=platform_id,
@@ -1121,24 +1117,28 @@ class WriteCrashToBigQueryTest(unittest.TestCase):
         context = self._create_context("job", "linux")
         fuzz_task.write_crashes_to_big_query(self.group, context)
 
-        success_count = monitoring_metrics.BIG_QUERY_WRITE_COUNT.get(
-            {"success": True})
-        failure_count = monitoring_metrics.BIG_QUERY_WRITE_COUNT.get(
-            {"success": False})
+        success_count = monitoring_metrics.BIG_QUERY_WRITE_COUNT.get({"success": True})
+        failure_count = monitoring_metrics.BIG_QUERY_WRITE_COUNT.get({"success": False})
 
         self.assertEqual(3, success_count)
         self.assertEqual(0, failure_count)
 
         self.mock.Client.assert_called_once_with(
-            dataset_id="main", table_id="crashes$19700101")
-        self.client.insert.assert_called_once_with([
-            big_query.Insert(
-                self._json("job", "linux", "c1", True, "t"), "key:bot:99:0"),
-            big_query.Insert(
-                self._json("job", "linux", "c2", False, None), "key:bot:99:1"),
-            big_query.Insert(
-                self._json("job", "linux", "c3", False, None), "key:bot:99:2"),
-        ])
+            dataset_id="main", table_id="crashes$19700101"
+        )
+        self.client.insert.assert_called_once_with(
+            [
+                big_query.Insert(
+                    self._json("job", "linux", "c1", True, "t"), "key:bot:99:0"
+                ),
+                big_query.Insert(
+                    self._json("job", "linux", "c2", False, None), "key:bot:99:1"
+                ),
+                big_query.Insert(
+                    self._json("job", "linux", "c3", False, None), "key:bot:99:2"
+                ),
+            ]
+        )
 
     def test_succeed(self):
         """Test writing succeeds."""
@@ -1146,24 +1146,28 @@ class WriteCrashToBigQueryTest(unittest.TestCase):
         context = self._create_context("job", "linux")
         fuzz_task.write_crashes_to_big_query(self.group, context)
 
-        success_count = monitoring_metrics.BIG_QUERY_WRITE_COUNT.get(
-            {"success": True})
-        failure_count = monitoring_metrics.BIG_QUERY_WRITE_COUNT.get(
-            {"success": False})
+        success_count = monitoring_metrics.BIG_QUERY_WRITE_COUNT.get({"success": True})
+        failure_count = monitoring_metrics.BIG_QUERY_WRITE_COUNT.get({"success": False})
 
         self.assertEqual(2, success_count)
         self.assertEqual(1, failure_count)
 
         self.mock.Client.assert_called_once_with(
-            dataset_id="main", table_id="crashes$19700101")
-        self.client.insert.assert_called_once_with([
-            big_query.Insert(
-                self._json("job", "linux", "c1", True, "t"), "key:bot:99:0"),
-            big_query.Insert(
-                self._json("job", "linux", "c2", False, None), "key:bot:99:1"),
-            big_query.Insert(
-                self._json("job", "linux", "c3", False, None), "key:bot:99:2"),
-        ])
+            dataset_id="main", table_id="crashes$19700101"
+        )
+        self.client.insert.assert_called_once_with(
+            [
+                big_query.Insert(
+                    self._json("job", "linux", "c1", True, "t"), "key:bot:99:0"
+                ),
+                big_query.Insert(
+                    self._json("job", "linux", "c2", False, None), "key:bot:99:1"
+                ),
+                big_query.Insert(
+                    self._json("job", "linux", "c3", False, None), "key:bot:99:2"
+                ),
+            ]
+        )
 
     def test_chromeos_platform(self):
         """Test ChromeOS platform is written in stats."""
@@ -1171,30 +1175,31 @@ class WriteCrashToBigQueryTest(unittest.TestCase):
         context = self._create_context("job_chromeos", "linux")
         fuzz_task.write_crashes_to_big_query(self.group, context)
 
-        success_count = monitoring_metrics.BIG_QUERY_WRITE_COUNT.get(
-            {"success": True})
-        failure_count = monitoring_metrics.BIG_QUERY_WRITE_COUNT.get(
-            {"success": False})
+        success_count = monitoring_metrics.BIG_QUERY_WRITE_COUNT.get({"success": True})
+        failure_count = monitoring_metrics.BIG_QUERY_WRITE_COUNT.get({"success": False})
 
         self.assertEqual(2, success_count)
         self.assertEqual(1, failure_count)
 
         self.mock.Client.assert_called_once_with(
-            dataset_id="main", table_id="crashes$19700101")
-        self.client.insert.assert_called_once_with([
-            big_query.Insert(
-                self._json("job_chromeos", "chrome", "c1", True, "t"),
-                "key:bot:99:0",
-            ),
-            big_query.Insert(
-                self._json("job_chromeos", "chrome", "c2", False, None),
-                "key:bot:99:1",
-            ),
-            big_query.Insert(
-                self._json("job_chromeos", "chrome", "c3", False, None),
-                "key:bot:99:2",
-            ),
-        ])
+            dataset_id="main", table_id="crashes$19700101"
+        )
+        self.client.insert.assert_called_once_with(
+            [
+                big_query.Insert(
+                    self._json("job_chromeos", "chrome", "c1", True, "t"),
+                    "key:bot:99:0",
+                ),
+                big_query.Insert(
+                    self._json("job_chromeos", "chrome", "c2", False, None),
+                    "key:bot:99:1",
+                ),
+                big_query.Insert(
+                    self._json("job_chromeos", "chrome", "c3", False, None),
+                    "key:bot:99:2",
+                ),
+            ]
+        )
 
     def test_exception(self):
         """Test writing raising an exception."""
@@ -1202,10 +1207,8 @@ class WriteCrashToBigQueryTest(unittest.TestCase):
         context = self._create_context("job", "linux")
         fuzz_task.write_crashes_to_big_query(self.group, context)
 
-        success_count = monitoring_metrics.BIG_QUERY_WRITE_COUNT.get(
-            {"success": True})
-        failure_count = monitoring_metrics.BIG_QUERY_WRITE_COUNT.get(
-            {"success": False})
+        success_count = monitoring_metrics.BIG_QUERY_WRITE_COUNT.get({"success": True})
+        failure_count = monitoring_metrics.BIG_QUERY_WRITE_COUNT.get({"success": False})
 
         self.assertEqual(0, success_count)
         self.assertEqual(3, failure_count)
@@ -1220,12 +1223,14 @@ class ConvertGroupsToCrashesTest(object):
             mock.Mock(
                 crashes=[mock.Mock(), mock.Mock()],
                 main_crash=mock.Mock(
-                    crash_type="t1", crash_state="s1", security_flag=True),
+                    crash_type="t1", crash_state="s1", security_flag=True
+                ),
             ),
             mock.Mock(
                 crashes=[mock.Mock()],
                 main_crash=mock.Mock(
-                    crash_type="t2", crash_state="s2", security_flag=False),
+                    crash_type="t2", crash_state="s2", security_flag=False
+                ),
             ),
         ]
         groups[0].is_new.return_value = False
@@ -1292,8 +1297,7 @@ class TestCorpusSync(fake_filesystem_unittest.TestCase):
         self.assertListEqual(["/dir/c"], corpus.get_new_files())
 
         corpus.upload_files(corpus.get_new_files())
-        self.assertEqual(
-            (["/dir/c"],), self.mock.upload_files.call_args[0][1:])
+        self.assertEqual((["/dir/c"],), self.mock.upload_files.call_args[0][1:])
 
         self.assertListEqual([], corpus.get_new_files())
 
@@ -1302,8 +1306,9 @@ class TestCorpusSync(fake_filesystem_unittest.TestCase):
         corpus = fuzz_task.GcsCorpus("parent", "child", "/dir", "/dir1")
 
         utils.write_data_to_file(time.time(), "/dir1/.child_sync")
-        self.mock.last_updated.return_value = datetime.datetime.utcnow(
-        ) - datetime.timedelta(days=1)
+        self.mock.last_updated.return_value = datetime.datetime.utcnow() - datetime.timedelta(
+            days=1
+        )
         self.assertTrue(corpus.sync_from_gcs())
         self.assertEqual(0, self.mock.rsync_to_disk.call_count)
 
@@ -1333,16 +1338,11 @@ class RecordFuzzTargetTest(unittest.TestCase):
         fuzz_task.record_fuzz_target("libFuzzer", "child", "job")
         fuzz_target = ndb.Key(data_types.FuzzTarget, "libFuzzer_child").get()
         self.assertDictEqual(
-            {
-                "binary": "child",
-                "engine": "libFuzzer",
-                "project": "test-project"
-            },
+            {"binary": "child", "engine": "libFuzzer", "project": "test-project"},
             fuzz_target.to_dict(),
         )
 
-        job_mapping = ndb.Key(data_types.FuzzTargetJob,
-                              "libFuzzer_child/job").get()
+        job_mapping = ndb.Key(data_types.FuzzTargetJob, "libFuzzer_child/job").get()
         self.assertDictEqual(
             {
                 "fuzz_target_name": "libFuzzer_child",
@@ -1360,7 +1360,8 @@ class RecordFuzzTargetTest(unittest.TestCase):
     def test_record_fuzz_target_existing(self):
         """Test that record_fuzz_target works when updating an existing entity."""
         data_types.FuzzTarget(
-            binary="child", engine="libFuzzer", project="test-project").put()
+            binary="child", engine="libFuzzer", project="test-project"
+        ).put()
         data_types.FuzzTargetJob(
             fuzz_target_name="libFuzzer_child",
             job="job",
@@ -1371,16 +1372,11 @@ class RecordFuzzTargetTest(unittest.TestCase):
         fuzz_task.record_fuzz_target("libFuzzer", "child", "job")
         fuzz_target = ndb.Key(data_types.FuzzTarget, "libFuzzer_child").get()
         self.assertDictEqual(
-            {
-                "binary": "child",
-                "engine": "libFuzzer",
-                "project": "test-project"
-            },
+            {"binary": "child", "engine": "libFuzzer", "project": "test-project"},
             fuzz_target.to_dict(),
         )
 
-        job_mapping = ndb.Key(data_types.FuzzTargetJob,
-                              "libFuzzer_child/job").get()
+        job_mapping = ndb.Key(data_types.FuzzTargetJob, "libFuzzer_child/job").get()
         self.assertDictEqual(
             {
                 "fuzz_target_name": "libFuzzer_child",
@@ -1403,31 +1399,25 @@ class RecordFuzzTargetTest(unittest.TestCase):
         fuzz_target = ndb.Key(data_types.FuzzTarget, "libFuzzer_child").get()
         self.assertIsNone(fuzz_target)
 
-        job_mapping = ndb.Key(data_types.FuzzTargetJob,
-                              "libFuzzer_child/job").get()
+        job_mapping = ndb.Key(data_types.FuzzTargetJob, "libFuzzer_child/job").get()
         self.assertIsNone(job_mapping)
 
     @parameterized.parameterized.expand(["child", "proj_child"])
     def test_record_fuzz_target_ossfuzz(self, binary_name):
         """Test that record_fuzz_target works with OSS-Fuzz projects."""
         self.mock.is_oss_fuzz.return_value = True
-        data_types.Job(
-            name="job", environment_string="PROJECT_NAME = proj\n").put()
+        data_types.Job(name="job", environment_string="PROJECT_NAME = proj\n").put()
 
         fuzz_task.record_fuzz_target("libFuzzer", binary_name, "job")
-        fuzz_target = ndb.Key(data_types.FuzzTarget,
-                              "libFuzzer_proj_child").get()
+        fuzz_target = ndb.Key(data_types.FuzzTarget, "libFuzzer_proj_child").get()
         self.assertDictEqual(
-            {
-                "binary": binary_name,
-                "engine": "libFuzzer",
-                "project": "proj"
-            },
+            {"binary": binary_name, "engine": "libFuzzer", "project": "proj"},
             fuzz_target.to_dict(),
         )
 
-        job_mapping = ndb.Key(data_types.FuzzTargetJob,
-                              "libFuzzer_proj_child/job").get()
+        job_mapping = ndb.Key(
+            data_types.FuzzTargetJob, "libFuzzer_proj_child/job"
+        ).get()
         self.assertDictEqual(
             {
                 "fuzz_target_name": "libFuzzer_proj_child",
@@ -1439,8 +1429,7 @@ class RecordFuzzTargetTest(unittest.TestCase):
             job_mapping.to_dict(),
         )
 
-        self.assertEqual("libFuzzer_proj_child",
-                         fuzz_target.fully_qualified_name())
+        self.assertEqual("libFuzzer_proj_child", fuzz_target.fully_qualified_name())
         self.assertEqual("proj_child", fuzz_target.project_qualified_name())
 
 
@@ -1473,26 +1462,25 @@ class DoEngineFuzzingTest(fake_filesystem_unittest.TestCase):
         os.environ["AUTOMATIC_COMPONENTS"] = "auto_component,auto_component1"
 
         self.fs.create_file("/build_dir/test_target")
+        self.fs.create_file("/build_dir/test_target.labels", contents="label1\nlabel2")
         self.fs.create_file(
-            "/build_dir/test_target.labels", contents="label1\nlabel2")
+            "/build_dir/test_target.owners", contents="owner1@email.com"
+        )
         self.fs.create_file(
-            "/build_dir/test_target.owners", contents="owner1@email.com")
-        self.fs.create_file(
-            "/build_dir/test_target.components", contents="component1\ncomponent2")
+            "/build_dir/test_target.components", contents="component1\ncomponent2"
+        )
         self.fs.create_file("/input")
 
         self.mock.sync_from_gcs.return_value = True
         self.mock.upload_files.return_value = True
-        self.mock.get_component_list.return_value = [{
-            "component": "component",
-            "link_text": "rev"
-        }]
+        self.mock.get_component_list.return_value = [
+            {"component": "component", "link_text": "rev"}
+        ]
         self.mock.current_timestamp.return_value = 0.0
 
     def test_basic(self):
         """Test basic fuzzing session."""
-        session = fuzz_task.FuzzingSession(
-            "libFuzzer", "libfuzzer_asan_test", 60)
+        session = fuzz_task.FuzzingSession("libFuzzer", "libfuzzer_asan_test", 60)
         session.testcase_directory = os.environ["FUZZ_INPUTS"]
         session.data_directory = "/data_dir"
 
@@ -1504,24 +1492,19 @@ class DoEngineFuzzingTest(fake_filesystem_unittest.TestCase):
         engine_impl = mock.Mock()
         engine_impl.name = "libFuzzer"
         engine_impl.prepare.return_value = engine.FuzzOptions(
-            "/corpus", ["arg"], {
-                "strategy_1": 1,
-                "strategy_2": 50
-            })
+            "/corpus", ["arg"], {"strategy_1": 1, "strategy_2": 50}
+        )
         engine_impl.fuzz.side_effect = lambda *_: engine.FuzzResult(
-            "logs", ["cmd"], expected_crashes, {"stat": 1}, 42.0)
+            "logs", ["cmd"], expected_crashes, {"stat": 1}, 42.0
+        )
 
         crashes, fuzzer_metadata = session.do_engine_fuzzing(engine_impl)
         self.assertDictEqual(
             {
-                "fuzzer_binary_name":
-                    "test_target",
-                "issue_components":
-                    "component1,component2,auto_component,auto_component1",
-                "issue_labels":
-                    "label1,label2,auto_label,auto_label1",
-                "issue_owners":
-                    "owner1@email.com",
+                "fuzzer_binary_name": "test_target",
+                "issue_components": "component1,component2,auto_component,auto_component1",
+                "issue_labels": "label1,label2,auto_label,auto_label1",
+                "issue_owners": "owner1@email.com",
             },
             fuzzer_metadata,
         )
@@ -1538,8 +1521,8 @@ class DoEngineFuzzingTest(fake_filesystem_unittest.TestCase):
         )
         self.mock.upload_log.assert_has_calls([log_call, log_call])
         self.mock.upload_testcase.assert_has_calls(
-            [mock.call("/input", log_time),
-             mock.call("/input", log_time)])
+            [mock.call("/input", log_time), mock.call("/input", log_time)]
+        )
 
         self.assertEqual(2, len(crashes))
         for i in range(2):
@@ -1569,7 +1552,8 @@ class DoEngineFuzzingTest(fake_filesystem_unittest.TestCase):
 
 
 class UntrustedRunEngineFuzzerTest(
-        untrusted_runner_helpers.UntrustedRunnerIntegrationTest):
+    untrusted_runner_helpers.UntrustedRunnerIntegrationTest
+):
     """Engine fuzzing tests for untrusted."""
 
     def setUp(self):
@@ -1585,12 +1569,12 @@ class UntrustedRunEngineFuzzerTest(
                 "test-libfuzzer-build-([0-9]+).zip\n"
                 "REVISION_VARS_URL = https://commondatastorage.googleapis.com/"
                 "clusterfuzz-test-data/test_libfuzzer_builds/"
-                "test-libfuzzer-build-%s.srcmap.json\n"),
+                "test-libfuzzer-build-%s.srcmap.json\n"
+            ),
         )
         job.put()
 
-        self.temp_dir = tempfile.mkdtemp(
-            dir=environment.get_value("FUZZ_INPUTS"))
+        self.temp_dir = tempfile.mkdtemp(dir=environment.get_value("FUZZ_INPUTS"))
         environment.set_value("USE_MINIJAIL", False)
 
     def tearDown(self):
@@ -1619,17 +1603,15 @@ class UntrustedRunEngineFuzzerTest(
             result.logs,
         )
         self.assertEqual(1, len(result.crashes))
-        self.assertTrue(result.crashes[0].input_path.startswith(
-            os.environ["ROOT_DIR"]))
+        self.assertTrue(result.crashes[0].input_path.startswith(os.environ["ROOT_DIR"]))
         self.assertTrue(os.path.exists(result.crashes[0].input_path))
-        self.assertIsInstance(result.stats.get(
-            "number_of_executed_units"), int)
+        self.assertIsInstance(result.stats.get("number_of_executed_units"), int)
         self.assertIsInstance(result.stats.get("oom_count"), int)
         self.assertIsInstance(
-            result.stats.get("strategy_selection_method"), six.string_types)
+            result.stats.get("strategy_selection_method"), six.string_types
+        )
 
-        self.assertDictEqual(
-            {"fuzzer_binary_name": "test_fuzzer"}, fuzzer_metadata)
+        self.assertDictEqual({"fuzzer_binary_name": "test_fuzzer"}, fuzzer_metadata)
 
 
 class AddIssueMetadataFromEnvironmentTest(unittest.TestCase):
@@ -1669,10 +1651,8 @@ class AddIssueMetadataFromEnvironmentTest(unittest.TestCase):
         fuzz_task._add_issue_metadata_from_environment(metadata)
         self.assertDictEqual(
             {
-                "issue_components":
-                    "existing_component,auto_component,auto_component1",
-                "issue_labels":
-                    "existing_label,auto_label,auto_label1",
+                "issue_components": "existing_component,auto_component,auto_component1",
+                "issue_labels": "existing_label,auto_label,auto_label1",
             },
             metadata,
         )

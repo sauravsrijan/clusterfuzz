@@ -129,9 +129,11 @@ def clone_entity(e, **extra_args):
     """Clones a DataStore entity and returns the clone."""
     ent_class = e.__class__
     # pylint: disable=protected-access
-    props = dict((v._code_name, v.__get__(e, ent_class))
-                 for v in six.itervalues(ent_class._properties)
-                 if not isinstance(v, ndb.ComputedProperty))
+    props = dict(
+        (v._code_name, v.__get__(e, ent_class))
+        for v in six.itervalues(ent_class._properties)
+        if not isinstance(v, ndb.ComputedProperty)
+    )
     props.update(extra_args)
     return ent_class(**props)
 
@@ -149,16 +151,14 @@ class TextProperty(ndb.TextProperty):
     """Overridden text property."""
 
     def __init__(self, *args, **kwargs):
-        super(TextProperty, self).__init__(
-            *args, validator=_to_native_str, **kwargs)
+        super(TextProperty, self).__init__(*args, validator=_to_native_str, **kwargs)
 
 
 class StringProperty(ndb.StringProperty):
     """Overridden string property."""
 
     def __init__(self, *args, **kwargs):
-        super(StringProperty, self).__init__(
-            *args, validator=_to_native_str, **kwargs)
+        super(StringProperty, self).__init__(*args, validator=_to_native_str, **kwargs)
 
 
 class SecuritySeverity(object):
@@ -179,27 +179,11 @@ class SecuritySeverity(object):
     def list(cls):
         """Return the list of severities for a dropdown menu."""
         return [
-            {
-                "value": cls.CRITICAL,
-                "name": "Critical"
-            },
-            {
-                "value": cls.HIGH,
-                "name": "High",
-                "default": True
-            },
-            {
-                "value": cls.MEDIUM,
-                "name": "Medium"
-            },
-            {
-                "value": cls.LOW,
-                "name": "Low"
-            },
-            {
-                "value": cls.MISSING,
-                "name": "Missing"
-            },
+            {"value": cls.CRITICAL, "name": "Critical"},
+            {"value": cls.HIGH, "name": "High", "default": True},
+            {"value": cls.MEDIUM, "name": "Medium"},
+            {"value": cls.LOW, "name": "Low"},
+            {"value": cls.MISSING, "name": "Missing"},
         ]
 
 
@@ -589,13 +573,13 @@ class Testcase(Model):
             | search_tokenizer.tokenize(self.fuzzer_name)
             | search_tokenizer.tokenize(self.overridden_fuzzer_name)
             | search_tokenizer.tokenize(self.job_type)
-            | search_tokenizer.tokenize(self.platform_id))
+            | search_tokenizer.tokenize(self.platform_id)
+        )
 
         self.bug_indices = search_tokenizer.tokenize_bug_information(self)
         self.has_bug_flag = bool(self.bug_indices)
         self.is_a_duplicate_flag = bool(self.duplicate_of)
-        fuzzer_name_indices = list(
-            {self.fuzzer_name, self.overridden_fuzzer_name})
+        fuzzer_name_indices = list({self.fuzzer_name, self.overridden_fuzzer_name})
         self.fuzzer_name_indices = [f for f in fuzzer_name_indices if f]
 
         # If the impact task hasn't been run (aka is_impact_set_flag=False) OR
@@ -603,12 +587,17 @@ class Testcase(Model):
         # the impact fields' indices.
         if self.has_impacts() and self.is_impact_set_flag:
             self.impact_stable_version_indices = search_tokenizer.tokenize_impact_version(
-                self.impact_stable_version)
+                self.impact_stable_version
+            )
             self.impact_beta_version_indices = search_tokenizer.tokenize_impact_version(
-                self.impact_beta_version)
+                self.impact_beta_version
+            )
             self.impact_version_indices = list(
-                set(self.impact_stable_version_indices +
-                    self.impact_beta_version_indices))
+                set(
+                    self.impact_stable_version_indices
+                    + self.impact_beta_version_indices
+                )
+            )
 
             if self.impact_beta_version:
                 self.impact_version_indices.append("beta")
@@ -625,8 +614,10 @@ class Testcase(Model):
         self.populate_indices()
 
     def _post_put_hook(self, _):
-        logs.log("Updated testcase %d (bug %s)." %
-                 (self.key.id(), self.bug_information or "-"))
+        logs.log(
+            "Updated testcase %d (bug %s)."
+            % (self.key.id(), self.bug_information or "-")
+        )
 
     def set_impacts_as_na(self):
         self.impact_stable_version = self.impact_beta_version = None
@@ -903,18 +894,19 @@ class Job(Model):
 
         job_environment = {}
         for template_name in self.templates:
-            template = JobTemplate.query(
-                JobTemplate.name == template_name).get()
+            template = JobTemplate.query(JobTemplate.name == template_name).get()
             if not template:
                 continue
 
             template_environment = environment.parse_environment_definition(
-                template.environment_string)
+                template.environment_string
+            )
 
             job_environment.update(template_environment)
 
         environment_overrides = environment.parse_environment_definition(
-            self.environment_string)
+            self.environment_string
+        )
 
         job_environment.update(environment_overrides)
         return job_environment
@@ -931,8 +923,9 @@ class Job(Model):
 
     def _pre_put_hook(self):
         """Pre-put hook."""
-        self.project = self.get_environment().get("PROJECT_NAME",
-                                                  utils.default_project_name())
+        self.project = self.get_environment().get(
+            "PROJECT_NAME", utils.default_project_name()
+        )
 
 
 class CSRFToken(Model):
@@ -1133,8 +1126,7 @@ class FuzzTarget(Model):
 
     def fully_qualified_name(self):
         """Get the fully qualified name for this fuzz target."""
-        return fuzz_target_fully_qualified_name(self.engine, self.project,
-                                                self.binary)
+        return fuzz_target_fully_qualified_name(self.engine, self.project, self.binary)
 
     def project_qualified_name(self):
         """Get the name qualified by project."""
@@ -1198,8 +1190,9 @@ class FuzzTargetJob(Model):
 
     def _pre_put_hook(self):
         """Pre-put hook."""
-        self.key = ndb.Key(FuzzTargetJob,
-                           fuzz_target_job_key(self.fuzz_target_name, self.job))
+        self.key = ndb.Key(
+            FuzzTargetJob, fuzz_target_job_key(self.fuzz_target_name, self.job)
+        )
 
 
 class FuzzStrategyProbability(Model):
@@ -1295,8 +1288,9 @@ class CoverageInformation(Model):
 
     def _pre_put_hook(self):
         """Pre-put hook."""
-        self.key = ndb.Key(CoverageInformation,
-                           coverage_information_key(self.fuzzer, self.date))
+        self.key = ndb.Key(
+            CoverageInformation, coverage_information_key(self.fuzzer, self.date)
+        )
 
 
 def coverage_information_date_string(date):

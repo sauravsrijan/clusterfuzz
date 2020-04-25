@@ -18,25 +18,25 @@ from datastore import data_types
 from tests.test_libs import test_utils
 
 
-@test_utils.with_cloud_emulators('datastore')
+@test_utils.with_cloud_emulators("datastore")
 class TestcaseTest(unittest.TestCase):
     """Test Testcase."""
 
     def test_put(self):
         """Test put(). It should tokenize certain fields."""
         testcase = data_types.Testcase()
-        testcase.crash_state = 'state'
-        testcase.crash_type = 'type'
-        testcase.fuzzer_name = 'fuzzer'
-        testcase.overridden_fuzzer_name = 'Overfuzzer'
-        testcase.job_type = 'job'
-        testcase.bug_information = '333'
+        testcase.crash_state = "state"
+        testcase.crash_type = "type"
+        testcase.fuzzer_name = "fuzzer"
+        testcase.overridden_fuzzer_name = "Overfuzzer"
+        testcase.job_type = "job"
+        testcase.bug_information = "333"
         testcase.group_id = 1234
         testcase.group_bug_information = 999
-        testcase.impact_stable_version = 's.1'
-        testcase.impact_beta_version = 'b.3'
-        testcase.platform_id = 'windows'
-        testcase.project_name = 'chromium'
+        testcase.impact_stable_version = "s.1"
+        testcase.impact_beta_version = "b.3"
+        testcase.platform_id = "windows"
+        testcase.project_name = "chromium"
         testcase.one_time_crasher_flag = False
         testcase.is_impact_set_flag = True
         testcase.put()
@@ -44,46 +44,45 @@ class TestcaseTest(unittest.TestCase):
         testcase = testcase.key.get()
 
         self.assertSetEqual(
-            {'state', 'type', 'job', 'fuzzer', 'overfuzzer', 'windows'},
-            set(testcase.keywords))
-        self.assertSetEqual({'333', '999'}, set(testcase.bug_indices))
+            {"state", "type", "job", "fuzzer", "overfuzzer", "windows"},
+            set(testcase.keywords),
+        )
+        self.assertSetEqual({"333", "999"}, set(testcase.bug_indices))
         self.assertTrue(testcase.has_bug_flag)
+        self.assertSetEqual({"fuzzer", "Overfuzzer"}, set(testcase.fuzzer_name_indices))
+        self.assertSetEqual({"s", "s.1"}, set(testcase.impact_stable_version_indices))
+        self.assertSetEqual({"b", "b.3"}, set(testcase.impact_beta_version_indices))
         self.assertSetEqual(
-            {'fuzzer', 'Overfuzzer'}, set(testcase.fuzzer_name_indices))
-        self.assertSetEqual(
-            {'s', 's.1'}, set(testcase.impact_stable_version_indices))
-        self.assertSetEqual(
-            {'b', 'b.3'}, set(testcase.impact_beta_version_indices))
-        self.assertSetEqual(
-            {'s', 's.1', 'b', 'b.3', 'stable', 'beta'},
-            set(testcase.impact_version_indices))
+            {"s", "s.1", "b", "b.3", "stable", "beta"},
+            set(testcase.impact_version_indices),
+        )
 
     def test_put_head(self):
         """Tests put() when the impact is head."""
         testcase = data_types.Testcase()
-        testcase.impact_stable_version = ''
-        testcase.impact_beta_version = ''
-        testcase.project_name = 'chromium'
+        testcase.impact_stable_version = ""
+        testcase.impact_beta_version = ""
+        testcase.project_name = "chromium"
         testcase.one_time_crasher_flag = False
         testcase.is_impact_set_flag = True
         testcase.put()
 
         testcase = testcase.key.get()
 
-        self.assertSetEqual({'head'}, set(testcase.impact_version_indices))
+        self.assertSetEqual({"head"}, set(testcase.impact_version_indices))
 
     def test_non_chromium(self):
         """Test put(). It should tokenize certain fields."""
         testcase = data_types.Testcase()
-        testcase.impact_version_indices = ['head']
-        testcase.impact_stable_version = '4.5.6'
-        testcase.impact_beta_version = '1.2.3'
-        testcase.impact_stable_version_indices = ['s']
-        testcase.impact_beta_version_indices = ['b']
+        testcase.impact_version_indices = ["head"]
+        testcase.impact_stable_version = "4.5.6"
+        testcase.impact_beta_version = "1.2.3"
+        testcase.impact_stable_version_indices = ["s"]
+        testcase.impact_beta_version_indices = ["b"]
         testcase.impact_stable_version_likely = True
         testcase.impact_beta_version_likely = True
         testcase.is_impact_set_flag = True
-        testcase.project_name = 'cobalt'
+        testcase.project_name = "cobalt"
         testcase.put()
 
         testcase = testcase.key.get()
@@ -92,8 +91,8 @@ class TestcaseTest(unittest.TestCase):
         self.assertEqual([], testcase.impact_beta_version_indices)
         self.assertEqual([], testcase.impact_version_indices)
         # We only clear the indices. The original data is kept.
-        self.assertEqual('1.2.3', testcase.impact_beta_version)
-        self.assertEqual('4.5.6', testcase.impact_stable_version)
+        self.assertEqual("1.2.3", testcase.impact_beta_version)
+        self.assertEqual("4.5.6", testcase.impact_stable_version)
         self.assertTrue(testcase.is_impact_set_flag)
         self.assertTrue(testcase.impact_stable_version_likely)
         self.assertTrue(testcase.impact_beta_version_likely)
@@ -104,20 +103,28 @@ class FuzzTargetFullyQualifiedNameTest(unittest.TestCase):
 
     def test_project_with_regular_chars(self):
         self.assertEqual(
-            'libFuzzer_myproject_json_fuzzer',
-            data_types.fuzz_target_fully_qualified_name('libFuzzer', 'myproject',
-                                                        'json_fuzzer'))
+            "libFuzzer_myproject_json_fuzzer",
+            data_types.fuzz_target_fully_qualified_name(
+                "libFuzzer", "myproject", "json_fuzzer"
+            ),
+        )
         self.assertEqual(
-            'afl_test_project_hash_fuzzer',
-            data_types.fuzz_target_fully_qualified_name('afl', 'test_project',
-                                                        'hash_fuzzer'))
+            "afl_test_project_hash_fuzzer",
+            data_types.fuzz_target_fully_qualified_name(
+                "afl", "test_project", "hash_fuzzer"
+            ),
+        )
 
     def test_project_with_special_chars(self):
         self.assertEqual(
-            'libFuzzer_third_party-llvm_clang_fuzzer',
+            "libFuzzer_third_party-llvm_clang_fuzzer",
             data_types.fuzz_target_fully_qualified_name(
-                'libFuzzer', '//third_party/llvm', 'clang_fuzzer'))
+                "libFuzzer", "//third_party/llvm", "clang_fuzzer"
+            ),
+        )
         self.assertEqual(
-            'afl_third_party-aspell-aspell_5_aspell_fuzzer',
+            "afl_third_party-aspell-aspell_5_aspell_fuzzer",
             data_types.fuzz_target_fully_qualified_name(
-                'afl', 'third_party:aspell:aspell_5', 'aspell_fuzzer'))
+                "afl", "third_party:aspell:aspell_5", "aspell_fuzzer"
+            ),
+        )

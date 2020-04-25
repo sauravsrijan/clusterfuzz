@@ -28,7 +28,8 @@ except ImportError:
     pass
 
 FORWARDED_ENVIRONMENT_VARIABLES = [
-    re.compile(pattern) for pattern in (
+    re.compile(pattern)
+    for pattern in (
         r"^AFL_.*",
         r"^APPLICATION_ID$",
         r"^ASAN_OPTIONS$",
@@ -67,7 +68,8 @@ def is_forwarded_environment_variable(environment_variable):
     """Return whether or not |environment_variable| should be forwarded."""
     return any(
         pattern.match(environment_variable)
-        for pattern in FORWARDED_ENVIRONMENT_VARIABLES)
+        for pattern in FORWARDED_ENVIRONMENT_VARIABLES
+    )
 
 
 def should_rebase_environment_value(environment_variable):

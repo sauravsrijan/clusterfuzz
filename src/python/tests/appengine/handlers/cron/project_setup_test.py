@@ -74,12 +74,13 @@ def mock_get_iam_policy(bucket=None):
         "etag": "fake",
     }
 
-    if (bucket == "lib1-logs.clusterfuzz-external.appspot.com" or
-            bucket == "lib3-logs.clusterfuzz-external.appspot.com"):
-        response["bindings"].append({
-            "role": "roles/storage.objectViewer",
-            "members": ["user:user@example.com"]
-        })
+    if (
+        bucket == "lib1-logs.clusterfuzz-external.appspot.com"
+        or bucket == "lib3-logs.clusterfuzz-external.appspot.com"
+    ):
+        response["bindings"].append(
+            {"role": "roles/storage.objectViewer", "members": ["user:user@example.com"]}
+        )
 
     return MockRequest(return_value=response)
 
@@ -112,29 +113,26 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
 
     def setUp(self):
         self.app = webtest.TestApp(
-            webapp2.WSGIApplication([("/setup", project_setup.Handler)]))
+            webapp2.WSGIApplication([("/setup", project_setup.Handler)])
+        )
 
         helpers.patch_environ(self)
 
         data_types.Job(
             name="libfuzzer_asan_old_job",
-            environment_string=("MANAGED = True\n"
-                                "PROJECT_NAME = old\n"),
+            environment_string=("MANAGED = True\n" "PROJECT_NAME = old\n"),
         ).put()
         data_types.Job(
             name="libfuzzer_msan_old_job",
-            environment_string=("MANAGED = True\n"
-                                "PROJECT_NAME = old\n"),
+            environment_string=("MANAGED = True\n" "PROJECT_NAME = old\n"),
         ).put()
         data_types.Job(
             name="afl_asan_old_job",
-            environment_string=("MANAGED = True\n"
-                                "PROJECT_NAME = old\n"),
+            environment_string=("MANAGED = True\n" "PROJECT_NAME = old\n"),
         ).put()
         data_types.Job(
             name="afl_msan_old_job",
-            environment_string=("MANAGED = True\n"
-                                "PROJECT_NAME = old\n"),
+            environment_string=("MANAGED = True\n" "PROJECT_NAME = old\n"),
         ).put()
         data_types.Job(name="unmanaged_job", environment_string="").put()
 
@@ -164,8 +162,7 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
 
         self.libfuzzer = data_types.Fuzzer(name="libFuzzer", jobs=[])
         self.libfuzzer.data_bundle_name = "global"
-        self.libfuzzer.jobs = [
-            "libfuzzer_asan_old_job", "libfuzzer_msan_old_job"]
+        self.libfuzzer.jobs = ["libfuzzer_asan_old_job", "libfuzzer_msan_old_job"]
         self.libfuzzer.put()
 
         self.afl = data_types.Fuzzer(name="afl", jobs=[])
@@ -196,25 +193,28 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
         )
 
         self.mock.get_or_create_service_account.side_effect = (
-            _mock_get_or_create_service_account)
+            _mock_get_or_create_service_account
+        )
 
-        self.mock.ProjectConfig.return_value = mock_config.MockConfig({
-            "project_setup": {
-                "source": "oss-fuzz",
-                "build_type": "RELEASE_BUILD_BUCKET_PATH",
-                "segregate_projects": True,
-                "add_info_labels": True,
-                "add_revision_mappings": True,
-                "build_buckets": {
-                    "afl": "clusterfuzz-builds-afl",
-                    "dataflow": "clusterfuzz-builds-dataflow",
-                    "honggfuzz": "clusterfuzz-builds-honggfuzz",
-                    "libfuzzer": "clusterfuzz-builds",
-                    "libfuzzer_i386": "clusterfuzz-builds-i386",
-                    "no_engine": "clusterfuzz-builds-no-engine",
-                },
+        self.mock.ProjectConfig.return_value = mock_config.MockConfig(
+            {
+                "project_setup": {
+                    "source": "oss-fuzz",
+                    "build_type": "RELEASE_BUILD_BUCKET_PATH",
+                    "segregate_projects": True,
+                    "add_info_labels": True,
+                    "add_revision_mappings": True,
+                    "build_buckets": {
+                        "afl": "clusterfuzz-builds-afl",
+                        "dataflow": "clusterfuzz-builds-dataflow",
+                        "honggfuzz": "clusterfuzz-builds-honggfuzz",
+                        "libfuzzer": "clusterfuzz-builds",
+                        "libfuzzer_i386": "clusterfuzz-builds-i386",
+                        "no_engine": "clusterfuzz-builds-no-engine",
+                    },
+                }
             }
-        })
+        )
 
     def test_execute(self):
         """Tests executing of cron job."""
@@ -228,15 +228,13 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
         app_id = utils.get_application_id()
         unmanaged_topic_name = pubsub.topic_name(app_id, "jobs-linux")
         old_topic_name = pubsub.topic_name(app_id, "jobs-shouldbedeleted")
-        old_subscription_name = pubsub.subscription_name(app_id,
-                                                         "jobs-shouldbedeleted")
+        old_subscription_name = pubsub.subscription_name(app_id, "jobs-shouldbedeleted")
         other_topic_name = pubsub.topic_name(app_id, "other")
 
         pubsub_client.create_topic(unmanaged_topic_name)
         pubsub_client.create_topic(old_topic_name)
         pubsub_client.create_topic(other_topic_name)
-        pubsub_client.create_subscription(
-            old_subscription_name, old_topic_name)
+        pubsub_client.create_subscription(old_subscription_name, old_topic_name)
 
         self.mock.get_oss_fuzz_projects.return_value = [
             (
@@ -261,11 +259,7 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
                     "homepage": "http://example3.com",
                     "sanitizers": [
                         "address",
-                        {
-                            "memory": {
-                                "experimental": True
-                            }
-                        },
+                        {"memory": {"experimental": True}},
                         "undefined",
                     ],
                     "auto_ccs": "User@example.com",
@@ -313,13 +307,11 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
 
         self.app.get("/setup")
 
-        job = data_types.Job.query(
-            data_types.Job.name == "libfuzzer_asan_lib1").get()
+        job = data_types.Job.query(data_types.Job.name == "libfuzzer_asan_lib1").get()
         self.assertIsNotNone(job)
         self.assertEqual(job.project, "lib1")
         self.assertEqual(job.platform, "LIB1_LINUX")
-        self.assertItemsEqual(
-            job.templates, ["engine_asan", "libfuzzer", "prune"])
+        self.assertItemsEqual(job.templates, ["engine_asan", "libfuzzer", "prune"])
         self.assertEqual(
             job.environment_string,
             "RELEASE_BUILD_BUCKET_PATH = "
@@ -336,13 +328,11 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
             "AUTOMATIC_LABELS = Proj-lib1,Engine-libfuzzer\n",
         )
 
-        job = data_types.Job.query(
-            data_types.Job.name == "libfuzzer_asan_lib2").get()
+        job = data_types.Job.query(data_types.Job.name == "libfuzzer_asan_lib2").get()
         self.assertIsNotNone(job)
         self.assertEqual(job.project, "lib2")
         self.assertEqual(job.platform, "LIB2_LINUX")
-        self.assertItemsEqual(
-            job.templates, ["engine_asan", "libfuzzer", "prune"])
+        self.assertItemsEqual(job.templates, ["engine_asan", "libfuzzer", "prune"])
         self.assertEqual(
             job.environment_string,
             "RELEASE_BUILD_BUCKET_PATH = "
@@ -359,13 +349,11 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
             "AUTOMATIC_LABELS = Proj-lib2,Engine-libfuzzer\n",
         )
 
-        job = data_types.Job.query(
-            data_types.Job.name == "libfuzzer_asan_lib3").get()
+        job = data_types.Job.query(data_types.Job.name == "libfuzzer_asan_lib3").get()
         self.assertIsNotNone(job)
         self.assertEqual(job.project, "lib3")
         self.assertEqual(job.platform, "LIB3_LINUX")
-        self.assertItemsEqual(
-            job.templates, ["engine_asan", "libfuzzer", "prune"])
+        self.assertItemsEqual(job.templates, ["engine_asan", "libfuzzer", "prune"])
         self.assertEqual(
             job.environment_string,
             "RELEASE_BUILD_BUCKET_PATH = "
@@ -384,7 +372,8 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
         )
 
         job = data_types.Job.query(
-            data_types.Job.name == "libfuzzer_asan_i386_lib3").get()
+            data_types.Job.name == "libfuzzer_asan_i386_lib3"
+        ).get()
         self.assertIsNotNone(job)
         self.assertEqual(job.project, "lib3")
         self.assertEqual(job.platform, "LIB3_LINUX")
@@ -406,8 +395,7 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
             "ISSUE_VIEW_RESTRICTIONS = none\n",
         )
 
-        job = data_types.Job.query(
-            data_types.Job.name == "libfuzzer_msan_lib3").get()
+        job = data_types.Job.query(data_types.Job.name == "libfuzzer_msan_lib3").get()
         self.assertIsNotNone(job)
         self.assertEqual(job.project, "lib3")
         self.assertEqual(job.platform, "LIB3_LINUX")
@@ -430,8 +418,7 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
             "ISSUE_VIEW_RESTRICTIONS = none\n",
         )
 
-        job = data_types.Job.query(
-            data_types.Job.name == "libfuzzer_ubsan_lib3").get()
+        job = data_types.Job.query(data_types.Job.name == "libfuzzer_ubsan_lib3").get()
         self.assertIsNotNone(job)
         self.assertEqual(job.project, "lib3")
         self.assertEqual(job.platform, "LIB3_LINUX")
@@ -453,8 +440,7 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
             "ISSUE_VIEW_RESTRICTIONS = none\n",
         )
 
-        job = data_types.Job.query(
-            data_types.Job.name == "afl_asan_lib1").get()
+        job = data_types.Job.query(data_types.Job.name == "afl_asan_lib1").get()
         self.assertIsNotNone(job)
         self.assertEqual(job.project, "lib1")
         self.assertEqual(job.platform, "LIB1_LINUX")
@@ -480,8 +466,7 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
         job = data_types.Job.query(data_types.Job.name == "asan_lib4").get()
         self.assertIsNone(job)
 
-        job = data_types.Job.query(
-            data_types.Job.name == "libfuzzer_asan_lib5").get()
+        job = data_types.Job.query(data_types.Job.name == "libfuzzer_asan_lib5").get()
         self.assertEqual(job.project, "lib5")
         self.assertEqual(job.platform, "LIB5_LINUX")
         self.assertEqual(
@@ -502,8 +487,7 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
             "UNPACK_ALL_FUZZ_TARGETS_AND_FILES = False\n",
         )
 
-        job = data_types.Job.query(
-            data_types.Job.name == "libfuzzer_asan_lib6").get()
+        job = data_types.Job.query(data_types.Job.name == "libfuzzer_asan_lib6").get()
         self.assertEqual(job.project, "lib6")
         self.assertEqual(job.platform, "LIB6_LINUX")
         self.assertEqual(
@@ -526,8 +510,7 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
 
         self.maxDiff = None  # pylint: disable=invalid-name
 
-        libfuzzer = data_types.Fuzzer.query(
-            data_types.Fuzzer.name == "libFuzzer").get()
+        libfuzzer = data_types.Fuzzer.query(data_types.Fuzzer.name == "libFuzzer").get()
         self.assertItemsEqual(
             libfuzzer.jobs,
             [
@@ -549,31 +532,27 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
 
         # Test that old unused jobs are deleted.
         self.assertIsNone(
-            data_types.Job.query(
-                data_types.Job.name == "libfuzzer_asan_old_job").get())
+            data_types.Job.query(data_types.Job.name == "libfuzzer_asan_old_job").get()
+        )
         self.assertIsNone(
-            data_types.Job.query(
-                data_types.Job.name == "libfuzzer_msan_old_job").get())
+            data_types.Job.query(data_types.Job.name == "libfuzzer_msan_old_job").get()
+        )
 
         # Unmanaged job should still exist.
         self.assertIsNotNone(
-            data_types.Job.query(data_types.Job.name == "unmanaged_job").get())
+            data_types.Job.query(data_types.Job.name == "unmanaged_job").get()
+        )
 
         # Test that project settings are created.
         lib1_settings = ndb.Key(data_types.OssFuzzProject, "lib1").get()
         self.assertIsNotNone(lib1_settings)
         self.assertDictEqual(
             {
-                "cpu_weight":
-                    1.5,
-                "name":
-                    "lib1",
-                "disk_size_gb":
-                    None,
-                "service_account":
-                    "lib1@serviceaccount.com",
-                "high_end":
-                    False,
+                "cpu_weight": 1.5,
+                "name": "lib1",
+                "disk_size_gb": None,
+                "service_account": "lib1@serviceaccount.com",
+                "high_end": False,
                 "ccs": [
                     "primary@example.com",
                     "user@example.com",
@@ -617,835 +596,746 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
         old_lib_settings = ndb.Key(data_types.OssFuzzProject, "old_lib").get()
         self.assertIsNone(old_lib_settings)
 
-        mock_storage.buckets().get.assert_has_calls([
-            mock.call(bucket="lib1-backup.clusterfuzz-external.appspot.com"),
-            mock.call(bucket="lib1-corpus.clusterfuzz-external.appspot.com"),
-            mock.call(bucket="lib1-quarantine.clusterfuzz-external.appspot.com"),
-            mock.call(bucket="lib1-logs.clusterfuzz-external.appspot.com"),
-            mock.call(bucket="lib2-backup.clusterfuzz-external.appspot.com"),
-            mock.call(bucket="lib2-corpus.clusterfuzz-external.appspot.com"),
-            mock.call(bucket="lib2-quarantine.clusterfuzz-external.appspot.com"),
-            mock.call(bucket="lib2-logs.clusterfuzz-external.appspot.com"),
-            mock.call(bucket="lib3-backup.clusterfuzz-external.appspot.com"),
-            mock.call(bucket="lib3-corpus.clusterfuzz-external.appspot.com"),
-            mock.call(bucket="lib3-quarantine.clusterfuzz-external.appspot.com"),
-            mock.call(bucket="lib3-logs.clusterfuzz-external.appspot.com"),
-        ])
+        mock_storage.buckets().get.assert_has_calls(
+            [
+                mock.call(bucket="lib1-backup.clusterfuzz-external.appspot.com"),
+                mock.call(bucket="lib1-corpus.clusterfuzz-external.appspot.com"),
+                mock.call(bucket="lib1-quarantine.clusterfuzz-external.appspot.com"),
+                mock.call(bucket="lib1-logs.clusterfuzz-external.appspot.com"),
+                mock.call(bucket="lib2-backup.clusterfuzz-external.appspot.com"),
+                mock.call(bucket="lib2-corpus.clusterfuzz-external.appspot.com"),
+                mock.call(bucket="lib2-quarantine.clusterfuzz-external.appspot.com"),
+                mock.call(bucket="lib2-logs.clusterfuzz-external.appspot.com"),
+                mock.call(bucket="lib3-backup.clusterfuzz-external.appspot.com"),
+                mock.call(bucket="lib3-corpus.clusterfuzz-external.appspot.com"),
+                mock.call(bucket="lib3-quarantine.clusterfuzz-external.appspot.com"),
+                mock.call(bucket="lib3-logs.clusterfuzz-external.appspot.com"),
+            ]
+        )
 
-        mock_storage.buckets().insert.assert_has_calls([
-            mock.call(
-                body={
-                    "name": "lib1-backup.clusterfuzz-external.appspot.com",
-                    "lifecycle": {
-                        "rule": [{
-                            "action": {
-                                "type": "Delete"
-                            },
-                            "condition": {
-                                "age": 100
-                            },
-                        }]
+        mock_storage.buckets().insert.assert_has_calls(
+            [
+                mock.call(
+                    body={
+                        "name": "lib1-backup.clusterfuzz-external.appspot.com",
+                        "lifecycle": {
+                            "rule": [
+                                {
+                                    "action": {"type": "Delete"},
+                                    "condition": {"age": 100},
+                                }
+                            ]
+                        },
                     },
-                },
-                project="clusterfuzz-external",
-            ),
-            mock.call().execute(),
-            mock.call(
-                body={"name": "lib1-corpus.clusterfuzz-external.appspot.com"},
-                project="clusterfuzz-external",
-            ),
-            mock.call().execute(),
-            mock.call(
-                body={
-                    "name": "lib1-quarantine.clusterfuzz-external.appspot.com",
-                    "lifecycle": {
-                        "rule": [{
-                            "action": {
-                                "type": "Delete"
-                            },
-                            "condition": {
-                                "age": 90
-                            }
-                        }]
+                    project="clusterfuzz-external",
+                ),
+                mock.call().execute(),
+                mock.call(
+                    body={"name": "lib1-corpus.clusterfuzz-external.appspot.com"},
+                    project="clusterfuzz-external",
+                ),
+                mock.call().execute(),
+                mock.call(
+                    body={
+                        "name": "lib1-quarantine.clusterfuzz-external.appspot.com",
+                        "lifecycle": {
+                            "rule": [
+                                {"action": {"type": "Delete"}, "condition": {"age": 90}}
+                            ]
+                        },
                     },
-                },
-                project="clusterfuzz-external",
-            ),
-            mock.call().execute(),
-            mock.call(
-                body={
-                    "name": "lib2-backup.clusterfuzz-external.appspot.com",
-                    "lifecycle": {
-                        "rule": [{
-                            "action": {
-                                "type": "Delete"
-                            },
-                            "condition": {
-                                "age": 100
-                            },
-                        }]
+                    project="clusterfuzz-external",
+                ),
+                mock.call().execute(),
+                mock.call(
+                    body={
+                        "name": "lib2-backup.clusterfuzz-external.appspot.com",
+                        "lifecycle": {
+                            "rule": [
+                                {
+                                    "action": {"type": "Delete"},
+                                    "condition": {"age": 100},
+                                }
+                            ]
+                        },
                     },
-                },
-                project="clusterfuzz-external",
-            ),
-            mock.call().execute(),
-            mock.call(
-                body={"name": "lib2-corpus.clusterfuzz-external.appspot.com"},
-                project="clusterfuzz-external",
-            ),
-            mock.call().execute(),
-            mock.call(
-                body={
-                    "name": "lib2-quarantine.clusterfuzz-external.appspot.com",
-                    "lifecycle": {
-                        "rule": [{
-                            "action": {
-                                "type": "Delete"
-                            },
-                            "condition": {
-                                "age": 90
-                            }
-                        }]
+                    project="clusterfuzz-external",
+                ),
+                mock.call().execute(),
+                mock.call(
+                    body={"name": "lib2-corpus.clusterfuzz-external.appspot.com"},
+                    project="clusterfuzz-external",
+                ),
+                mock.call().execute(),
+                mock.call(
+                    body={
+                        "name": "lib2-quarantine.clusterfuzz-external.appspot.com",
+                        "lifecycle": {
+                            "rule": [
+                                {"action": {"type": "Delete"}, "condition": {"age": 90}}
+                            ]
+                        },
                     },
-                },
-                project="clusterfuzz-external",
-            ),
-            mock.call().execute(),
-            mock.call(
-                body={
-                    "name": "lib2-logs.clusterfuzz-external.appspot.com",
-                    "lifecycle": {
-                        "rule": [{
-                            "action": {
-                                "type": "Delete"
-                            },
-                            "condition": {
-                                "age": 14
-                            }
-                        }]
+                    project="clusterfuzz-external",
+                ),
+                mock.call().execute(),
+                mock.call(
+                    body={
+                        "name": "lib2-logs.clusterfuzz-external.appspot.com",
+                        "lifecycle": {
+                            "rule": [
+                                {"action": {"type": "Delete"}, "condition": {"age": 14}}
+                            ]
+                        },
                     },
-                },
-                project="clusterfuzz-external",
-            ),
-            mock.call().execute(),
-            mock.call(
-                body={
-                    "name": "lib3-backup.clusterfuzz-external.appspot.com",
-                    "lifecycle": {
-                        "rule": [{
-                            "action": {
-                                "type": "Delete"
-                            },
-                            "condition": {
-                                "age": 100
-                            },
-                        }]
+                    project="clusterfuzz-external",
+                ),
+                mock.call().execute(),
+                mock.call(
+                    body={
+                        "name": "lib3-backup.clusterfuzz-external.appspot.com",
+                        "lifecycle": {
+                            "rule": [
+                                {
+                                    "action": {"type": "Delete"},
+                                    "condition": {"age": 100},
+                                }
+                            ]
+                        },
                     },
-                },
-                project="clusterfuzz-external",
-            ),
-            mock.call().execute(),
-            mock.call(
-                body={"name": "lib3-corpus.clusterfuzz-external.appspot.com"},
-                project="clusterfuzz-external",
-            ),
-            mock.call().execute(),
-            mock.call(
-                body={
-                    "name": "lib3-quarantine.clusterfuzz-external.appspot.com",
-                    "lifecycle": {
-                        "rule": [{
-                            "action": {
-                                "type": "Delete"
-                            },
-                            "condition": {
-                                "age": 90
-                            }
-                        }]
+                    project="clusterfuzz-external",
+                ),
+                mock.call().execute(),
+                mock.call(
+                    body={"name": "lib3-corpus.clusterfuzz-external.appspot.com"},
+                    project="clusterfuzz-external",
+                ),
+                mock.call().execute(),
+                mock.call(
+                    body={
+                        "name": "lib3-quarantine.clusterfuzz-external.appspot.com",
+                        "lifecycle": {
+                            "rule": [
+                                {"action": {"type": "Delete"}, "condition": {"age": 90}}
+                            ]
+                        },
                     },
-                },
-                project="clusterfuzz-external",
-            ),
-            mock.call().execute(),
-            mock.call(
-                body={
-                    "name": "lib3-logs.clusterfuzz-external.appspot.com",
-                    "lifecycle": {
-                        "rule": [{
-                            "action": {
-                                "type": "Delete"
-                            },
-                            "condition": {
-                                "age": 14
-                            }
-                        }]
+                    project="clusterfuzz-external",
+                ),
+                mock.call().execute(),
+                mock.call(
+                    body={
+                        "name": "lib3-logs.clusterfuzz-external.appspot.com",
+                        "lifecycle": {
+                            "rule": [
+                                {"action": {"type": "Delete"}, "condition": {"age": 14}}
+                            ]
+                        },
                     },
-                },
-                project="clusterfuzz-external",
-            ),
-            mock.call().execute(),
-        ])
+                    project="clusterfuzz-external",
+                ),
+                mock.call().execute(),
+            ]
+        )
 
-        mock_storage.buckets().setIamPolicy.assert_has_calls([
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["user:primary@example.com"],
-                    }],
-                },
-                bucket="lib1-backup.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["user:user2@gmail.com"],
-                    }],
-                },
-                bucket="lib1-backup.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role":
-                            "roles/storage.objectViewer",
-                        "members": [
-                            "user:user2@gmail.com",
-                            "user:user@example.com",
+        mock_storage.buckets().setIamPolicy.assert_has_calls(
+            [
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["user:primary@example.com"],
+                            }
                         ],
-                    }],
-                },
-                bucket="lib1-backup.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [
-                        {
-                            "role":
-                                "roles/storage.objectViewer",
-                            "members": [
-                                "user:user2@gmail.com",
-                                "user:user@example.com",
-                            ],
-                        },
-                        {
-                            "role": "roles/storage.objectAdmin",
-                            "members": ["serviceAccount:lib1@serviceaccount.com"],
-                        },
-                    ],
-                },
-                bucket="lib1-backup.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["user:primary@example.com"],
-                    }],
-                },
-                bucket="lib1-corpus.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["user:user2@gmail.com"],
-                    }],
-                },
-                bucket="lib1-corpus.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role":
-                            "roles/storage.objectViewer",
-                        "members": [
-                            "user:user2@gmail.com",
-                            "user:user@example.com",
+                    },
+                    bucket="lib1-backup.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["user:user2@gmail.com"],
+                            }
                         ],
-                    }],
-                },
-                bucket="lib1-corpus.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [
-                        {
-                            "role":
-                                "roles/storage.objectViewer",
-                            "members": [
-                                "user:user2@gmail.com",
-                                "user:user@example.com",
-                            ],
-                        },
-                        {
-                            "role": "roles/storage.objectAdmin",
-                            "members": ["serviceAccount:lib1@serviceaccount.com"],
-                        },
-                    ],
-                },
-                bucket="lib1-corpus.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role":
-                            "roles/storage.objectViewer",
-                        "members": [
-                            "user:primary@example.com",
-                            "user:user@example.com",
+                    },
+                    bucket="lib1-backup.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": [
+                                    "user:user2@gmail.com",
+                                    "user:user@example.com",
+                                ],
+                            }
                         ],
-                    }],
-                },
-                bucket="lib1-logs.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role":
-                            "roles/storage.objectViewer",
-                        "members": [
-                            "user:user2@gmail.com",
-                            "user:user@example.com",
+                    },
+                    bucket="lib1-backup.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": [
+                                    "user:user2@gmail.com",
+                                    "user:user@example.com",
+                                ],
+                            },
+                            {
+                                "role": "roles/storage.objectAdmin",
+                                "members": ["serviceAccount:lib1@serviceaccount.com"],
+                            },
                         ],
-                    }],
-                },
-                bucket="lib1-logs.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [
-                        {
-                            "role":
-                                "roles/storage.objectViewer",
-                            "members": [
-                                "user:user2@gmail.com",
-                                "user:user@example.com",
-                            ],
-                        },
-                        {
-                            "role": "roles/storage.objectAdmin",
-                            "members": ["serviceAccount:lib1@serviceaccount.com"],
-                        },
-                    ],
-                },
-                bucket="lib1-logs.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["user:primary@example.com"],
-                    }],
-                },
-                bucket="lib1-quarantine.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["user:user2@gmail.com"],
-                    }],
-                },
-                bucket="lib1-quarantine.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role":
-                            "roles/storage.objectViewer",
-                        "members": [
-                            "user:user2@gmail.com",
-                            "user:user@example.com",
+                    },
+                    bucket="lib1-backup.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["user:primary@example.com"],
+                            }
                         ],
-                    }],
-                },
-                bucket="lib1-quarantine.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [
-                        {
-                            "role":
-                                "roles/storage.objectViewer",
-                            "members": [
-                                "user:user2@gmail.com",
-                                "user:user@example.com",
-                            ],
-                        },
-                        {
-                            "role": "roles/storage.objectAdmin",
-                            "members": ["serviceAccount:lib1@serviceaccount.com"],
-                        },
-                    ],
-                },
-                bucket="lib1-quarantine.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["serviceAccount:lib1@serviceaccount.com"],
-                    }],
-                },
-                bucket="clusterfuzz-external-deployment",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["serviceAccount:lib1@serviceaccount.com"],
-                    }],
-                },
-                bucket="test-shared-corpus-bucket",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["serviceAccount:lib1@serviceaccount.com"],
-                    }],
-                },
-                bucket="test-mutator-plugins-bucket",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["serviceAccount:lib1@serviceaccount.com"],
-                    }],
-                },
-                bucket=u"global-corpus.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectAdmin",
-                        "members": ["serviceAccount:lib2@serviceaccount.com"],
-                    }],
-                },
-                bucket="lib2-backup.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectAdmin",
-                        "members": ["serviceAccount:lib2@serviceaccount.com"],
-                    }],
-                },
-                bucket="lib2-corpus.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectAdmin",
-                        "members": ["serviceAccount:lib2@serviceaccount.com"],
-                    }],
-                },
-                bucket="lib2-logs.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectAdmin",
-                        "members": ["serviceAccount:lib2@serviceaccount.com"],
-                    }],
-                },
-                bucket="lib2-quarantine.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["serviceAccount:lib2@serviceaccount.com"],
-                    }],
-                },
-                bucket="clusterfuzz-external-deployment",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["serviceAccount:lib2@serviceaccount.com"],
-                    }],
-                },
-                bucket="test-shared-corpus-bucket",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["serviceAccount:lib2@serviceaccount.com"],
-                    }],
-                },
-                bucket="test-mutator-plugins-bucket",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["serviceAccount:lib2@serviceaccount.com"],
-                    }],
-                },
-                bucket=u"global-corpus.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["user:user@example.com"],
-                    }],
-                },
-                bucket="lib3-backup.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [
-                        {
-                            "role": "roles/storage.objectViewer",
-                            "members": ["user:user@example.com"],
-                        },
-                        {
-                            "role": "roles/storage.objectAdmin",
-                            "members": ["serviceAccount:lib3@serviceaccount.com"],
-                        },
-                    ],
-                },
-                bucket="lib3-backup.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["user:user@example.com"],
-                    }],
-                },
-                bucket="lib3-corpus.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [
-                        {
-                            "role": "roles/storage.objectViewer",
-                            "members": ["user:user@example.com"],
-                        },
-                        {
-                            "role": "roles/storage.objectAdmin",
-                            "members": ["serviceAccount:lib3@serviceaccount.com"],
-                        },
-                    ],
-                },
-                bucket="lib3-corpus.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [
-                        {
-                            "role": "roles/storage.objectViewer",
-                            "members": ["user:user@example.com"],
-                        },
-                        {
-                            "role": "roles/storage.objectAdmin",
-                            "members": ["serviceAccount:lib3@serviceaccount.com"],
-                        },
-                    ],
-                },
-                bucket="lib3-logs.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["user:user@example.com"],
-                    }],
-                },
-                bucket="lib3-quarantine.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [
-                        {
-                            "role": "roles/storage.objectViewer",
-                            "members": ["user:user@example.com"],
-                        },
-                        {
-                            "role": "roles/storage.objectAdmin",
-                            "members": ["serviceAccount:lib3@serviceaccount.com"],
-                        },
-                    ],
-                },
-                bucket="lib3-quarantine.clusterfuzz-external.appspot.com",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["serviceAccount:lib3@serviceaccount.com"],
-                    }],
-                },
-                bucket="clusterfuzz-external-deployment",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["serviceAccount:lib3@serviceaccount.com"],
-                    }],
-                },
-                bucket="test-shared-corpus-bucket",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["serviceAccount:lib3@serviceaccount.com"],
-                    }],
-                },
-                bucket="test-mutator-plugins-bucket",
-            ),
-            mock.call(
-                body={
-                    "resourceId":
-                        "fake",
-                    "kind":
-                        "storage#policy",
-                    "etag":
-                        "fake",
-                    "bindings": [{
-                        "role": "roles/storage.objectViewer",
-                        "members": ["serviceAccount:lib3@serviceaccount.com"],
-                    }],
-                },
-                bucket=u"global-corpus.clusterfuzz-external.appspot.com",
-            ),
-        ])
+                    },
+                    bucket="lib1-corpus.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["user:user2@gmail.com"],
+                            }
+                        ],
+                    },
+                    bucket="lib1-corpus.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": [
+                                    "user:user2@gmail.com",
+                                    "user:user@example.com",
+                                ],
+                            }
+                        ],
+                    },
+                    bucket="lib1-corpus.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": [
+                                    "user:user2@gmail.com",
+                                    "user:user@example.com",
+                                ],
+                            },
+                            {
+                                "role": "roles/storage.objectAdmin",
+                                "members": ["serviceAccount:lib1@serviceaccount.com"],
+                            },
+                        ],
+                    },
+                    bucket="lib1-corpus.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": [
+                                    "user:primary@example.com",
+                                    "user:user@example.com",
+                                ],
+                            }
+                        ],
+                    },
+                    bucket="lib1-logs.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": [
+                                    "user:user2@gmail.com",
+                                    "user:user@example.com",
+                                ],
+                            }
+                        ],
+                    },
+                    bucket="lib1-logs.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": [
+                                    "user:user2@gmail.com",
+                                    "user:user@example.com",
+                                ],
+                            },
+                            {
+                                "role": "roles/storage.objectAdmin",
+                                "members": ["serviceAccount:lib1@serviceaccount.com"],
+                            },
+                        ],
+                    },
+                    bucket="lib1-logs.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["user:primary@example.com"],
+                            }
+                        ],
+                    },
+                    bucket="lib1-quarantine.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["user:user2@gmail.com"],
+                            }
+                        ],
+                    },
+                    bucket="lib1-quarantine.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": [
+                                    "user:user2@gmail.com",
+                                    "user:user@example.com",
+                                ],
+                            }
+                        ],
+                    },
+                    bucket="lib1-quarantine.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": [
+                                    "user:user2@gmail.com",
+                                    "user:user@example.com",
+                                ],
+                            },
+                            {
+                                "role": "roles/storage.objectAdmin",
+                                "members": ["serviceAccount:lib1@serviceaccount.com"],
+                            },
+                        ],
+                    },
+                    bucket="lib1-quarantine.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["serviceAccount:lib1@serviceaccount.com"],
+                            }
+                        ],
+                    },
+                    bucket="clusterfuzz-external-deployment",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["serviceAccount:lib1@serviceaccount.com"],
+                            }
+                        ],
+                    },
+                    bucket="test-shared-corpus-bucket",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["serviceAccount:lib1@serviceaccount.com"],
+                            }
+                        ],
+                    },
+                    bucket="test-mutator-plugins-bucket",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["serviceAccount:lib1@serviceaccount.com"],
+                            }
+                        ],
+                    },
+                    bucket=u"global-corpus.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectAdmin",
+                                "members": ["serviceAccount:lib2@serviceaccount.com"],
+                            }
+                        ],
+                    },
+                    bucket="lib2-backup.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectAdmin",
+                                "members": ["serviceAccount:lib2@serviceaccount.com"],
+                            }
+                        ],
+                    },
+                    bucket="lib2-corpus.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectAdmin",
+                                "members": ["serviceAccount:lib2@serviceaccount.com"],
+                            }
+                        ],
+                    },
+                    bucket="lib2-logs.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectAdmin",
+                                "members": ["serviceAccount:lib2@serviceaccount.com"],
+                            }
+                        ],
+                    },
+                    bucket="lib2-quarantine.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["serviceAccount:lib2@serviceaccount.com"],
+                            }
+                        ],
+                    },
+                    bucket="clusterfuzz-external-deployment",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["serviceAccount:lib2@serviceaccount.com"],
+                            }
+                        ],
+                    },
+                    bucket="test-shared-corpus-bucket",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["serviceAccount:lib2@serviceaccount.com"],
+                            }
+                        ],
+                    },
+                    bucket="test-mutator-plugins-bucket",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["serviceAccount:lib2@serviceaccount.com"],
+                            }
+                        ],
+                    },
+                    bucket=u"global-corpus.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["user:user@example.com"],
+                            }
+                        ],
+                    },
+                    bucket="lib3-backup.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["user:user@example.com"],
+                            },
+                            {
+                                "role": "roles/storage.objectAdmin",
+                                "members": ["serviceAccount:lib3@serviceaccount.com"],
+                            },
+                        ],
+                    },
+                    bucket="lib3-backup.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["user:user@example.com"],
+                            }
+                        ],
+                    },
+                    bucket="lib3-corpus.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["user:user@example.com"],
+                            },
+                            {
+                                "role": "roles/storage.objectAdmin",
+                                "members": ["serviceAccount:lib3@serviceaccount.com"],
+                            },
+                        ],
+                    },
+                    bucket="lib3-corpus.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["user:user@example.com"],
+                            },
+                            {
+                                "role": "roles/storage.objectAdmin",
+                                "members": ["serviceAccount:lib3@serviceaccount.com"],
+                            },
+                        ],
+                    },
+                    bucket="lib3-logs.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["user:user@example.com"],
+                            }
+                        ],
+                    },
+                    bucket="lib3-quarantine.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["user:user@example.com"],
+                            },
+                            {
+                                "role": "roles/storage.objectAdmin",
+                                "members": ["serviceAccount:lib3@serviceaccount.com"],
+                            },
+                        ],
+                    },
+                    bucket="lib3-quarantine.clusterfuzz-external.appspot.com",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["serviceAccount:lib3@serviceaccount.com"],
+                            }
+                        ],
+                    },
+                    bucket="clusterfuzz-external-deployment",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["serviceAccount:lib3@serviceaccount.com"],
+                            }
+                        ],
+                    },
+                    bucket="test-shared-corpus-bucket",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["serviceAccount:lib3@serviceaccount.com"],
+                            }
+                        ],
+                    },
+                    bucket="test-mutator-plugins-bucket",
+                ),
+                mock.call(
+                    body={
+                        "resourceId": "fake",
+                        "kind": "storage#policy",
+                        "etag": "fake",
+                        "bindings": [
+                            {
+                                "role": "roles/storage.objectViewer",
+                                "members": ["serviceAccount:lib3@serviceaccount.com"],
+                            }
+                        ],
+                    },
+                    bucket=u"global-corpus.clusterfuzz-external.appspot.com",
+                ),
+            ]
+        )
 
         mappings = data_types.FuzzerJob.query()
-        tags_fuzzers_and_jobs = [(m.platform, m.fuzzer, m.job)
-                                 for m in mappings]
+        tags_fuzzers_and_jobs = [(m.platform, m.fuzzer, m.job) for m in mappings]
         self.assertItemsEqual(
             tags_fuzzers_and_jobs,
             [
@@ -1466,8 +1356,7 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
         )
 
         all_permissions = [
-            entity.to_dict()
-            for entity in data_types.ExternalUserPermission.query()
+            entity.to_dict() for entity in data_types.ExternalUserPermission.query()
         ]
 
         self.assertItemsEqual(
@@ -1689,8 +1578,9 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
             "projects/clusterfuzz-external/topics/jobs-lib5-linux",
             "projects/clusterfuzz-external/topics/jobs-lib6-linux",
         ]
-        self.assertItemsEqual(expected_topics,
-                              list(pubsub_client.list_topics("projects/" + app_id)))
+        self.assertItemsEqual(
+            expected_topics, list(pubsub_client.list_topics("projects/" + app_id))
+        )
 
         for i, topic in enumerate(expected_topics[2:]):
             self.assertItemsEqual(
@@ -1704,8 +1594,7 @@ class OssFuzzProjectSetupTest(unittest.TestCase):
         self.assertIsNotNone(pubsub_client.get_topic(unmanaged_topic_name))
         self.assertIsNotNone(pubsub_client.get_topic(other_topic_name))
         self.assertIsNone(pubsub_client.get_topic(old_topic_name))
-        self.assertIsNone(
-            pubsub_client.get_subscription(old_subscription_name))
+        self.assertIsNone(pubsub_client.get_subscription(old_subscription_name))
 
 
 URL_RESULTS = ast.literal_eval(_read_data_file("url_results.txt"))
@@ -1749,18 +1638,13 @@ class GetLibrariesTest(unittest.TestCase):
             [
                 (
                     "boringssl",
-                    {
-                        "homepage": "https://boringssl.googlesource.com/boringssl/"
-                    },
+                    {"homepage": "https://boringssl.googlesource.com/boringssl/"},
                 ),
                 (
                     "curl",
                     {
                         "homepage": "https://curl.haxx.se/",
-                        "dockerfile": {
-                            "git": "fake",
-                            "path": "path/Dockerfile"
-                        },
+                        "dockerfile": {"git": "fake", "path": "path/Dockerfile"},
                     },
                 ),
             ],
@@ -1773,17 +1657,19 @@ class GenericProjectSetupTest(unittest.TestCase):
 
     def setUp(self):
         self.app = webtest.TestApp(
-            webapp2.WSGIApplication([("/setup", project_setup.Handler)]))
+            webapp2.WSGIApplication([("/setup", project_setup.Handler)])
+        )
 
         helpers.patch_environ(self)
 
         data_types.Job(name="old_unmanaged").put()
         data_types.Job(
-            name="old_managed",
-            environment_string="MANAGED = True\nPROJECT_NAME = old").put()
+            name="old_managed", environment_string="MANAGED = True\nPROJECT_NAME = old"
+        ).put()
 
         self.libfuzzer = data_types.Fuzzer(
-            name="libFuzzer", jobs=["old_unmanaged", "old_managed"])
+            name="libFuzzer", jobs=["old_unmanaged", "old_managed"]
+        )
         self.libfuzzer.put()
 
         self.afl = data_types.Fuzzer(name="afl", jobs=[])
@@ -1813,43 +1699,37 @@ class GenericProjectSetupTest(unittest.TestCase):
             '"gs://bucket/a-b/%ENGINE%/%SANITIZER%/'
             '%TARGET%/([0-9]+).zip", '
             '"name": "//a/b", "fuzzing_engines": ["libfuzzer", "honggfuzz"], '
-            '"sanitizers": ["address"]}]}')
+            '"sanitizers": ["address"]}]}'
+        )
 
-        self.mock.ProjectConfig.return_value = mock_config.MockConfig({
-            "project_setup": {
-                "source": "gs://bucket/projects.json",
-                "build_type": "FUZZ_TARGET_BUILD_BUCKET_PATH",
-                "build_buckets": {
-                    "afl": "clusterfuzz-builds-afl",
-                    "dataflow": "clusterfuzz-builds-dataflow",
-                    "honggfuzz": "clusterfuzz-builds-honggfuzz",
-                    "libfuzzer": "clusterfuzz-builds",
-                    "libfuzzer_i386": "clusterfuzz-builds-i386",
-                    "no_engine": "clusterfuzz-builds-no-engine",
-                },
-                "additional_vars": {
-                    "all": {
-                        "STRING_VAR": "VAL",
-                        "BOOL_VAR": True,
-                        "INT_VAR": 0
+        self.mock.ProjectConfig.return_value = mock_config.MockConfig(
+            {
+                "project_setup": {
+                    "source": "gs://bucket/projects.json",
+                    "build_type": "FUZZ_TARGET_BUILD_BUCKET_PATH",
+                    "build_buckets": {
+                        "afl": "clusterfuzz-builds-afl",
+                        "dataflow": "clusterfuzz-builds-dataflow",
+                        "honggfuzz": "clusterfuzz-builds-honggfuzz",
+                        "libfuzzer": "clusterfuzz-builds",
+                        "libfuzzer_i386": "clusterfuzz-builds-i386",
+                        "no_engine": "clusterfuzz-builds-no-engine",
                     },
-                    "libfuzzer": {
-                        "address": {
-                            "ASAN_VAR": "VAL"
-                        },
-                        "memory": {
-                            "NOT_SET": "VAL"
+                    "additional_vars": {
+                        "all": {"STRING_VAR": "VAL", "BOOL_VAR": True, "INT_VAR": 0},
+                        "libfuzzer": {
+                            "address": {"ASAN_VAR": "VAL"},
+                            "memory": {"NOT_SET": "VAL"},
                         },
                     },
-                },
+                }
             }
-        })
+        )
 
     def test_execute(self):
         """Tests executing of cron job."""
         self.app.get("/setup")
-        job = data_types.Job.query(
-            data_types.Job.name == "libfuzzer_asan_a-b").get()
+        job = data_types.Job.query(data_types.Job.name == "libfuzzer_asan_a-b").get()
         self.assertEqual(
             "FUZZ_TARGET_BUILD_BUCKET_PATH = "
             "gs://bucket/a-b/libfuzzer/address/%TARGET%/([0-9]+).zip\n"
@@ -1860,11 +1740,9 @@ class GenericProjectSetupTest(unittest.TestCase):
             "STRING_VAR = VAL\n",
             job.environment_string,
         )
-        self.assertItemsEqual(
-            ["engine_asan", "libfuzzer", "prune"], job.templates)
+        self.assertItemsEqual(["engine_asan", "libfuzzer", "prune"], job.templates)
 
-        job = data_types.Job.query(
-            data_types.Job.name == "honggfuzz_asan_a-b").get()
+        job = data_types.Job.query(data_types.Job.name == "honggfuzz_asan_a-b").get()
         self.assertEqual(
             "FUZZ_TARGET_BUILD_BUCKET_PATH = "
             "gs://bucket/a-b/honggfuzz/address/%TARGET%/([0-9]+).zip\n"
@@ -1877,14 +1755,11 @@ class GenericProjectSetupTest(unittest.TestCase):
         )
         self.assertItemsEqual(["engine_asan", "honggfuzz"], job.templates)
 
-        libfuzzer = data_types.Fuzzer.query(
-            data_types.Fuzzer.name == "libFuzzer").get()
-        self.assertItemsEqual(["libfuzzer_asan_a-b", "old_unmanaged"],
-                              libfuzzer.jobs)
+        libfuzzer = data_types.Fuzzer.query(data_types.Fuzzer.name == "libFuzzer").get()
+        self.assertItemsEqual(["libfuzzer_asan_a-b", "old_unmanaged"], libfuzzer.jobs)
 
         afl = data_types.Fuzzer.query(data_types.Fuzzer.name == "afl").get()
         self.assertItemsEqual([], afl.jobs)
 
-        honggfuzz = data_types.Fuzzer.query(
-            data_types.Fuzzer.name == "honggfuzz").get()
+        honggfuzz = data_types.Fuzzer.query(data_types.Fuzzer.name == "honggfuzz").get()
         self.assertItemsEqual(["honggfuzz_asan_a-b"], honggfuzz.jobs)
