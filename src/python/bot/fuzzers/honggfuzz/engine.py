@@ -16,9 +16,12 @@ import glob
 import os
 import re
 
-from bot.fuzzers import dictionary_manager, engine
 from metrics import logs
-from system import environment, new_process
+from system import environment
+from system import new_process
+
+from bot.fuzzers import dictionary_manager
+from bot.fuzzers import engine
 
 _CLEAN_EXIT_SECS = 10
 _RSS_LIMIT = 2560

@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Credentials management."""
-
 from config import db_config
-from oauth2client.client import Credentials, Storage
+from oauth2client.client import Credentials
+from oauth2client.client import Storage
 
 
 class CredentialStorage(Storage):
