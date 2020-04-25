@@ -476,7 +476,8 @@ class SymbolizationLoop(object):
           SystemSymbolizerFactory(self.system, addr, binary, arch))
       result = symbolizers[binary].symbolize(addr, binary, offset)
     # The system symbolizer must produce some result.
-    assert result
+    if not result:
+      raise AssertionError
     return result
 
   def process_stacktrace(self, unsymbolized_crash_stacktrace):

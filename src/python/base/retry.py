@@ -43,9 +43,12 @@ def wrap(retries,
          retry_on_false=False):
   """Retry decorator for a function."""
 
-  assert delay > 0
-  assert backoff >= 1
-  assert retries >= 0
+  if delay <= 0:
+    raise AssertionError
+  if backoff < 1:
+    raise AssertionError
+  if retries < 0:
+    raise AssertionError
 
   def decorator(func):
     """Decorator for the given function."""
@@ -106,7 +109,8 @@ def wrap(retries,
     def _generator_wrapper(*args, **kwargs):
       """Generator function wrapper."""
       # This argument is not applicable for generator functions.
-      assert not retry_on_false
+      if retry_on_false:
+        raise AssertionError
 
       from metrics import monitoring_metrics
 

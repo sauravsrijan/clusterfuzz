@@ -575,7 +575,8 @@ def random_weighted_choice(element_list, weight_attribute="weight"):
       return element
     temp += element_weight
 
-  assert False, "Failed to make a random weighted choice."
+  if not False:
+    raise AssertionError("Failed to make a random weighted choice.")
 
 
 def read_data_from_file(file_path, eval_data=True, default=None):

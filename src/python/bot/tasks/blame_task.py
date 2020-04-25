@@ -64,7 +64,8 @@ def _compute_rolls(start_revisions_dict, end_revisions_dict):
 
 def _extract_url_and_sha_from_deps_entry(entry):
   """Split a DEPS file entry into a URL and git sha."""
-  assert 'url' in entry and 'rev' in entry, 'Unexpected format: %s' % entry
+  if not ('url' in entry and 'rev' in entry):
+    raise AssertionError('Unexpected format: %s' % entry)
   url = entry['url']
   sha = entry['rev']
 

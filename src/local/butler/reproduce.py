@@ -407,7 +407,8 @@ def _reproduce_crash(
 def _cleanup():
   """Clean up after running the tool."""
   temp_directory = environment.get_value("ROOT_DIR")
-  assert "tmp" in temp_directory
+  if "tmp" not in temp_directory:
+    raise AssertionError
   shell.remove_directory(temp_directory)
 
 

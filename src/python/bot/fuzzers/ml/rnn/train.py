@@ -88,7 +88,8 @@ def main(args):
   files_info_list = []
   if debug:
     files_info_list = utils.get_files_info(input_dir)
-    assert files_info_list
+    if not files_info_list:
+      raise AssertionError
 
   # Calculate validation batch size. It will be 0 if we choose not to validate.
   validation_batch_size = len(validation_text) // constants.VALIDATION_SEQLEN

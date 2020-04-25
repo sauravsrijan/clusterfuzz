@@ -41,10 +41,14 @@ def compute_projection(projection, order_property):
 def _combine(q1, q2):
   """Combine KeyQuery q1 and q2. We ignore or_filters because we assume q1 and
     q2 are flat. In other words, they are results of _KeyQuery.flatten(..)."""
-  assert not q1.or_filters
-  assert not q2.or_filters
-  assert q1.order_property == q2.order_property
-  assert q1.order_desc == q2.order_desc
+  if q1.or_filters:
+    raise AssertionError
+  if q2.or_filters:
+    raise AssertionError
+  if q1.order_property != q2.order_property:
+    raise AssertionError
+  if q1.order_desc != q2.order_desc:
+    raise AssertionError
 
   result = _KeyQuery(q1.model)
   result.filters = q1.filters + q2.filters
@@ -121,7 +125,8 @@ class _KeyQuery(object):
 
   def to_datastore_query(self):
     """Return the corresponding datastore query."""
-    assert not self.or_filters
+    if self.or_filters:
+      raise AssertionError
 
     query = self.model.query()
     properties = self.model._properties  # pylint: disable=protected-access

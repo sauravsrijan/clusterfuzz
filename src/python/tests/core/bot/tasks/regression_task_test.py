@@ -133,7 +133,8 @@ class TestFoundRegressionNearExtremeRevisions(unittest.TestCase):
 
 def _sample(input_list, count):
   """Helper function to deterministically sample a list."""
-  assert count <= len(input_list)
+  if count > len(input_list):
+    raise AssertionError
   return input_list[:count]
 
 

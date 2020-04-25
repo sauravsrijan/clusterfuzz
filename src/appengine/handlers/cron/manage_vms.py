@@ -419,7 +419,8 @@ class OssFuzzClustersManager(ClustersManager):
         if worker.name not in previous_assigned_workers
     ]
 
-    assert len(new_assignments) == len(new_workers)
+    if len(new_assignments) != len(new_workers):
+      raise AssertionError
     for assignment, worker in zip(new_assignments, new_workers):
       assignment.worker_name = worker.name
       assignment.project_name = worker.project

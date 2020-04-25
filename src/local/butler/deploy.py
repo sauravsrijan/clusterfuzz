@@ -171,7 +171,8 @@ def _delete_old_versions(project, service, delete_window):
   ]
 
   versions.sort(key=lambda v: v.deploy_time)
-  assert versions[-1].traffic_split == 1.0
+  if versions[-1].traffic_split != 1.0:
+    raise AssertionError
 
   to_delete = _versions_to_delete(versions, delete_window)
   if not to_delete:

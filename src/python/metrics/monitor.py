@@ -409,7 +409,8 @@ class _Distribution(object):
       distribution.bucket_options.linear_buckets.num_finite_buckets = (
           self.bucketer.num_finite_buckets)
     else:
-      assert isinstance(self.bucketer, GeometricBucketer)
+      if not isinstance(self.bucketer, GeometricBucketer):
+        raise AssertionError
 
       distribution.bucket_options.exponential_buckets.scale = self.bucketer.scale
       distribution.bucket_options.exponential_buckets.growth_factor = (

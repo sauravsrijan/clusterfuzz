@@ -64,7 +64,8 @@ def get_logs_directory(bucket_name, fuzzer_name, job_type=None, logs_date=None):
     path += '/%s' % job_type
 
   if logs_date is not None:
-    assert job_type is not None
+    if job_type is None:
+      raise AssertionError
     path += '/%s' % logs_date
 
   return path

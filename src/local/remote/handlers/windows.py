@@ -34,8 +34,10 @@ class Handler(object):
   """Handler for windows."""
 
   def __init__(self, instance_name, project, zone):
-    assert project, 'Need to specify a project via --project argument.'
-    assert zone, 'Need to specify a zone via --zone argument.'
+    if not project:
+      raise AssertionError('Need to specify a project via --project argument.')
+    if not zone:
+      raise AssertionError('Need to specify a zone via --zone argument.')
 
     # FIXME: Make these configurable.
     self.username = 'clusterfuzz'

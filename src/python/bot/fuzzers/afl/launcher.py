@@ -133,7 +133,8 @@ class AflConfig(object):
       if afl_option.type == AflOptionType.ARG:
         self.additional_afl_arguments.append('%s%s' % (afl_option.name, value))
       else:
-        assert afl_option.type == AflOptionType.ENV_VAR
+        if afl_option.type != AflOptionType.ENV_VAR:
+          raise AssertionError
         self.additional_env_vars[afl_option.name] = value
 
     # Get configs set specifically for AFL.
@@ -286,14 +287,16 @@ class FuzzingStrategies(object):
   def use_fast_cal(self):
     """Convenience property that returns True if AFL_FAST_CAL should be used."""
     # This shouldn't be called if sefl.fast_cal was not yet set.
-    assert self.fast_cal != strategies.FastCal.NOT_SET
+    if self.fast_cal == strategies.FastCal.NOT_SET:
+      raise AssertionError
     return self.fast_cal != strategies.FastCal.OFF
 
   def decide_fast_cal_manual(self, time_spent_fuzzing):
     """Decides to use fast cal if |time_spent_fuzzing| is large enough that we
     will spend too long calibrating if we don't use fast cal. Idempotent"""
     # Make sure we've decided if it's random yet.
-    assert self.fast_cal != strategies.FastCal.NOT_SET
+    if self.fast_cal == strategies.FastCal.NOT_SET:
+      raise AssertionError
     # Don't do anything if use_fast_cal is not OFF. If it was RANDOM before
     # then it is misleading to change it to MANUAL, if it was MANUAL, then
     # there's nothing to do.
@@ -302,7 +305,8 @@ class FuzzingStrategies(object):
     if time_spent_fuzzing >= self.TIME_WITHOUT_FAST_CAL:
       self.fast_cal = strategies.FastCal.MANUAL
 
-    assert self.fast_cal in {strategies.FastCal.MANUAL, strategies.FastCal.OFF}
+    if self.fast_cal not in {strategies.FastCal.MANUAL, strategies.FastCal.OFF}:
+      raise AssertionError
 
   def decide_fast_cal_random(self, input_dir):
     """Decides whether to use AFL_FAST_CAL, based on probabilities that are
@@ -327,7 +331,8 @@ class FuzzingStrategies(object):
           self.fast_cal = strategies.FastCal.OFF
         return
 
-    assert None, 'This should not be reached'
+    if not None:
+      raise AssertionError('This should not be reached')
 
   def print_strategies(self):
     """Print the strategies used for logging purposes."""
@@ -628,8 +633,9 @@ class AflRunnerCommon(object):
     """
     self._executable_path = self.target_path
 
-    assert not testcase_path.isdigit(), ('We don\'t want to specify number of'
-                                         ' executions by accident.')
+    if testcase_path.isdigit():
+      raise AssertionError('We don\'t want to specify number of'
+                                           ' executions by accident.')
 
     self.afl_setup()
     result = self.run_and_wait(additional_args=[testcase_path])
@@ -991,7 +997,8 @@ class AflRunnerCommon(object):
         get_fuzz_timeout(self.strategies.is_mutations_run) -
         self.AFL_CLEAN_EXIT_TIME - self.SIGTERM_WAIT_TIME)
 
-    assert self.initial_max_total_time > 0
+    if self.initial_max_total_time <= 0:
+      raise AssertionError
 
     self._fuzz_args = self.generate_afl_args()
 
@@ -1082,7 +1089,8 @@ class AflRunnerCommon(object):
     else:
       showmap_output_path = self.showmap_output_path
     idx = self.get_arg_index(showmap_args, constants.OUTPUT_FLAG)
-    assert idx != -1
+    if idx == -1:
+      raise AssertionError
     self.set_arg(showmap_args, constants.OUTPUT_FLAG, showmap_output_path)
 
     input_dir = self.afl_input.input_directory
@@ -1147,7 +1155,8 @@ class AflRunnerCommon(object):
           if binding.src_path == input_directory
       ]
 
-      assert len(input_bindings) == 1
+      if len(input_bindings) != 1:
+        raise AssertionError
       input_binding = input_bindings[0]
       self.chroot.bindings.remove(input_binding)
 
@@ -1419,9 +1428,10 @@ def get_fuzz_timeout(is_mutations_run):
   if is_mutations_run:
     fuzz_timeout -= mutations_timeout
 
-  assert fuzz_timeout > 0, (
-      'hard_timeout: %d merge_timeout: %d mutations_timeout: %d') % (
-          hard_timeout, merge_timeout, mutations_timeout)
+  if fuzz_timeout <= 0:
+    raise AssertionError((
+        'hard_timeout: %d merge_timeout: %d mutations_timeout: %d') % (
+            hard_timeout, merge_timeout, mutations_timeout))
 
   return fuzz_timeout
 

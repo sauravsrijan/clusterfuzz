@@ -66,7 +66,8 @@ def _copy_corpus(source_bucket, source_project, target_bucket, target_project):
       s.rstrip('/') for s in source_urls if s.strip() and not s.endswith(':')
   ]
 
-  assert filtered_source_urls, 'No matching items found in source corpus.'
+  if not filtered_source_urls:
+    raise AssertionError('No matching items found in source corpus.')
   for source_url in filtered_source_urls:
     url_part, fuzz_target = source_url.rsplit('/', 1)
 

@@ -204,13 +204,16 @@ class _MockRedis(object):
 
   def get(self, key):
     """Get a value."""
-    assert isinstance(key, six.string_types)
+    if not isinstance(key, six.string_types):
+      raise AssertionError
     return self._store.get(key)
 
   def set(self, key, value, ex=None):  # pylint: disable=unused-argument
     """Set a value."""
-    assert isinstance(key, six.string_types)
-    assert isinstance(value, six.string_types)
+    if not isinstance(key, six.string_types):
+      raise AssertionError
+    if not isinstance(value, six.string_types):
+      raise AssertionError
     self._store[key] = value
 
 

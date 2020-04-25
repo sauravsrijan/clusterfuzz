@@ -111,7 +111,8 @@ def iterator(archive_path,
     # this to the top of the file if it doesn't.
     from backports import lzma
 
-    assert archive_obj is None, "LZMAFile doesn't support opening file handles."
+    if archive_obj is not None:
+      raise AssertionError("LZMAFile doesn't support opening file handles.")
     try:
       with lzma.LZMAFile(archive_path) as lzma_file, tarfile.open(
           fileobj=lzma_file) as tar_file:

@@ -54,7 +54,8 @@ def main():
   startup_scripts_directory = environment.get_startup_scripts_directory()
   beat_script_path = os.path.join(startup_scripts_directory, BEAT_SCRIPT)
   beat_interpreter = shell.get_interpreter(beat_script_path)
-  assert beat_interpreter
+  if not beat_interpreter:
+    raise AssertionError
 
   while True:
     beat_command = [

@@ -82,6 +82,6 @@ LIBFUZZER_STRATEGIES_WITH_BOOLEAN_VALUE = [
 ]
 
 # To ensure that all strategies present in |strategy_list| are parsed for stats.
-assert (set(LIBFUZZER_STRATEGY_LIST) ==
-        set(LIBFUZZER_STRATEGIES_WITH_PREFIX_VALUE +
-            LIBFUZZER_STRATEGIES_WITH_BOOLEAN_VALUE))
+if (set(LIBFUZZER_STRATEGY_LIST) != set(LIBFUZZER_STRATEGIES_WITH_PREFIX_VALUE +
+            LIBFUZZER_STRATEGIES_WITH_BOOLEAN_VALUE)):
+    raise AssertionError

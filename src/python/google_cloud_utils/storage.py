@@ -1129,5 +1129,6 @@ def blobs_bucket():
   if test_blobs_bucket:
     return test_blobs_bucket
 
-  assert not environment.get_value('PY_UNITTESTS')
+  if environment.get_value('PY_UNITTESTS'):
+    raise AssertionError
   return local_config.ProjectConfig().get('blobs.bucket')

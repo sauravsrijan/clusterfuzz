@@ -173,7 +173,8 @@ class OssFuzzBuildStatusTest(unittest.TestCase):
                 ],
             }))
 
-      assert url == oss_fuzz_build_status.COVERAGE_STATUS_URL
+      if url != oss_fuzz_build_status.COVERAGE_STATUS_URL:
+        raise AssertionError
       return MockResponse(
           json.dumps({
               'successes': [
@@ -426,7 +427,8 @@ class OssFuzzBuildStatusTest(unittest.TestCase):
                 'failures': [],
             }))
 
-      assert url == oss_fuzz_build_status.COVERAGE_STATUS_URL
+      if url != oss_fuzz_build_status.COVERAGE_STATUS_URL:
+        raise AssertionError
       return MockResponse(
           json.dumps({
               'successes': [

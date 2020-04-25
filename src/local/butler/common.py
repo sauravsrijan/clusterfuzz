@@ -249,7 +249,8 @@ def _install_platform_pip(requirements_path, target_path, platform_name):
   if isinstance(pip_platform, basestring):
     pip_platforms = (pip_platform,)
   else:
-    assert isinstance(pip_platform, tuple)
+    if not isinstance(pip_platform, tuple):
+      raise AssertionError
     pip_platforms = pip_platform
 
   pip_abi = constants.ABIS[platform_name]
@@ -326,9 +327,10 @@ def symlink(src, target):
   else:
     os.symlink(src, target)
 
-  assert os.path.exists(
-      target), "Failed to create {target} symlink for {src}.".format(
-          target=target, src=src)
+  if not os.path.exists(
+      target):
+    raise AssertionError("Failed to create {target} symlink for {src}.".format(
+            target=target, src=src))
 
   print("Created symlink: source: {src}, target {target}.".format(
       src=src, target=target))

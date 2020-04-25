@@ -180,12 +180,14 @@ def main():
 
   bot_script_path = os.path.join(base_directory, BOT_SCRIPT)
   bot_interpreter = shell.get_interpreter(bot_script_path)
-  assert bot_interpreter
+  if not bot_interpreter:
+    raise AssertionError
   bot_command = '%s %s' % (bot_interpreter, bot_script_path)
 
   heartbeat_script_path = os.path.join(base_directory, HEARTBEAT_SCRIPT)
   heartbeat_interpreter = shell.get_interpreter(heartbeat_script_path)
-  assert heartbeat_interpreter
+  if not heartbeat_interpreter:
+    raise AssertionError
   heartbeat_command = '%s %s %s' % (heartbeat_interpreter,
                                     heartbeat_script_path, bot_log)
 
