@@ -46,180 +46,181 @@ _STATS_PREFIX = "Summary "
 
 
 class HonggfuzzError(Exception):
-  """Base exception class."""
+    """Base exception class."""
 
 
 def _get_runner():
-  """Get the honggfuzz runner."""
-  honggfuzz_path = os.path.join(environment.get_value("BUILD_DIR"), "honggfuzz")
-  if not os.path.exists(honggfuzz_path):
-    raise HonggfuzzError("honggfuzz not found in build")
+    """Get the honggfuzz runner."""
+    honggfuzz_path = os.path.join(
+        environment.get_value("BUILD_DIR"), "honggfuzz")
+    if not os.path.exists(honggfuzz_path):
+        raise HonggfuzzError("honggfuzz not found in build")
 
-  os.chmod(honggfuzz_path, 0o755)
-  return new_process.ProcessRunner(honggfuzz_path)
+    os.chmod(honggfuzz_path, 0o755)
+    return new_process.ProcessRunner(honggfuzz_path)
 
 
 def _find_sanitizer_stacktrace(reproducers_dir):
-  """Find the sanitizer stacktrace from the reproducers dir."""
-  for stacktrace_path in glob.glob(
-      os.path.join(reproducers_dir, _HF_SANITIZER_LOG_PREFIX + "*")):
-    with open(stacktrace_path, "rb") as f:
-      return f.read()
+    """Find the sanitizer stacktrace from the reproducers dir."""
+    for stacktrace_path in glob.glob(
+            os.path.join(reproducers_dir, _HF_SANITIZER_LOG_PREFIX + "*")):
+        with open(stacktrace_path, "rb") as f:
+            return f.read()
 
-  return None
+    return None
 
 
 def _get_reproducer_path(line):
-  """Get the reproducer path, if any."""
-  crash_match = _CRASH_REGEX.match(line)
-  if not crash_match:
-    return None
+    """Get the reproducer path, if any."""
+    crash_match = _CRASH_REGEX.match(line)
+    if not crash_match:
+        return None
 
-  return crash_match.group(1)
+    return crash_match.group(1)
 
 
 def _get_stats(line):
-  """Get stats, if any."""
-  if not line.startswith(_STATS_PREFIX):
-    return None
+    """Get stats, if any."""
+    if not line.startswith(_STATS_PREFIX):
+        return None
 
-  parts = line[len(_STATS_PREFIX):].split()
-  stats = {}
+    parts = line[len(_STATS_PREFIX):].split()
+    stats = {}
 
-  for part in parts:
-    if ":" not in part:
-      logs.log_error("Invalid stat part.", value=part)
+    for part in parts:
+        if ":" not in part:
+            logs.log_error("Invalid stat part.", value=part)
 
-    key, value = part.split(":", 2)
-    try:
-      stats[key] = int(value)
-    except (ValueError, TypeError):
-      logs.log_error("Invalid stat value.", key=key, value=value)
+        key, value = part.split(":", 2)
+        try:
+            stats[key] = int(value)
+        except (ValueError, TypeError):
+            logs.log_error("Invalid stat value.", key=key, value=value)
 
-  return stats
+    return stats
 
 
 class HonggfuzzEngine(engine.Engine):
-  """honggfuzz engine implementation."""
+    """honggfuzz engine implementation."""
 
-  @property
-  def name(self):
-    return "honggfuzz"
+    @property
+    def name(self):
+        return "honggfuzz"
 
-  def prepare(self, corpus_dir, target_path, _build_dir):
-    """Prepare for a fuzzing session, by generating options. Returns a
-        FuzzOptions object.
+    def prepare(self, corpus_dir, target_path, _build_dir):
+        """Prepare for a fuzzing session, by generating options. Returns a
+            FuzzOptions object.
 
-        Args:
-          corpus_dir: The main corpus directory.
-          target_path: Path to the target.
-          build_dir: Path to the build directory.
+            Args:
+              corpus_dir: The main corpus directory.
+              target_path: Path to the target.
+              build_dir: Path to the build directory.
 
-        Returns:
-          A FuzzOptions object.
-        """
-    os.chmod(target_path, 0o775)
-    arguments = []
-    dict_path = dictionary_manager.get_default_dictionary_path(target_path)
-    if os.path.exists(dict_path):
-      arguments.extend(["--dict", dict_path])
+            Returns:
+              A FuzzOptions object.
+            """
+        os.chmod(target_path, 0o775)
+        arguments = []
+        dict_path = dictionary_manager.get_default_dictionary_path(target_path)
+        if os.path.exists(dict_path):
+            arguments.extend(["--dict", dict_path])
 
-    return engine.FuzzOptions(corpus_dir, arguments, {})
+        return engine.FuzzOptions(corpus_dir, arguments, {})
 
-  def fuzz(self, target_path, options, reproducers_dir, max_time):
-    """Run a fuzz session.
+    def fuzz(self, target_path, options, reproducers_dir, max_time):
+        """Run a fuzz session.
 
-        Args:
-          target_path: Path to the target.
-          options: The FuzzOptions object returned by prepare().
-          reproducers_dir: The directory to put reproducers in when crashes
-              are found.
-          max_time: Maximum allowed time for the fuzzing to run.
+            Args:
+              target_path: Path to the target.
+              options: The FuzzOptions object returned by prepare().
+              reproducers_dir: The directory to put reproducers in when crashes
+                  are found.
+              max_time: Maximum allowed time for the fuzzing to run.
 
-       Returns:
-          A FuzzResult object.
-        """
-    runner = _get_runner()
-    arguments = _DEFAULT_ARGUMENTS[:]
-    arguments.extend(options.arguments)
-    arguments.extend([
-        "--input",
-        options.corpus_dir,
-        "--workspace",
-        reproducers_dir,
-        "--run_time",
-        str(max_time),
-        "--",
-        target_path,
-    ])
+           Returns:
+              A FuzzResult object.
+            """
+        runner = _get_runner()
+        arguments = _DEFAULT_ARGUMENTS[:]
+        arguments.extend(options.arguments)
+        arguments.extend([
+            "--input",
+            options.corpus_dir,
+            "--workspace",
+            reproducers_dir,
+            "--run_time",
+            str(max_time),
+            "--",
+            target_path,
+        ])
 
-    fuzz_result = runner.run_and_wait(
-        additional_args=arguments, timeout=max_time + _CLEAN_EXIT_SECS)
-    log_lines = fuzz_result.output.splitlines()
-    sanitizer_stacktrace = _find_sanitizer_stacktrace(reproducers_dir)
+        fuzz_result = runner.run_and_wait(
+            additional_args=arguments, timeout=max_time + _CLEAN_EXIT_SECS)
+        log_lines = fuzz_result.output.splitlines()
+        sanitizer_stacktrace = _find_sanitizer_stacktrace(reproducers_dir)
 
-    crashes = []
-    stats = None
-    for line in log_lines:
-      reproducer_path = _get_reproducer_path(line)
-      if reproducer_path:
-        crashes.append(
-            engine.Crash(
-                reproducer_path,
-                sanitizer_stacktrace,
-                [],
-                int(fuzz_result.time_executed),
-            ))
-        continue
+        crashes = []
+        stats = None
+        for line in log_lines:
+            reproducer_path = _get_reproducer_path(line)
+            if reproducer_path:
+                crashes.append(
+                    engine.Crash(
+                        reproducer_path,
+                        sanitizer_stacktrace,
+                        [],
+                        int(fuzz_result.time_executed),
+                    ))
+                continue
 
-      stats = _get_stats(line)
+            stats = _get_stats(line)
 
-    if stats is None:
-      stats = {}
+        if stats is None:
+            stats = {}
 
-    return engine.FuzzResult(
-        fuzz_result.output,
-        fuzz_result.command,
-        crashes,
-        stats,
-        fuzz_result.time_executed,
-    )
+        return engine.FuzzResult(
+            fuzz_result.output,
+            fuzz_result.command,
+            crashes,
+            stats,
+            fuzz_result.time_executed,
+        )
 
-  def reproduce(self, target_path, input_path, _arguments, max_time):
-    """Reproduce a crash given an input.
+    def reproduce(self, target_path, input_path, _arguments, max_time):
+        """Reproduce a crash given an input.
 
-        Args:
-          target_path: Path to the target.
-          input_path: Path to the reproducer input.
-          arguments: Additional arguments needed for reproduction.
-          max_time: Maximum allowed time for the reproduction.
+            Args:
+              target_path: Path to the target.
+              input_path: Path to the reproducer input.
+              arguments: Additional arguments needed for reproduction.
+              max_time: Maximum allowed time for the reproduction.
 
-        Returns:
-          A ReproduceResult.
-        """
-    os.chmod(target_path, 0o775)
-    runner = new_process.ProcessRunner(target_path)
-    with open(input_path) as f:
-      result = runner.run_and_wait(timeout=max_time, stdin=f)
+            Returns:
+              A ReproduceResult.
+            """
+        os.chmod(target_path, 0o775)
+        runner = new_process.ProcessRunner(target_path)
+        with open(input_path) as f:
+            result = runner.run_and_wait(timeout=max_time, stdin=f)
 
-    return engine.ReproduceResult(result.command, result.return_code,
-                                  result.time_executed, result.output)
+        return engine.ReproduceResult(result.command, result.return_code,
+                                      result.time_executed, result.output)
 
-  def minimize_corpus(self, target_path, arguments, input_dirs, output_dir,
-                      reproducers_dir, max_time):
-    """Optional (but recommended): run corpus minimization.
+    def minimize_corpus(self, target_path, arguments, input_dirs, output_dir,
+                        reproducers_dir, max_time):
+        """Optional (but recommended): run corpus minimization.
 
-        Args:
-          target_path: Path to the target.
-          arguments: Additional arguments needed for corpus minimization.
-          input_dirs: Input corpora.
-          output_dir: Output directory to place minimized corpus.
-          reproducers_dir: The directory to put reproducers in when crashes are
-              found.
-          max_time: Maximum allowed time for the minimization.
+            Args:
+              target_path: Path to the target.
+              arguments: Additional arguments needed for corpus minimization.
+              input_dirs: Input corpora.
+              output_dir: Output directory to place minimized corpus.
+              reproducers_dir: The directory to put reproducers in when crashes are
+                  found.
+              max_time: Maximum allowed time for the minimization.
 
-        Returns:
-          A FuzzResult object.
-        """
-    # TODO(ochang): Implement this.
-    raise NotImplementedError
+            Returns:
+              A FuzzResult object.
+            """
+        # TODO(ochang): Implement this.
+        raise NotImplementedError
