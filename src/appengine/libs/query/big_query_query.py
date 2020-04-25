@@ -19,46 +19,47 @@ from libs.query import base
 
 
 class Query(base.Query):
-  """Represent a query for BigQuery's query. Named parameter mode is used."""
+    """Represent a query for BigQuery's query. Named parameter mode is used."""
 
-  def __init__(self):
-    self.conditions = []
-    self.or_groups = []
-    self.sort_by = None
+    def __init__(self):
+        self.conditions = []
+        self.or_groups = []
+        self.sort_by = None
 
-  def raw_filter(self, cond):
-    """Add raw filter directly."""
-    self.conditions.append(cond)
+    def raw_filter(self, cond):
+        """Add raw filter directly."""
+        self.conditions.append(cond)
 
-  def filter(self, field, value, operator='='):
-    """Filter by a single value."""
-    # json.dumps converts Python literals to BigQuery literals perfectly well.
-    # See tests.
-    self.conditions.append('%s %s %s' % (field, operator, json.dumps(value)))
+    def filter(self, field, value, operator='='):
+        """Filter by a single value."""
+        # json.dumps converts Python literals to BigQuery literals perfectly well.
+        # See tests.
+        self.conditions.append('%s %s %s' % (
+            field, operator, json.dumps(value)))
 
-  def filter_in(self, field, values):
-    """Filter by multiple values."""
-    literals = [json.dumps(v) for v in values]
-    self.conditions.append('%s IN (%s)' % (field, ', '.join(literals)))
+    def filter_in(self, field, values):
+        """Filter by multiple values."""
+        literals = [json.dumps(v) for v in values]
+        self.conditions.append('%s IN (%s)' % (field, ', '.join(literals)))
 
-  def union(self, *queries):
-    """Combine queries with OR conditions."""
-    self.or_groups.append(queries)
+    def union(self, *queries):
+        """Combine queries with OR conditions."""
+        self.or_groups.append(queries)
 
-  def new_subquery(self):
-    """Generate a new subquery."""
-    return Query()
+    def new_subquery(self):
+        """Generate a new subquery."""
+        return Query()
 
-  def get_where_clause(self):
-    """Get the where clause."""
-    subquery_wheres = []
-    for or_queries in self.or_groups:
-      or_cond = ' OR '.join(sub.get_where_clause() for sub in or_queries)
-      subquery_wheres.append('(%s)' % or_cond)
+    def get_where_clause(self):
+        """Get the where clause."""
+        subquery_wheres = []
+        for or_queries in self.or_groups:
+            or_cond = ' OR '.join(sub.get_where_clause() for sub in or_queries)
+            subquery_wheres.append('(%s)' % or_cond)
 
-    all_conds = self.conditions + subquery_wheres
+        all_conds = self.conditions + subquery_wheres
 
-    if not all_conds:
-      return ''
+        if not all_conds:
+            return ''
 
-    return '(%s)' % ' AND '.join(all_conds)
+        return '(%s)' % ' AND '.join(all_conds)
