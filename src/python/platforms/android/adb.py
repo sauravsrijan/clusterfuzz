@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ADB shell related functions."""
-
 import collections
 import glob
 import os
@@ -23,10 +22,12 @@ import tempfile
 import threading
 import time
 
-from base import persistent_cache, utils
+from base import persistent_cache
+from base import utils
 from future import standard_library
 from metrics import logs
-from system import environment, shell
+from system import environment
+from system import shell
 
 standard_library.install_aliases()
 

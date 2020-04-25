@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for the coverage_uploader module."""
-
 import datetime
 import os
-from builtins import object, range
+from builtins import object
+from builtins import range
 
 from fuzzing import coverage_uploader
 from pyfakefs import fake_filesystem_unittest

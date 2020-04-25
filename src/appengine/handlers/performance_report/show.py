@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Fuzzer performance report handler."""
-
 import datetime
 import json
 import logging
@@ -24,9 +23,13 @@ from datastore import data_handler
 from future import standard_library
 from google_cloud_utils import big_query
 from handlers import base_handler
-from handlers.performance_report import constants, performance_analyzer
-from libs import access, handler, helpers
-from metrics import fuzzer_logs, fuzzer_stats
+from handlers.performance_report import constants
+from handlers.performance_report import performance_analyzer
+from libs import access
+from libs import handler
+from libs import helpers
+from metrics import fuzzer_logs
+from metrics import fuzzer_stats
 
 standard_library.install_aliases()
 

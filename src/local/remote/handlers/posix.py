@@ -17,12 +17,15 @@ from __future__ import print_function
 import os
 import re
 import time
-from builtins import object, range
+from builtins import object
+from builtins import range
 
-from fabric import api, exceptions
+from fabric import api
+from fabric import exceptions
+from paramiko import ssh_exception
+
 from local.butler import common as butler_common
 from local.butler import package
-from paramiko import ssh_exception
 
 
 class Handler(object):

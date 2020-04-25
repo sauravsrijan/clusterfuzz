@@ -18,7 +18,9 @@ import os
 import sys
 
 import yaml
-from local.butler import appengine, common
+
+from local.butler import appengine
+from local.butler import common
 
 _FUTURIZE_EXCEPTIONS = [
     # Not yet handled across the codebase.

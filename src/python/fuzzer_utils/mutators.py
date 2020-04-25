@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Fuzzing mutators."""
-
 import random
 import struct
-from builtins import object, range
+from builtins import object
+from builtins import range
 
 DEFAULT_MIN_MUTATIONS = 1
 DEFAULT_MAX_MUTATIONS = 20
