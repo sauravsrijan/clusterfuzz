@@ -106,7 +106,7 @@ class HonggfuzzEngine(engine.Engine):
   def name(self):
     return "honggfuzz"
 
-  def prepare(self, corpus_dir, target_path, build_dir):
+  def prepare(self, corpus_dir, target_path, _build_dir):
     """Prepare for a fuzzing session, by generating options. Returns a
         FuzzOptions object.
 
@@ -185,7 +185,7 @@ class HonggfuzzEngine(engine.Engine):
         fuzz_result.time_executed,
     )
 
-  def reproduce(self, target_path, input_path, arguments, max_time):
+  def reproduce(self, target_path, input_path, _arguments, max_time):
     """Reproduce a crash given an input.
 
         Args:

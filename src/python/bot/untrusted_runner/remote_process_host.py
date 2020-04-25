@@ -83,7 +83,7 @@ class RemoteProcessRunner(new_process.ProcessRunner):
                    terminate_wait_time=None,
                    input_data=None,
                    max_stdout_len=None,
-                   extra_env=None,
+                   _extra_env=None,
                    stdout=subprocess.PIPE,
                    stderr=subprocess.STDOUT,
                    **popen_args):
